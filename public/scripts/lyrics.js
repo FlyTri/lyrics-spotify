@@ -82,16 +82,6 @@ const update = () => {
   document
     .querySelectorAll("p")
     .forEach((i) => i.classList.remove("highlight"));
-  lyrics.map((obj) => {
-    const currLine = document.querySelector(`.index-${obj.index}`);
-    if (
-      [currentIndex() - 1, currentIndex(), currentIndex() + 1].includes(
-        obj.index
-      )
-    )
-      currLine.classList.remove("dim");
-    else currLine.classList.add("dim");
-  });
   currentLine.classList.add("highlight");
   currentLine.scrollIntoView({
     behavior: "smooth",
@@ -111,16 +101,6 @@ const update = () => {
           const rect = currentLine.getBoundingClientRect();
 
           currentLine.classList.add("highlight");
-          lyrics.map((obj) => {
-            const currLine = document.querySelector(`.index-${obj.index}`);
-            if (
-              [lyric.index - 1, lyric.index, lyric.index + 1].includes(
-                obj.index
-              )
-            )
-              currLine.classList.remove("dim");
-            else currLine.classList.add("dim");
-          });
           if (rect.bottom >= -50)
             currentLine.scrollIntoView({
               behavior: "smooth",

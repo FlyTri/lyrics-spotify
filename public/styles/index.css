@@ -1,16 +1,16 @@
 @font-face {
-  font-family: CircularSp-Bold;
-  src: url("/fonts/CircularSp-Bold.woff2");
+  font-family: "SpotifyMix";
+  src: url("/fonts/SpotifyMix-Regular.woff");
 }
-
-* {
-  font-family: "CircularSp-Bold", sans-serif;
+@font-face {
+  font-family: "SpotifyMix-Bold";
+  src: url("/fonts/SpotifyMix-Bold.woff");
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: "SpotifyMix", sans-serif;
   background-color: #1e1e2e;
-  color: white;
+  color: #fff;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -57,22 +57,21 @@ body {
   padding-top: 60px;
 }
 
-.highlight {
-  color: #1db954;
-}
-
-.dim {
+p.lyrics {
+  font-family: "SpotifyMix-Bold", sans-serif;
+  font-size: 30px;
   color: rgb(56, 56, 56);
 }
 
-.lyrics {
-  font-size: 32px;
+p.highlight {
+  color: #1db954;
+  font-size: 33px;
 }
 
 .content p {
   margin: 0;
   text-align: center;
-  transition: all .7s ease;
+  transition: all 0.3s ease;
 }
 
 body::-webkit-scrollbar {
