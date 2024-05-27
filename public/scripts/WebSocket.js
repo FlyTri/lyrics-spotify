@@ -36,7 +36,7 @@ const connect = () => {
           spotify = {};
           playing = false;
 
-          document.querySelector(".title").textContent = "Hiện không phát";
+          document.querySelector(".title").textContent = "Tên bài hát";
           document.querySelector(".artist").textContent = "Tên nghệ sĩ";
 
           return setLyricsStatus(
