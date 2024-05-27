@@ -19,7 +19,7 @@ body {
 .sticky-header {
   position: sticky;
   top: 0;
-  background-color: #181825;
+  background-color: #0d0d14;
   text-align: center;
   padding: 10px 0;
   z-index: 1000;
@@ -47,7 +47,7 @@ body {
 
 .artist {
   font-size: 13px;
-  color: #555;
+  color: #888;
 }
 
 .content {
@@ -60,7 +60,7 @@ body {
 p.lyrics {
   font-family: "SpotifyMix-Bold", sans-serif;
   font-size: 30px;
-  color: rgb(56, 56, 56);
+  color: #788b78;
 }
 
 p.highlight {
