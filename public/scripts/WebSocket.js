@@ -49,7 +49,7 @@ const connect = () => {
           ? d.spotify.song
           : "Tên bài hát";
         document.querySelector(".artist").textContent = d.listening_to_spotify
-          ? d.spotify.artist.replace(";", ",")
+          ? d.spotify.artist.replaceAll(";", ",")
           : "Tên nghệ sĩ";
 
         if (d.listening_to_spotify && spotify.track_id != d.spotify.track_id) {
