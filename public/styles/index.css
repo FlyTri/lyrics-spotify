@@ -61,6 +61,10 @@ body {
   color: #1db954;
 }
 
+.dim {
+  color: rgb(56, 56, 56);
+}
+
 .lyrics {
   font-size: 32px;
 }
