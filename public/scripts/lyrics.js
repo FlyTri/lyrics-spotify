@@ -42,11 +42,9 @@ const currentIndex = () => {
   return before[before.length - 1].index;
 };
 const writeLyrics = () => {
-  console.log(currentIndex());
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
   if (lyrics) {
     lyrics.map((obj) => {
-      console.log(obj.index === -1 && currentIndex() === -1);
       const element = document.createElement("p");
       element.classList.add("lyrics", `index-${obj.index}`);
       element.textContent =
