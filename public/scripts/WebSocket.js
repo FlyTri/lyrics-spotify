@@ -75,7 +75,7 @@ const connect = () => {
     }
   };
   ws.onerror = (event) => {
-    console.log(`Socket error: ${event.onerror || "No reason"}`);
+    console.log(`Socket error: ${event.reason || "No reason"}`);
     ws.close;
   };
   ws.onclose = (event) => {
