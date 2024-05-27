@@ -35,7 +35,7 @@ ws.onmessage = async ({ data }) => {
         playing = false;
 
         document.querySelector(".title").textContent = "Hiện không phát";
-        document.querySelector(".artist").textContent = "Tên tác giả";
+        document.querySelector(".artist").textContent = "Tên nghệ sĩ";
 
         return setLyricsStatus(
           d.discord_status === "offline" ? "Đang offline" : "Hiện không phát"
@@ -48,7 +48,7 @@ ws.onmessage = async ({ data }) => {
         : "Tên bài hát";
       document.querySelector(".artist").textContent = d.listening_to_spotify
         ? d.spotify.artist.replace(";", ",")
-        : "Tên tác giả";
+        : "Tên nghệ sĩ";
 
       if (d.listening_to_spotify && spotify.track_id != d.spotify.track_id) {
         timeouts.map(clearTimeout);
