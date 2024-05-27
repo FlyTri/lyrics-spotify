@@ -23,7 +23,7 @@ const formatLyrics = async (lyrics) => {
     index: i,
     time: lr.time.total,
   }));
-  if (data[0].time) data.unshift({ text: "...", index: -1, time: 0 });
+  if (data[0].time) data.unshift({ index: -1, time: 0 });
 
   return data;
 };
@@ -35,13 +35,26 @@ const setLyricsStatus = (text) => {
   element.textContent = text;
   document.querySelector(".content").appendChild(element);
 };
+const currentIndex = () => {
+  const now = (Date.now() - spotify.timestamps.start) / 1000;
+  const before = lyrics.filter((obj) => obj.time <= now);
+
+  return before[before.length - 1].index;
+};
 const writeLyrics = () => {
+  console.log(currentIndex());
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
   if (lyrics) {
     lyrics.map((obj) => {
+      console.log(obj.index === -1 && currentIndex() === -1);
       const element = document.createElement("p");
       element.classList.add("lyrics", `index-${obj.index}`);
-      element.textContent = obj.text || "♪";
+      element.textContent =
+        obj.index === -1 && currentIndex() === -1
+          ? "⬤ ⬤ ⬤ ⬤"
+          : obj.index === -1
+          ? ""
+          : obj.text || "♪";
       document.querySelector(".content").appendChild(element);
     });
   }
@@ -54,12 +67,20 @@ const update = () => {
   if (!lyrics) return setLyricsStatus("Hmm... Bạn phải đoán chúng rồi!");
 
   const now = (Date.now() - spotify.timestamps.start) / 1000;
-  const before = lyrics.filter((obj) => obj.time <= now);
   const nextLyric = lyrics.filter((obj) => obj.time >= now);
 
-  const currentLine = document.querySelector(
-    `.index-${before[before.length - 1].index}`
-  );
+  const currentLine = document.querySelector(`.index-${currentIndex()}`);
+  if (currentIndex() === -1) {
+    const wait =
+      (lyrics[1].time * 1000 - (Date.now() - spotify.timestamps.start)) / 4;
+    [3, 2, 1, 0].map((number, index) =>
+      timeouts.push(
+        setTimeout(() => {
+          currentLine.textContent = " ⬤ ".repeat(number);
+        }, wait * (index + 1))
+      )
+    );
+  }
   document
     .querySelectorAll("p")
     .forEach((i) => i.classList.remove("highlight"));
@@ -73,8 +94,8 @@ const update = () => {
     nextLyric.map((lyric) => {
       timeouts.push(
         setTimeout(() => {
-            if (!playing) return;
-            
+          if (!playing) return;
+
           document
             .querySelectorAll("p")
             .forEach((i) => i.classList.remove("highlight"));

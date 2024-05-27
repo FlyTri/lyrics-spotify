@@ -59,11 +59,15 @@ ws.onmessage = async ({ data }) => {
           .then((response) => response.json().then(formatLyrics))
           .catch(() => null);
 
+        spotify = d.spotify;
+        playing = d.listening_to_spotify;
+
         writeLyrics();
       }
 
       spotify = d.spotify;
       playing = d.listening_to_spotify;
+      if (currentIndex() === -1) writeLyrics();
       update();
     }
   }
