@@ -72,6 +72,7 @@ body {
 .content p {
   margin: 0;
   text-align: center;
+  transition: all .7s ease;
 }
 
 body::-webkit-scrollbar {
