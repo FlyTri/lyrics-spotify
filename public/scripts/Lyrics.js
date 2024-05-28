@@ -1,4 +1,4 @@
-const timeouts = [];
+let timeouts = [];
 let lyrics;
 let spotify = {};
 let playing = false;
@@ -28,7 +28,7 @@ const setLyricsStatus = (text) => {
 const currentIndex = () => {
   const now = (Date.now() - spotify.timestamps.start) / 1000;
   const before = lyrics.data.flat(Infinity).filter((obj) => obj.time <= now);
-  console.log(now, before, before.length - 1);
+
   return before[before.length - 1].index;
 };
 const writeLyrics = () => {
@@ -38,7 +38,7 @@ const writeLyrics = () => {
   else {
     switch (lyrics.type) {
       case "TEXT_SYNCED": {
-        lyrics.data.map((obj, i) => {
+        lyrics.data.map((obj) => {
           const element = document.createElement("p");
 
           element.classList.add("lyrics");
@@ -46,9 +46,9 @@ const writeLyrics = () => {
             const span = document.createElement("span");
             span.classList.add(`index-${index}`);
 
-            if (index.index === -1 && currentIndex() === -1) {
+            if (index === -1 && currentIndex() === -1) {
               span.textContent = "⬤ ⬤ ⬤ ⬤";
-            } else if (obj.index === -1) {
+            } else if (index === -1) {
               span.textContent = "";
             } else {
               span.textContent = text || "♪";
@@ -91,7 +91,9 @@ const writeLyrics = () => {
   }
 };
 const update = () => {
-  timeouts.map((timeout) => clearTimeout(timeout));
+  timeouts.forEach((t) => clearTimeout(t));
+  timeouts = [];
+
   if (!playing)
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
   if (!lyrics.data) return;
@@ -120,6 +122,8 @@ const update = () => {
     .forEach((i) => i.classList.remove("highlight"));
   document.querySelectorAll("p").forEach((i) => i.classList.remove("bold"));
   currentLine.classList.add("highlight");
+  if (lyrics.type === "TEXT_SYNCED")
+    currentLine.parentElement.classList.add("bold");
   currentLine.scrollIntoView({
     behavior: "smooth",
     block: "center",
@@ -211,7 +215,8 @@ const handleData = async ({ d }) => {
     : "Tên nghệ sĩ";
 
   if (d.listening_to_spotify && spotify.track_id != d.spotify.track_id) {
-    timeouts.map(clearTimeout);
+    timeouts.forEach((t) => clearTimeout(t));
+    timeouts = [];
     setLyricsStatus("Đang tải...");
     lyrics = await fetch(
       `/api/lyrics?name=${d.spotify.song}&id=${d.spotify.track_id}`
