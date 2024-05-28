@@ -108,13 +108,14 @@ app
 
           if (textSynced) {
             let count = 0;
-            const data = textSynced.map((obj, mIndex) =>
-              obj.l.map((data, index) => ({
+            const data = textSynced.map((obj) =>
+              obj.l.map((data) => ({
                 text: data.c,
                 time: obj.ts + data.o,
                 index: count++ + 1,
               }))
             );
+            if (data[0][0].time) data.unshift([{ index: -1, time: 0 }]);
 
             return res.send({
               type: "TEXT_SYNCED",
@@ -144,7 +145,7 @@ app
             "track.lyrics.get"
           ].message.body.lyrics.lyrics_body
             .split("\n")
-            .map((text) => ({ text:text||"" })),
+            .map((text) => ({ text: text || "" })),
         });
       } else {
         res.status(500).send({

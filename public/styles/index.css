@@ -72,10 +72,15 @@ p.highlight {
   color: #1db954;
 }
 
-span.highlight {
+p.bold {
   font-family: "SpotifyMix-Bold", sans-serif;
+  color: #fff;
+}
+
+span.highlight {
   background-color: #1db954;
   border-radius: 3px;
+  transition: 0.3s;
 }
 
 .content p {

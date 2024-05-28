@@ -28,7 +28,7 @@ const setLyricsStatus = (text) => {
 const currentIndex = () => {
   const now = (Date.now() - spotify.timestamps.start) / 1000;
   const before = lyrics.data.flat(Infinity).filter((obj) => obj.time <= now);
-
+  console.log(now, before, before.length - 1);
   return before[before.length - 1].index;
 };
 const writeLyrics = () => {
@@ -46,14 +46,13 @@ const writeLyrics = () => {
             const span = document.createElement("span");
             span.classList.add(`index-${index}`);
 
-            // if (obj.index === -1 && currentIndex() === -1) {
-            //   element.textContent = "⬤ ⬤ ⬤ ⬤";
-            // } else if (obj.index === -1) {
-            //   element.textContent = "";
-            // } else
-            // {
-            span.textContent = text || "♪";
-             // }
+            if (index.index === -1 && currentIndex() === -1) {
+              span.textContent = "⬤ ⬤ ⬤ ⬤";
+            } else if (obj.index === -1) {
+              span.textContent = "";
+            } else {
+              span.textContent = text || "♪";
+            }
             element.appendChild(span);
           });
 
@@ -104,7 +103,9 @@ const update = () => {
 
   if (currentIndex() === -1) {
     const wait =
-      (lyrics[1].time * 1000 - (Date.now() - spotify.timestamps.start)) / 4;
+      (lyrics.data.flat(Infinity)[1].time * 1000 -
+        (Date.now() - spotify.timestamps.start)) /
+      4;
     [3, 2, 1, 0].map((number, index) =>
       timeouts.push(
         setTimeout(() => {
@@ -117,6 +118,7 @@ const update = () => {
   document
     .querySelectorAll("p")
     .forEach((i) => i.classList.remove("highlight"));
+  document.querySelectorAll("p").forEach((i) => i.classList.remove("bold"));
   currentLine.classList.add("highlight");
   currentLine.scrollIntoView({
     behavior: "smooth",
@@ -136,9 +138,13 @@ const update = () => {
                 document
                   .querySelectorAll("span")
                   .forEach((i) => i.classList.remove("highlight"));
+                document
+                  .querySelectorAll("p")
+                  .forEach((i) => i.classList.remove("bold"));
                 const currentLine = document.querySelector(
                   `.index-${lyric.index}`
                 );
+                currentLine.parentElement.classList.add("bold");
                 const rect = currentLine.getBoundingClientRect();
 
                 currentLine.classList.add("highlight");
