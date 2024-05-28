@@ -53,7 +53,7 @@ const writeLyrics = () => {
             // } else
             // {
             span.textContent = text || "♪";
-            // }
+             // }
             element.appendChild(span);
           });
 
