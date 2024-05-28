@@ -42,11 +42,16 @@ const connect = () => {
   };
   ws.onerror = (event) => {
     log("LANYARD", "Error", "red", event.reason || "No reason");
-    ws.close();
   };
   ws.onclose = (event) => {
     clearInterval(interval);
-    log("LANYARD", "Disconnected", "white", event.reason || "No reason");
+    log(
+      "LANYARD",
+      "Disconnected",
+      "white",
+      event.code,
+      event.reason || "No reason"
+    );
 
     setTimeout(() => {
       log("LANYARD", "Reconnecting", "Orange");
