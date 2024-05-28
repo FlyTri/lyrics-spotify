@@ -76,7 +76,7 @@ const connect = () => {
   };
   ws.onerror = (event) => {
     console.log(`Socket error: ${event.reason || "No reason"}`);
-    ws.close;
+    ws.close();
   };
   ws.onclose = (event) => {
     clearInterval(interval);

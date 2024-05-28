@@ -12,10 +12,8 @@ setInterval(() => {
           (Date.now() - spotify.timestamps.start))) *
       100
     }%`;
-  } else {
-    if (width != "0%")
-      document.querySelector(".progress-bar").style.width = "0%";
-  }
+  } else if (width != "0%")
+    document.querySelector(".progress-bar").style.width = "0%";
 });
 const formatLyrics = async (lyrics) => {
   const data = lyrics.map((lr, i) => ({
@@ -43,31 +41,34 @@ const currentIndex = () => {
 };
 const writeLyrics = () => {
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
-  if (lyrics) {
+  if (lyrics)
     lyrics.map((obj) => {
       const element = document.createElement("p");
       element.classList.add("lyrics", `index-${obj.index}`);
-      element.textContent =
-        obj.index === -1 && currentIndex() === -1
-          ? "⬤ ⬤ ⬤ ⬤"
-          : obj.index === -1
-          ? ""
-          : obj.text || "♪";
+
+      if (obj.index === -1 && currentIndex() === -1) {
+        element.textContent = "⬤ ⬤ ⬤ ⬤";
+      } else if (obj.index === -1) {
+        element.textContent = "";
+      } else {
+        element.textContent = obj.text || "♪";
+      }
+
       document.querySelector(".content").appendChild(element);
     });
-  }
 };
 const update = () => {
-  timeouts.map(clearTimeout);
+  timeouts.map((timeout) => clearTimeout(timeout));
   if (!playing)
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
-  if (!lyrics) return setLyricsStatus("Hmm... Bạn phải đoán chúng rồi!");
+  if (!lyrics) return setLyricsStatus("Hmm... Bạn phải đoán thôi!");
 
   const now = (Date.now() - spotify.timestamps.start) / 1000;
   const nextLyric = lyrics.filter((obj) => obj.time >= now);
 
   const currentLine = document.querySelector(`.index-${currentIndex()}`);
+
   if (currentIndex() === -1) {
     const wait =
       (lyrics[1].time * 1000 - (Date.now() - spotify.timestamps.start)) / 4;
@@ -79,6 +80,7 @@ const update = () => {
       )
     );
   }
+
   document
     .querySelectorAll("p")
     .forEach((i) => i.classList.remove("highlight"));
@@ -88,7 +90,7 @@ const update = () => {
     block: "center",
   });
 
-  if (playing) {
+  if (playing)
     nextLyric.map((lyric) => {
       timeouts.push(
         setTimeout(() => {
@@ -109,5 +111,4 @@ const update = () => {
         }, (lyric.time - now) * 1000)
       );
     });
-  }
 };
