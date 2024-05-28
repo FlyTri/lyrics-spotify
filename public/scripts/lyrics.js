@@ -126,28 +126,30 @@ const update = () => {
   if (playing) {
     switch (lyrics.type) {
       case "TEXT_SYNCED": {
-        nextLyric.map((lyric) => {
-          timeouts.push(
-            setTimeout(() => {
-              if (!playing) return;
+        nextLyric
+          .filter((lyric) => lyric.text != " ")
+          .map((lyric) => {
+            timeouts.push(
+              setTimeout(() => {
+                if (!playing) return;
 
-              document
-                .querySelectorAll("span")
-                .forEach((i) => i.classList.remove("highlight"));
-              const currentLine = document.querySelector(
-                `.index-${lyric.index}`
-              );
-              const rect = currentLine.getBoundingClientRect();
+                document
+                  .querySelectorAll("span")
+                  .forEach((i) => i.classList.remove("highlight"));
+                const currentLine = document.querySelector(
+                  `.index-${lyric.index}`
+                );
+                const rect = currentLine.getBoundingClientRect();
 
-              currentLine.classList.add("highlight");
-              if (rect.bottom >= -50)
-                currentLine.scrollIntoView({
-                  behavior: "smooth",
-                  block: "center",
-                });
-            }, (lyric.time - now) * 1000)
-          );
-        });
+                currentLine.classList.add("highlight");
+                if (rect.bottom >= -50)
+                  currentLine.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
+              }, (lyric.time - now) * 1000)
+            );
+          });
         break;
       }
       case "LINE_SYNCED": {
