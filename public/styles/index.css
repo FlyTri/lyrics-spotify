@@ -3,6 +3,10 @@
   src: url("/fonts/SpotifyMix-Regular.woff");
 }
 @font-face {
+  font-family: "SpotifyMix-Medium";
+  src: url("/fonts/SpotifyMix-Medium.woff");
+}
+@font-face {
   font-family: "SpotifyMix-Bold";
   src: url("/fonts/SpotifyMix-Bold.woff");
 }
@@ -58,14 +62,15 @@ body {
 }
 
 p.lyrics {
-  font-family: "SpotifyMix-Bold", sans-serif;
+  font-family: "SpotifyMix-Medium", sans-serif;
   font-size: 30px;
   color: #788b78;
 }
 
 p.highlight {
+  font-family: "SpotifyMix-Bold", sans-serif;
+  /* font-size: 32px; */
   color: #1db954;
-  font-size: 32px;
 }
 
 .content p {
