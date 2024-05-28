@@ -64,12 +64,11 @@ body {
 p.lyrics {
   font-family: "SpotifyMix-Medium", sans-serif;
   font-size: 30px;
-  color: #788b78;
+  color: #546254;
 }
 
 p.highlight {
   font-family: "SpotifyMix-Bold", sans-serif;
-  /* font-size: 32px; */
   color: #1db954;
 }
 
