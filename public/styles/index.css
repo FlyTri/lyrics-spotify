@@ -72,6 +72,11 @@ p.highlight {
   color: #1db954;
 }
 
+span.highlight {
+  background-color: #1db954;
+  border-radius: 3px;
+}
+
 .content p {
   margin: 0;
   text-align: center;

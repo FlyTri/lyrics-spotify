@@ -1,5 +1,7 @@
 const timeouts = [];
 let lyrics;
+let spotify = {};
+let playing = false;
 
 setInterval(() => {
   const width = document.querySelector(".progress-bar").style.width;
@@ -15,16 +17,6 @@ setInterval(() => {
   } else if (width != "0%")
     document.querySelector(".progress-bar").style.width = "0%";
 });
-const formatLyrics = async (lyrics) => {
-  const data = lyrics.map((lr, i) => ({
-    text: lr.text,
-    index: i,
-    time: lr.time.total,
-  }));
-  if (data[0].time) data.unshift({ index: -1, time: 0 });
-
-  return data;
-};
 const setLyricsStatus = (text) => {
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
@@ -35,37 +27,78 @@ const setLyricsStatus = (text) => {
 };
 const currentIndex = () => {
   const now = (Date.now() - spotify.timestamps.start) / 1000;
-  const before = lyrics.filter((obj) => obj.time <= now);
+  const before = lyrics.data.flat(Infinity).filter((obj) => obj.time <= now);
 
   return before[before.length - 1].index;
 };
 const writeLyrics = () => {
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
-  if (lyrics)
-    lyrics.map((obj) => {
-      const element = document.createElement("p");
-      element.classList.add("lyrics", `index-${obj.index}`);
 
-      if (obj.index === -1 && currentIndex() === -1) {
-        element.textContent = "⬤ ⬤ ⬤ ⬤";
-      } else if (obj.index === -1) {
-        element.textContent = "";
-      } else {
-        element.textContent = obj.text || "♪";
+  if (typeof lyrics === "string") setLyricsStatus(lyrics);
+  else {
+    switch (lyrics.type) {
+      case "TEXT_SYNCED": {
+        lyrics.data.map((obj, i) => {
+          const element = document.createElement("p");
+
+          element.classList.add("lyrics");
+          obj.map(({ text, time, index }) => {
+            const span = document.createElement("span");
+            span.classList.add(`index-${index}`);
+
+            // if (obj.index === -1 && currentIndex() === -1) {
+            //   element.textContent = "⬤ ⬤ ⬤ ⬤";
+            // } else if (obj.index === -1) {
+            //   element.textContent = "";
+            // } else
+            // {
+            span.textContent = text || "♪";
+            // }
+            element.appendChild(span);
+          });
+
+          document.querySelector(".content").appendChild(element);
+        });
+        break;
       }
+      case "LINE_SYNCED": {
+        lyrics.data.map((obj) => {
+          const element = document.createElement("p");
+          element.classList.add("lyrics", `index-${obj.index}`);
 
-      document.querySelector(".content").appendChild(element);
-    });
+          if (obj.index === -1 && currentIndex() === -1) {
+            element.textContent = "⬤ ⬤ ⬤ ⬤";
+          } else if (obj.index === -1) {
+            element.textContent = "";
+          } else {
+            element.textContent = obj.text || "♪";
+          }
+
+          document.querySelector(".content").appendChild(element);
+        });
+        break;
+      }
+      case "NOT_SYNCED": {
+        lyrics.data.map((obj) => {
+          const element = document.createElement("p");
+          element.classList.add("lyrics", "highlight");
+          element.textContent = obj.text;
+
+          document.querySelector(".content").appendChild(element);
+        });
+        break;
+      }
+    }
+  }
 };
 const update = () => {
   timeouts.map((timeout) => clearTimeout(timeout));
   if (!playing)
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
-
-  if (!lyrics) return setLyricsStatus("Hmm... Bạn phải đoán thôi!");
+  if (!lyrics.data) return;
 
   const now = (Date.now() - spotify.timestamps.start) / 1000;
-  const nextLyric = lyrics.filter((obj) => obj.time >= now);
+  const nextLyric = lyrics.data.flat(Infinity).filter((obj) => obj.time >= now);
 
   const currentLine = document.querySelector(`.index-${currentIndex()}`);
 
@@ -90,27 +123,63 @@ const update = () => {
     block: "center",
   });
 
-  if (playing)
-    nextLyric.map((lyric) => {
-      timeouts.push(
-        setTimeout(() => {
-          if (!playing) return;
+  if (playing) {
+    switch (lyrics.type) {
+      case "TEXT_SYNCED": {
+        nextLyric.map((lyric) => {
+          timeouts.push(
+            setTimeout(() => {
+              if (!playing) return;
 
-          document
-            .querySelectorAll("p")
-            .forEach((i) => i.classList.remove("highlight"));
-          const currentLine = document.querySelector(`.index-${lyric.index}`);
-          const rect = currentLine.getBoundingClientRect();
+              document
+                .querySelectorAll("span")
+                .forEach((i) => i.classList.remove("highlight"));
+              const currentLine = document.querySelector(
+                `.index-${lyric.index}`
+              );
+              const rect = currentLine.getBoundingClientRect();
 
-          currentLine.classList.add("highlight");
-          if (rect.bottom >= -50)
-            currentLine.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-        }, (lyric.time - now) * 1000)
-      );
-    });
+              currentLine.classList.add("highlight");
+              if (rect.bottom >= -50)
+                currentLine.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+            }, (lyric.time - now) * 1000)
+          );
+        });
+        break;
+      }
+      case "LINE_SYNCED": {
+        nextLyric.map((lyric) => {
+          timeouts.push(
+            setTimeout(() => {
+              if (!playing) return;
+
+              document
+                .querySelectorAll("p")
+                .forEach((i) => i.classList.remove("highlight"));
+              const currentLine = document.querySelector(
+                `.index-${lyric.index}`
+              );
+              const rect = currentLine.getBoundingClientRect();
+
+              currentLine.classList.add("highlight");
+              if (rect.bottom >= -50)
+                currentLine.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+            }, (lyric.time - now) * 1000)
+          );
+        });
+        break;
+      }
+      case "NOT_SYNCED": {
+        break;
+      }
+    }
+  }
 };
 const handleData = async ({ d }) => {
   if (d.discord_status === "offline" || !d.spotify) {
@@ -138,18 +207,23 @@ const handleData = async ({ d }) => {
     setLyricsStatus("Đang tải...");
     lyrics = await fetch(
       `/api/lyrics?name=${d.spotify.song}&id=${d.spotify.track_id}`
-    )
-      .then((response) => response.json().then(formatLyrics))
-      .catch(() => null);
+    ).then((response) =>
+      response.json().then((data) => {
+        if (data.message) return data.message;
+
+        return data;
+      })
+    );
+    //.catch(() => "Không thể gửi yêu cầu");
 
     spotify = d.spotify;
     playing = d.listening_to_spotify;
 
-    if (lyrics) writeLyrics();
+    writeLyrics();
   }
 
   spotify = d.spotify;
   playing = d.listening_to_spotify;
-  if (lyrics && currentIndex() === -1) writeLyrics();
+  if (playing && lyrics.data && currentIndex() === -1) writeLyrics();
   update();
 };

@@ -1,6 +1,4 @@
 let storedID = localStorage.getItem("id");
-let spotify = {};
-let playing = false;
 
 if (!storedID) {
   const id = prompt("Nhập ID Discord của bạn") || "";
