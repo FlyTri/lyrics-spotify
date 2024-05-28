@@ -112,3 +112,44 @@ const update = () => {
       );
     });
 };
+const handleData = async ({ d }) => {
+  if (d.discord_status === "offline" || !d.spotify) {
+    spotify = {};
+    playing = false;
+
+    document.querySelector(".title").textContent = "Tên bài hát";
+    document.querySelector(".artist").textContent = "Tên nghệ sĩ";
+
+    return setLyricsStatus(
+      d.discord_status === "offline" ? "Đang offline" : "Hiện không phát"
+    );
+  }
+
+  document.title = d.listening_to_spotify ? "Đang phát" : "Đã tạm dừng";
+  document.querySelector(".title").textContent = d.listening_to_spotify
+    ? d.spotify.song
+    : "Tên bài hát";
+  document.querySelector(".artist").textContent = d.listening_to_spotify
+    ? d.spotify.artist.replaceAll(";", ",")
+    : "Tên nghệ sĩ";
+
+  if (d.listening_to_spotify && spotify.track_id != d.spotify.track_id) {
+    timeouts.map(clearTimeout);
+    setLyricsStatus("Đang tải...");
+    lyrics = await fetch(
+      `/api/lyrics?name=${d.spotify.song}&id=${d.spotify.track_id}`
+    )
+      .then((response) => response.json().then(formatLyrics))
+      .catch(() => null);
+
+    spotify = d.spotify;
+    playing = d.listening_to_spotify;
+
+    if (lyrics) writeLyrics();
+  }
+
+  spotify = d.spotify;
+  playing = d.listening_to_spotify;
+  if (lyrics && currentIndex() === -1) writeLyrics();
+  update();
+};
