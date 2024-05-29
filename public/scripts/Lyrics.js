@@ -8,10 +8,10 @@ setInterval(() => {
 
   if (playing) {
     document.querySelector(".progress-bar").style.width = `${
-      ((Date.now() - spotify.timestamps.start) /
+      ((DateNow() - spotify.timestamps.start) /
         (spotify.timestamps.end -
-          Date.now() +
-          (Date.now() - spotify.timestamps.start))) *
+          DateNow() +
+          (DateNow() - spotify.timestamps.start))) *
       100
     }%`;
   } else if (width != "0%")
@@ -26,7 +26,7 @@ const setLyricsStatus = (text) => {
   document.querySelector(".content").appendChild(element);
 };
 const currentIndex = () => {
-  const now = (Date.now() - spotify.timestamps.start) / 1000;
+  const now = (DateNow() - spotify.timestamps.start) / 1000;
   const before = lyrics.data.flat(Infinity).filter((obj) => obj.time <= now);
 
   return before[before.length - 1].index;
@@ -98,7 +98,7 @@ const update = () => {
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
   if (!lyrics.data) return;
 
-  const now = (Date.now() - spotify.timestamps.start) / 1000;
+  const now = (DateNow() - spotify.timestamps.start) / 1000;
   const nextLyric = lyrics.data.flat(Infinity).filter((obj) => obj.time >= now);
 
   const currentLine = document.querySelector(`.index-${currentIndex()}`);
@@ -106,7 +106,7 @@ const update = () => {
   if (currentIndex() === -1) {
     const wait =
       (lyrics.data.flat(Infinity)[1].time * 1000 -
-        (Date.now() - spotify.timestamps.start)) /
+        (DateNow() - spotify.timestamps.start)) /
       4;
     [3, 2, 1, 0].map((number, index) =>
       timeouts.push(
@@ -130,6 +130,15 @@ const update = () => {
   });
 
   if (playing) {
+    setInterval(
+      () =>
+        console.log(
+          (DateNow() - spotify.timestamps.start) / 1000,
+          currentIndex(),
+          lyrics.data.flat(Infinity).find((r) => r.index == currentIndex())
+        ),
+      250
+    );
     switch (lyrics.type) {
       case "TEXT_SYNCED": {
         nextLyric
@@ -215,19 +224,27 @@ const handleData = async ({ d }) => {
     : "Tên nghệ sĩ";
 
   if (d.listening_to_spotify && spotify.track_id != d.spotify.track_id) {
+    const params = new URLSearchParams({
+      name: d.spotify.song,
+      id: d.spotify.track_id,
+      album: d.spotify.album,
+      artist: d.spotify.artist,
+      duration: d.spotify.timestamps.end - d.spotify.timestamps.start,
+    }).toString();
+
     timeouts.forEach((t) => clearTimeout(t));
     timeouts = [];
     setLyricsStatus("Đang tải...");
-    lyrics = await fetch(
-      `/api/lyrics?name=${d.spotify.song}&id=${d.spotify.track_id}`
-    ).then((response) =>
-      response.json().then((data) => {
-        if (data.message) return data.message;
 
-        return data;
-      })
-    );
-    //.catch(() => "Không thể gửi yêu cầu");
+    lyrics = await fetch("/api/lyrics?" + params)
+      .then((response) =>
+        response.json().then((data) => {
+          if (data.message) return data.message;
+
+          return data;
+        })
+      )
+      .catch(() => "Không thể gửi yêu cầu");
 
     spotify = d.spotify;
     playing = d.listening_to_spotify;

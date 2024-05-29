@@ -11,7 +11,7 @@ if (!storedID) {
 const connect = () => {
   const ws = new WebSocket("wss://api.lanyard.rest/socket");
   const start = Date.now();
-  let interval = null;
+  let heartbeat_interval = null;
   ws.onopen = (event) => {
     log("LANYARD", "Connected", "aqua", Date.now() - start);
     ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: storedID } }));
@@ -22,7 +22,7 @@ const connect = () => {
 
     log("LANYARD", "Message", "pink", parsed.t || "-", parsed);
     if (parsed.t === "INIT_STATE") {
-      if (!d.user)
+      if (!d.discord_user)
         return log(
           "USER",
           "Not found",
@@ -35,7 +35,7 @@ const connect = () => {
 
     switch (op) {
       case 1: {
-        interval = setInterval(() => {
+        heartbeat_interval = setInterval(() => {
           log("LANYARD", "HeartBeat", "coral", "Sending...");
 
           ws.send(JSON.stringify({ op: 3 }));
@@ -51,7 +51,8 @@ const connect = () => {
     log("LANYARD", "Error", "red", event.reason || "No reason");
   };
   ws.onclose = (event) => {
-    clearInterval(interval);
+    clearInterval(heartbeat_interval);
+
     log(
       "LANYARD",
       "Disconnected",

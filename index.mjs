@@ -40,7 +40,6 @@ const getToken = async () =>
 
 getToken().then(console.log);
 
-// Web server
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
@@ -48,7 +47,9 @@ const app = express();
 app
   .use(express.static(path.join(__dirname, "public")))
   .get("/api/lyrics", (req, res) => {
-    if (!req.query.name || !req.query.id) return res.sendStatus(400);
+    const { name, album, artist, id, duration } = req.query;
+    if (!name || !album || !artist || !id || !duration)
+      return res.sendStatus(400);
 
     const callAPI = () => {
       return axios.get(MusixmatchBaseURL + "macro.subtitles.get", {
@@ -57,8 +58,13 @@ app
           namespace: "lyrics_richsynched",
           app_id: "web-desktop-app-v1.0",
           subtitle_format: "mxm",
-          q_track: req.query.name,
-          track_spotify_id: req.query.id,
+          q_album: album,
+          q_artist: artist.split(";")[0],
+          q_artists: artist,
+          q_track: name,
+          track_spotify_id: id,
+          q_duration: duration,
+          f_subtitle_length: Math.floor(duration / 1000),
           usertoken: MusixmatchToken,
         },
         headers: {
@@ -67,13 +73,15 @@ app
         },
       });
     };
-    const getTextSynced = async (commontrack_id) =>
+    const getTextSynced = async ({ commontrack_id, track_length }) =>
       axios
         .get(MusixmatchBaseURL + "track.richsync.get", {
           params: {
             format: "json",
             app_id: "web-desktop-app-v1.0",
             subtitle_format: "mxm",
+            f_subtitle_length: track_length,
+            q_duration: track_length,
             commontrack_id,
             usertoken: MusixmatchToken,
           },
@@ -103,7 +111,6 @@ app
         if (track.has_richsync) {
           const textSynced = await getTextSynced(
             body.macro_calls["matcher.track.get"].message.body.track
-              .commontrack_id
           );
 
           if (textSynced) {
