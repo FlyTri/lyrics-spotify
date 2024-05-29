@@ -96,10 +96,12 @@ const update = () => {
 
   if (!playing)
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
-  if (!lyrics.data) return;
+  if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
 
   const now = (DateNow() - spotify.timestamps.start) / 1000;
-  const nextLyric = lyrics.data.flat(Infinity).filter((obj) => obj.time >= now);
+  const nextLyrics = lyrics.data
+    .flat(Infinity)
+    .filter((obj) => obj.time >= now);
 
   const currentLine = document.querySelector(`.index-${currentIndex()}`);
 
@@ -132,7 +134,7 @@ const update = () => {
   if (playing) {
     switch (lyrics.type) {
       case "TEXT_SYNCED": {
-        nextLyric
+        nextLyrics
           .filter((lyric) => lyric.text != " ")
           .map((lyric) => {
             timeouts.push(
@@ -163,7 +165,7 @@ const update = () => {
         break;
       }
       case "LINE_SYNCED": {
-        nextLyric.map((lyric) => {
+        nextLyrics.map((lyric) => {
           timeouts.push(
             setTimeout(() => {
               if (!playing) return;
@@ -185,9 +187,6 @@ const update = () => {
             }, (lyric.time - now) * 1000)
           );
         });
-        break;
-      }
-      case "NOT_SYNCED": {
         break;
       }
     }
@@ -245,6 +244,12 @@ const handleData = async ({ d }) => {
 
   spotify = d.spotify;
   playing = d.listening_to_spotify;
-  if (playing && lyrics.data && currentIndex() === -1) writeLyrics();
+  if (
+    playing &&
+    lyrics.type !== "NOT_SYNCED" &&
+    lyrics.data &&
+    currentIndex() === -1
+  )
+    writeLyrics();
   update();
 };

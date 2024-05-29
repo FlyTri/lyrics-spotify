@@ -51,8 +51,8 @@ app
     if (!name || !album || !artist || !id || !duration)
       return res.sendStatus(400);
 
-    const callAPI = () => {
-      return axios.get(MusixmatchBaseURL + "macro.subtitles.get", {
+    const callAPI = () =>
+      axios.get(MusixmatchBaseURL + "macro.subtitles.get", {
         params: {
           format: "json",
           namespace: "lyrics_richsynched",
@@ -60,11 +60,11 @@ app
           subtitle_format: "mxm",
           q_album: album,
           q_artist: artist.split(";")[0],
-          q_artists: artist,
+          q_artists: artist.split(";")[0],
           q_track: name,
-          track_spotify_id: id,
-          q_duration: duration,
-          f_subtitle_length: Math.floor(duration / 1000),
+          track_spotify_id: "spotify:track:" + id,
+          q_duration: Math.round(duration / 1000),
+          f_subtitle_length: Math.round(duration / 1000),
           usertoken: MusixmatchToken,
         },
         headers: {
@@ -72,7 +72,7 @@ app
           cookie: "x-mxm-token-guid=",
         },
       });
-    };
+
     const getTextSynced = async ({ commontrack_id, track_length }) =>
       axios
         .get(MusixmatchBaseURL + "track.richsync.get", {
@@ -94,74 +94,77 @@ app
           JSON.parse(response.data.message.body.richsync.richsync_body)
         )
         .catch(() => null);
+
+    const checkStatusCode = (response) =>
+      response.data.message.header.status_code === 200;
+    const isLyricsNotFound = (body) =>
+      body.macro_calls["track.lyrics.get"].message.header.status_code === 404 ||
+      !body.macro_calls["track.lyrics.get"].message.body.lyrics.lyrics_body;
+    const getTextSyncedData = async (body) => {
+      const textSynced = await getTextSynced(
+        body.macro_calls["matcher.track.get"].message.body.track
+      );
+      if (!textSynced) return null;
+      let count = 0;
+      const data = textSynced.map((obj) =>
+        obj.l.map((data) => ({
+          text: data.c,
+          time: obj.ts + data.o,
+          index: count++ + 1,
+        }))
+      );
+      if (data[0][0].time) data.unshift([{ index: -1, time: 0 }]);
+      return data;
+    };
+    const getLineSyncedData = (body) => {
+      const data = JSON.parse(
+        body.macro_calls["track.subtitles.get"].message.body.subtitle_list[0]
+          .subtitle.subtitle_body
+      ).map(({ text, time }, i) => ({ text, index: i, time: time.total }));
+      if (data[0].time) data.unshift({ index: -1, time: 0 });
+      return data;
+    };
+
     const handleAPIResponse = async (response) => {
-      if (response.data.message.header.status_code === 200) {
-        const body = response.data.message.body;
-
-        if (
-          body.macro_calls["track.lyrics.get"].message.header.status_code ===
-            404 ||
-          !body.macro_calls["track.lyrics.get"].message.body.lyrics.lyrics_body
-        )
-          return res.status(404).send({ message: "Không có kết quả" });
-
-        const track = body.macro_calls["matcher.track.get"].message.body.track;
-
-        // Text synced
-        if (track.has_richsync) {
-          const textSynced = await getTextSynced(
-            body.macro_calls["matcher.track.get"].message.body.track
-          );
-
-          if (textSynced) {
-            let count = 0;
-            const data = textSynced.map((obj) =>
-              obj.l.map((data) => ({
-                text: data.c,
-                time: obj.ts + data.o,
-                index: count++ + 1,
-              }))
-            );
-            if (data[0][0].time) data.unshift([{ index: -1, time: 0 }]);
-
-            return res.send({
-              type: "TEXT_SYNCED",
-              data: data,
-            });
-          }
-        }
-
-        // Line synced
-        if (track.has_subtitles) {
-          const data = JSON.parse(
-            body.macro_calls["track.subtitles.get"].message.body
-              .subtitle_list[0].subtitle.subtitle_body
-          ).map(({ text, time }, i) => ({ text, index: i, time: time.total }));
-
-          if (data[0].time) data.unshift({ index: -1, time: 0 });
-          return res.send({
-            type: "LINE_SYNCED",
-            data,
-          });
-        }
-
-        // Not synced
-        return res.send({
-          type: "NOT_SYNCED",
-          data: body.macro_calls[
-            "track.lyrics.get"
-          ].message.body.lyrics.lyrics_body
-            .split("\n")
-            .map((text) => ({ text: text || "" })),
-        });
-      } else {
-        res.status(500).send({
+      if (!checkStatusCode(response)) {
+        return res.status(500).send({
           message:
             response.data.message.header.hint === "captcha"
               ? "Hiện có quá nhiều yêu cầu. Hãy thử lại sau"
               : "Không thể tìm lời bài hát",
         });
       }
+
+      const body = response.data.message.body;
+      if (isLyricsNotFound(body)) {
+        return res.status(404).send({ message: "Không có kết quả" });
+      }
+
+      const track = body.macro_calls["matcher.track.get"].message.body.track;
+
+      if (
+        track.has_richsync &&
+        body.macro_calls["matcher.track.get"].message.body
+      ) {
+        const data = await getTextSyncedData(body);
+        if (data) return res.send({ type: "TEXT_SYNCED", data });
+      }
+
+      if (
+        track.has_subtitles &&
+        body.macro_calls["track.subtitles.get"].message.body.subtitle_list
+      ) {
+        const data = getLineSyncedData(body);
+        return res.send({ type: "LINE_SYNCED", data });
+      }
+
+      const lyricsData = body.macro_calls[
+        "track.lyrics.get"
+      ].message.body.lyrics.lyrics_body
+        .split("\n")
+        .map((text) => ({ text: text || "" }));
+
+      return res.send({ type: "NOT_SYNCED", data: lyricsData });
     };
 
     callAPI()
@@ -173,7 +176,7 @@ app
 
           await handleAPIResponse(newResponse);
         } else {
-          await handleAPIResponse(response, res);
+          await handleAPIResponse(response);
         }
       })
       .catch((error) => {
