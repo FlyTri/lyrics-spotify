@@ -21,8 +21,17 @@ const connect = () => {
     const { op, d } = parsed;
 
     log("LANYARD", "Message", "pink", parsed.t || "-", parsed);
-    if (parsed.t === "INIT_STATE")
+    if (parsed.t === "INIT_STATE") {
+      if (!d.user)
+        return log(
+          "USER",
+          "Not found",
+          "red",
+          "Please join https://discord.gg/lanyard"
+        );
+
       log("USER", "Hello", "yellow", d.discord_user.username);
+    }
 
     switch (op) {
       case 1: {
@@ -59,3 +68,10 @@ const connect = () => {
   };
 };
 connect();
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(
+    () => (document.querySelector(".loader-screen").style.opacity = 0),
+    500
+  );
+});
