@@ -78,22 +78,8 @@ p.bold {
 }
 
 span.highlight {
-  position: relative;
-  background-color: #1db954;
-  border-radius: 5px;
+  color: #1db954;
   transition: 0.3s;
-  z-index: 1;
-}
-
-span.highlight::before {
-  position: absolute;
-  top: 0;
-  left: -5px;
-  right: -5px;
-  bottom: 0;
-  background-color: #1db954;
-  border-radius: 5px;
-  z-index: -1;
 }
 
 .content p {
