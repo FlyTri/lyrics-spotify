@@ -7,7 +7,6 @@ fetch("https://worldtimeapi.org/api/ip")
 
       DateNow = () => Date.now() - offset;
       log("TIME", "Sync success", "aqua", offset);
-      console.log(now());
     })
   )
-  .catch((error) => log("TIME", "Sync failed", red, error.message));
+  .catch((error) => log("TIME", "Sync failed", "red", error.message));

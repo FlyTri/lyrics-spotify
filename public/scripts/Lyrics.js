@@ -130,15 +130,6 @@ const update = () => {
   });
 
   if (playing) {
-    setInterval(
-      () =>
-        console.log(
-          (DateNow() - spotify.timestamps.start) / 1000,
-          currentIndex(),
-          lyrics.data.flat(Infinity).find((r) => r.index == currentIndex())
-        ),
-      250
-    );
     switch (lyrics.type) {
       case "TEXT_SYNCED": {
         nextLyric
