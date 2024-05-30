@@ -3,6 +3,22 @@ let lyrics;
 let spotify = {};
 let playing = false;
 
+/**
+ *
+ * @param {Element} element
+ */
+const scroolTo = (element, check = true) => {
+  if (!check)
+    return element.scrollIntoView({ behavior: "smooth", block: "center" });
+  const { clientHeight } = document.body;
+  const elementRectBottom = element.getBoundingClientRect().bottom;
+  const elementRectTop = element.getBoundingClientRect().top;
+
+  console.log(elementRectTop, clientHeight);
+  if (elementRectBottom >= -50 && elementRectBottom <= clientHeight)
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+};
+
 const setLyricsStatus = (text) => {
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
@@ -114,13 +130,7 @@ const update = (adjust = false) => {
   currentLine.classList.add("highlight");
   if (lyrics.type === "TEXT_SYNCED")
     currentLine.parentElement.classList.add("bold");
-  (lyrics.type === "TEXT_SYNCED"
-    ? currentLine.parentElement
-    : currentLine
-  ).scrollIntoView({
-    behavior: "smooth",
-    block: "center",
-  });
+  scroolTo(currentLine, false);
 
   if (playing) {
     switch (lyrics.type) {
@@ -142,17 +152,9 @@ const update = (adjust = false) => {
                   `.index-${lyric.index}`
                 );
                 currentLine.parentElement.classList.add("bold");
-                const rect = currentLine.getBoundingClientRect();
 
                 currentLine.classList.add("highlight");
-                if (rect.bottom >= -50)
-                  (lyrics.type === "TEXT_SYNCED"
-                    ? currentLine.parentElement
-                    : currentLine
-                  ).scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                  });
+                scroolTo(currentLine.parentElement);
               }, (lyric.time - now) * 1000)
             );
           });
@@ -170,14 +172,9 @@ const update = (adjust = false) => {
               const currentLine = document.querySelector(
                 `.index-${lyric.index}`
               );
-              const rect = currentLine.getBoundingClientRect();
 
               currentLine.classList.add("highlight");
-              if (rect.bottom >= -50)
-                currentLine.scrollIntoView({
-                  behavior: "smooth",
-                  block: "center",
-                });
+              scroolTo(currentLine);
             }, (lyric.time - now) * 1000)
           );
         });
