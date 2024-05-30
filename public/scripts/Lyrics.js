@@ -10,11 +10,11 @@ let playing = false;
 const scroolTo = (element, check = true) => {
   if (!check)
     return element.scrollIntoView({ behavior: "smooth", block: "center" });
+
   const { clientHeight } = document.body;
   const elementRectBottom = element.getBoundingClientRect().bottom;
   const elementRectTop = element.getBoundingClientRect().top;
 
-  console.log(elementRectTop, clientHeight);
   if (elementRectBottom >= -50 && elementRectBottom <= clientHeight)
     element.scrollIntoView({ behavior: "smooth", block: "center" });
 };
