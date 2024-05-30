@@ -62,17 +62,10 @@ const connect = () => {
     );
 
     setTimeout(() => {
-      log("LANYARD", "Reconnecting", "Orange");
+      log("LANYARD", "Reconnecting", "orange");
 
       connect();
     }, 2500);
   };
 };
 connect();
-
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(
-    () => (document.querySelector(".loader-screen").style.opacity = 0),
-    500
-  );
-});

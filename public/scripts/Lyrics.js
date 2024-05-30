@@ -3,20 +3,6 @@ let lyrics;
 let spotify = {};
 let playing = false;
 
-setInterval(() => {
-  const width = document.querySelector(".progress-bar").style.width;
-
-  if (playing) {
-    document.querySelector(".progress-bar").style.width = `${
-      ((DateNow() - spotify.timestamps.start) /
-        (spotify.timestamps.end -
-          DateNow() +
-          (DateNow() - spotify.timestamps.start))) *
-      100
-    }%`;
-  } else if (width != "0%")
-    document.querySelector(".progress-bar").style.width = "0%";
-});
 const setLyricsStatus = (text) => {
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
@@ -27,7 +13,8 @@ const setLyricsStatus = (text) => {
 };
 const currentIndex = () => {
   const now = (DateNow() - spotify.timestamps.start) / 1000;
-  const before = lyrics.data.flat(Infinity).filter((obj) => obj.time <= now);
+  const flatted = lyrics.data.flat(Infinity);
+  const before = now < 0 ? flatted : flatted.filter((obj) => obj.time <= now);
 
   return before[before.length - 1].index;
 };
@@ -90,15 +77,16 @@ const writeLyrics = () => {
     }
   }
 };
-const update = () => {
+const update = (adjust = false) => {
   timeouts.forEach((t) => clearTimeout(t));
   timeouts = [];
 
-  if (!playing)
+  if (!playing && !adjust)
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
-  if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
+  if (!lyrics || lyrics.type === "NOT_SYNCED") return;
 
   const now = (DateNow() - spotify.timestamps.start) / 1000;
+
   const nextLyrics = lyrics.data
     .flat(Infinity)
     .filter((obj) => obj.time >= now);
@@ -126,7 +114,10 @@ const update = () => {
   currentLine.classList.add("highlight");
   if (lyrics.type === "TEXT_SYNCED")
     currentLine.parentElement.classList.add("bold");
-  currentLine.scrollIntoView({
+  (lyrics.type === "TEXT_SYNCED"
+    ? currentLine.parentElement
+    : currentLine
+  ).scrollIntoView({
     behavior: "smooth",
     block: "center",
   });
@@ -155,7 +146,10 @@ const update = () => {
 
                 currentLine.classList.add("highlight");
                 if (rect.bottom >= -50)
-                  currentLine.scrollIntoView({
+                  (lyrics.type === "TEXT_SYNCED"
+                    ? currentLine.parentElement
+                    : currentLine
+                  ).scrollIntoView({
                     behavior: "smooth",
                     block: "center",
                   });

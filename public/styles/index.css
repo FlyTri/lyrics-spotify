@@ -14,19 +14,19 @@
 body {
   font-family: "SpotifyMix", sans-serif;
   background-color: #1e1e2e;
-  color: #fff;
+  color: #c6d0f5;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
 .loader-screen {
-  position: absolute;
+  position: fixed;
   background-color: #2b2d31;
   width: 100%;
   height: 100%;
-  transition: all 0.5s ease-in-out;
   z-index: 2;
+  overflow: hidden;
 }
 
 .loader {
@@ -40,7 +40,7 @@ body {
   display: grid;
   border: 4px solid #0000;
   border-radius: 50%;
-  border-right-color: #1db954;
+  border-right-color: #1ed760;
   animation: animate 1s infinite linear;
 }
 
@@ -70,7 +70,8 @@ body {
   top: 0;
   background-color: #0d0d14;
   text-align: center;
-  padding: 10px 0;
+  padding-top: 5px;
+  padding-bottom: 8px;
   z-index: 1;
   width: 100%;
 }
@@ -91,39 +92,50 @@ body {
 
 .title {
   font-size: 15px;
-  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  padding-left: 30px;
+  padding-right: 30px;
+  text-overflow: ellipsis;
 }
 
 .artist {
   font-size: 13px;
-  color: #888;
+  color: #737994;
+  white-space: nowrap;
+  overflow: hidden;
+  padding-left: 85px;
+  padding-right: 85px;
+  text-overflow: ellipsis;
 }
 
 .content {
-  padding: 20px;
+  position: sticky;
   line-height: 1.6;
   overflow-y: auto;
-  padding-top: 60px;
+  padding-top: 20px;
+  padding-bottom: 100px;
 }
 
 p.lyrics {
   font-family: "SpotifyMix-Medium", sans-serif;
-  font-size: 30px;
+  font-size: 28px;
+  position: sticky;
   color: #546254;
 }
 
 p.highlight {
   font-family: "SpotifyMix-Bold", sans-serif;
-  color: #1db954;
+  color: #1ed760;
 }
 
 p.bold {
   font-family: "SpotifyMix-Bold", sans-serif;
-  color: #fff;
+  color: #c6d0f5;
 }
 
 span.highlight {
-  color: #1db954;
+  color: #1ed760;
   transition: 0.3s;
 }
 
@@ -131,6 +143,63 @@ span.highlight {
   margin: 0;
   text-align: center;
   transition: all 0.3s ease;
+}
+
+.bottom-container {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  background: #0d0d14;
+}
+
+.control-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #1ed760;
+  color: #000;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.control-button:active {
+  background-color: #1aa34a;
+}
+
+.count-container {
+  width: 70px;
+  text-align: center;
+}
+
+.count {
+  font-size: 20px;
+}
+
+@media only screen and (max-width: 750px) {
+  .content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  p.lyrics {
+    font-size: 28px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .artist {
+    font-size: 12px;
+  }
 }
 
 body::-webkit-scrollbar {

@@ -21,6 +21,8 @@
     <script src="scripts/Time.js"></script>
     <script src="scripts/Lyrics.js"></script>
     <script src="scripts/WebSocket.js"></script>
+    <script src="scripts/DOMContentLoaded.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/js/all.min.js"></script>
   </head>
 
   <body>
@@ -34,5 +36,25 @@
     </div>
 
     <div class="content"></div>
+
+    <div class="bottom-container">
+      <div class="control-button c-down">
+        <i class="fa-solid fa-minus"></i>
+      </div>
+      <div class="count-container"><span class="count">-</span></div>
+      <div class="control-button c-up">
+        <i class="fa-solid fa-plus"></i>
+      </div>
+    </div>
   </body>
+  <script>
+    if (!localStorage.getItem("count")) localStorage.setItem("count", 0);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(
+        () => (document.querySelector(".loader-screen").style.display = "none"),
+        500
+      );
+    });
+  </script>
 </html>
