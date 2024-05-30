@@ -3,17 +3,12 @@ let lyrics;
 let spotify = {};
 let playing = false;
 
-/**
- *
- * @param {Element} element
- */
 const scroolTo = (element, check = true) => {
   if (!check)
     return element.scrollIntoView({ behavior: "smooth", block: "center" });
 
   const { clientHeight } = document.body;
   const elementRectBottom = element.getBoundingClientRect().bottom;
-  const elementRectTop = element.getBoundingClientRect().top;
 
   if (elementRectBottom >= -50 && elementRectBottom <= clientHeight)
     element.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -205,6 +200,9 @@ const handleData = async ({ d }) => {
     : "Tên nghệ sĩ";
 
   if (d.listening_to_spotify && spotify.track_id != d.spotify.track_id) {
+    spotify = d.spotify;
+    playing = d.listening_to_spotify;
+
     const params = new URLSearchParams({
       name: d.spotify.song,
       id: d.spotify.track_id,
@@ -226,9 +224,6 @@ const handleData = async ({ d }) => {
         })
       )
       .catch(() => "Không thể gửi yêu cầu");
-
-    spotify = d.spotify;
-    playing = d.listening_to_spotify;
 
     writeLyrics();
   }

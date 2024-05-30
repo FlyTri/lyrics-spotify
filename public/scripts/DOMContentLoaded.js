@@ -33,7 +33,7 @@ window.document.addEventListener("DOMContentLoaded", () => {
             (DateNow() - spotify.timestamps.start))) *
         100
       }%`;
-    } else if (width != "0%")
+    } else if (width !== "0%")
       document.querySelector(".progress-bar").style.width = "0%";
   });
 });
