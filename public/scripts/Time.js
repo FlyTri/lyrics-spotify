@@ -1,11 +1,11 @@
-let DateNow = () => Date.now() + localStorage.getItem("count");
+let offset = 0;
+let DateNow = () => Date.now() - offset + Number(localStorage.getItem("count"));
 
 fetch("https://worldtimeapi.org/api/ip")
   .then((response) =>
     response.json().then((data) => {
-      const offset = Date.now() - new Date(data.datetime).getTime();
+      offset = Date.now() - new Date(data.datetime).getTime();
 
-      DateNow = () => Date.now() - offset + localStorage.getItem("count");
       log("TIME", "Sync success", "aqua", offset);
     })
   )

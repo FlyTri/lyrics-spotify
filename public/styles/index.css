@@ -155,6 +155,7 @@ span.highlight {
   padding-top: 15px;
   padding-bottom: 15px;
   background: #0d0d14;
+  overflow-x: hidden;
 }
 
 .control-button {
