@@ -1,24 +1,33 @@
 window.document.addEventListener("DOMContentLoaded", () => {
   const countDiv = document.querySelector(".count");
+  const upBtn = document.querySelector(".c-up");
+  const downBtn = document.querySelector(".c-down");
+  const fromStorage = Number(localStorage.getItem("count"));
 
-  countDiv.textContent = Number(localStorage.getItem("count"));
-  document.querySelector(".c-up").addEventListener("click", () => {
+  countDiv.textContent = fromStorage / 1000 + "s";
+  if (fromStorage === 5000) upBtn.classList.add("disabled");
+  if (fromStorage === -5000) downBtn.classList.add("disabled");
+  upBtn.addEventListener("click", () => {
     const count = Number(localStorage.getItem("count"));
     const newCount = count + 250;
-    if (newCount > 5000) return;
+    if (newCount + 250 > 5000) upBtn.classList.add("disabled");
 
+    if (downBtn.classList.contains("disabled"))
+      downBtn.classList.remove("disabled");
     localStorage.setItem("count", newCount);
-    countDiv.textContent = newCount;
+    countDiv.textContent = newCount / 1000 + "s";
     update(true);
   });
 
-  document.querySelector(".c-down").addEventListener("click", () => {
+  downBtn.addEventListener("click", () => {
     const count = Number(localStorage.getItem("count"));
     const newCount = count - 250;
-    if (newCount < -5000) return;
+    if (newCount - 250 < -5000) downBtn.classList.add("disabled");
 
+    if (upBtn.classList.contains("disabled"))
+      upBtn.classList.remove("disabled");
     localStorage.setItem("count", newCount);
-    countDiv.textContent = newCount;
+    countDiv.textContent = newCount / 1000 + "s";
     update(true);
   });
 

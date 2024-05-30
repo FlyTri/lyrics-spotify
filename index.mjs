@@ -98,11 +98,11 @@ app
     const checkStatusCode = (response) =>
       response.data.message.header.status_code === 200;
     const isLyricsNotFound = (body) =>
-      body.macro_calls["track.lyrics.get"].message.header.status_code === 404 ||
-      !body.macro_calls["track.lyrics.get"].message.body.lyrics.lyrics_body;
+      body["track.lyrics.get"].message.header.status_code === 404 ||
+      !body["track.lyrics.get"].message.body.lyrics.lyrics_body;
     const getTextSyncedData = async (body) => {
       const textSynced = await getTextSynced(
-        body.macro_calls["matcher.track.get"].message.body.track
+        body["matcher.track.get"].message.body.track
       );
       if (!textSynced) return null;
       let count = 0;
@@ -118,7 +118,7 @@ app
     };
     const getLineSyncedData = (body) => {
       const data = JSON.parse(
-        body.macro_calls["track.subtitles.get"].message.body.subtitle_list[0]
+        body["track.subtitles.get"].message.body.subtitle_list[0]
           .subtitle.subtitle_body
       ).map(({ text, time }, i) => ({ text, index: i, time: time.total }));
       if (data[0].time) data.unshift({ index: -1, time: 0 });
@@ -135,16 +135,17 @@ app
         });
       }
 
-      const body = response.data.message.body;
+      const body = response.data.message.body.macro_calls;
+      
       if (isLyricsNotFound(body)) {
         return res.status(404).send({ message: "Không có kết quả" });
       }
 
-      const track = body.macro_calls["matcher.track.get"].message.body.track;
+      const track = body["matcher.track.get"].message.body.track;
 
       if (
         track.has_richsync &&
-        body.macro_calls["matcher.track.get"].message.body
+        body["matcher.track.get"].message.body
       ) {
         const data = await getTextSyncedData(body);
         if (data) return res.send({ type: "TEXT_SYNCED", data });
@@ -152,13 +153,13 @@ app
 
       if (
         track.has_subtitles &&
-        body.macro_calls["track.subtitles.get"].message.body.subtitle_list
+        body["track.subtitles.get"].message.body.subtitle_list
       ) {
         const data = getLineSyncedData(body);
         return res.send({ type: "LINE_SYNCED", data });
       }
 
-      const lyricsData = body.macro_calls[
+      const lyricsData = bodmacro_calls[
         "track.lyrics.get"
       ].message.body.lyrics.lyrics_body
         .split("\n")
