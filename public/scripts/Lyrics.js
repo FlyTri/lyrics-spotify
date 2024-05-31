@@ -98,17 +98,14 @@ const update = (adjust = false) => {
 
   const now = (DateNow() - spotify.timestamps.start) / 1000;
 
-  const nextLyrics = lyrics.data
-    .flat(Infinity)
-    .filter((obj) => obj.time >= now);
+  const flatted = lyrics.data.flat(Infinity);
+  const nextLyrics = flatted.filter((obj) => obj.time >= now);
 
   const currentLine = document.querySelector(`.index-${currentIndex()}`);
 
   if (currentIndex() === -1) {
     const wait =
-      (lyrics.data.flat(Infinity)[1].time * 1000 -
-        (DateNow() - spotify.timestamps.start)) /
-      4;
+      (flatted[1].time * 1000 - (DateNow() - spotify.timestamps.start)) / 4;
     [3, 2, 1, 0].map((number, index) =>
       timeouts.push(
         setTimeout(() => {
@@ -200,9 +197,9 @@ const handleData = async ({ d }) => {
     : "Tên nghệ sĩ";
 
   if (d.listening_to_spotify && spotify.track_id != d.spotify.track_id) {
+    const translateBtn = document.querySelector(".translate");
     spotify = d.spotify;
     playing = d.listening_to_spotify;
-
     const params = new URLSearchParams({
       name: d.spotify.song,
       id: d.spotify.track_id,
@@ -211,6 +208,7 @@ const handleData = async ({ d }) => {
       duration: d.spotify.timestamps.end - d.spotify.timestamps.start,
     }).toString();
 
+    translateBtn.classList.add("disabled");
     timeouts.forEach((t) => clearTimeout(t));
     timeouts = [];
     setLyricsStatus("Đang tải...");
@@ -226,6 +224,7 @@ const handleData = async ({ d }) => {
       .catch(() => "Không thể gửi yêu cầu");
 
     writeLyrics();
+    if (lyrics.translated) translateBtn.classList.remove("disabled");
   }
 
   spotify = d.spotify;

@@ -1,8 +1,33 @@
 window.document.addEventListener("DOMContentLoaded", () => {
   const countDiv = document.querySelector(".count");
+  const translateBtn = document.querySelector(".translate");
   const upBtn = document.querySelector(".c-up");
   const downBtn = document.querySelector(".c-down");
+  const logoutBtn = document.querySelector(".logout");
   const fromStorage = Number(localStorage.getItem("count"));
+
+  translateBtn.addEventListener("click", () => {
+    if (document.querySelectorAll(".translated").length)
+      return document
+        .querySelectorAll(".translated")
+        .forEach((element) => element.remove());
+    document.querySelectorAll(".lyrics").forEach((element) => {
+      const translated = lyrics.translated.find(
+        (obj) => obj.original === element.textContent
+      );
+
+      if (translated) {
+        const p = document.createElement("p");
+
+        p.classList.add("translated");
+        p.textContent = translated.text;
+        element.appendChild(p);
+      }
+    });
+    document
+      .querySelector(".highlight")
+      .scrollIntoView({ behavior: "smooth", block: "center" });
+  });
 
   countDiv.textContent = fromStorage / 1000 + "s";
   if (fromStorage === 5000) upBtn.classList.add("disabled");
@@ -29,6 +54,11 @@ window.document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("count", newCount);
     countDiv.textContent = newCount / 1000 + "s";
     update(true);
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("id");
+    window.location.reload();
   });
 
   setInterval(() => {

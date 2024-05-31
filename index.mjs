@@ -116,14 +116,45 @@ app
       if (data[0][0].time) data.unshift([{ index: -1, time: 0 }]);
       return data;
     };
+
     const getLineSyncedData = (body) => {
       const data = JSON.parse(
-        body["track.subtitles.get"].message.body.subtitle_list[0]
-          .subtitle.subtitle_body
+        body["track.subtitles.get"].message.body.subtitle_list[0].subtitle
+          .subtitle_body
       ).map(({ text, time }, i) => ({ text, index: i, time: time.total }));
       if (data[0].time) data.unshift({ index: -1, time: 0 });
       return data;
     };
+
+    const translate = (id) =>
+      axios
+        .get(
+          "https://apic-desktop.musixmatch.com/ws/1.1/crowd.track.translations.get",
+          {
+            params: {
+              //translation_fields_set: "minimal",
+              selected_language: "vi",
+              comment_format: "text",
+              format: "json",
+              app_id: "web-desktop-app-v1.0",
+              track_id: id,
+              usertoken: MusixmatchToken,
+            },
+            headers: {
+              authority: "apic-desktop.musixmatch.com",
+              cookie: "x-mxm-token-guid=",
+            },
+          }
+        )
+        .then((response) =>
+          response.data.message.body.translations_list?.map(
+            ({ translation }) => ({
+              original: translation.matched_line,
+              text: translation.description,
+            })
+          )
+        )
+        .catch(() => null);
 
     const handleAPIResponse = async (response) => {
       if (!checkStatusCode(response)) {
@@ -136,27 +167,37 @@ app
       }
 
       const body = response.data.message.body.macro_calls;
-      
+
       if (isLyricsNotFound(body)) {
         return res.status(404).send({ message: "Không có kết quả" });
       }
 
-      const track = body["matcher.track.get"].message.body.track;
+      const { track } = body["matcher.track.get"].message.body;
+      const language =
+        body["track.lyrics.get"].message.body.lyrics.lyrics_language;
 
-      if (
-        track.has_richsync &&
-        body["matcher.track.get"].message.body
-      ) {
-        const data = await getTextSyncedData(body);
-        if (data) return res.send({ type: "TEXT_SYNCED", data });
-      }
+      // if (track.has_richsync && body["matcher.track.get"].message.body) {
+      //   const data = await getTextSyncedData(body);
+      //   if (data)
+      //     return res.send({
+      //       type: "TEXT_SYNCED",
+      //       data,
+      //       translated:
+      //         language !== "vi" ? await translate(track.track_id) : null,
+      //     });
+      // }
 
       if (
         track.has_subtitles &&
         body["track.subtitles.get"].message.body.subtitle_list
       ) {
         const data = getLineSyncedData(body);
-        return res.send({ type: "LINE_SYNCED", data });
+        return res.send({
+          type: "LINE_SYNCED",
+          data,
+          translated:
+            language !== "vi" ? await translate(track.track_id) : null,
+        });
       }
 
       const lyricsData = bodmacro_calls[
@@ -165,7 +206,11 @@ app
         .split("\n")
         .map((text) => ({ text: text || "" }));
 
-      return res.send({ type: "NOT_SYNCED", data: lyricsData });
+      return res.send({
+        type: "NOT_SYNCED",
+        data: lyricsData,
+        translated: language !== "vi" ? await translate(track.track_id) : null,
+      });
     };
 
     callAPI()

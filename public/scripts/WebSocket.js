@@ -1,14 +1,16 @@
 let storedID = localStorage.getItem("id");
 
 if (!storedID) {
-  const id = prompt("Nhập ID Discord của bạn") || "";
-  if (!id || !/^\d{17,19}$/.test(id)) window.location.reload();
-
-  localStorage.setItem("id", id);
-  storedID = id;
+  const id = prompt("Nhập ID Discord của bạn");
+  if (/^\d{17,19}$/.test(id)) {
+    localStorage.setItem("id", id);
+    storedID = id;
+  }
 }
 
 const connect = () => {
+  if (!storedID) return;
+  
   const ws = new WebSocket("wss://api.lanyard.rest/socket");
   const start = Date.now();
   let heartbeat_interval = null;

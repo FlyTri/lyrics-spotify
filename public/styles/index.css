@@ -23,6 +23,10 @@ body {
   color: #c6d0f5;
 }
 
+svg {
+  height: 1em;
+}
+
 .loader-screen {
   position: fixed;
   background-color: #2b2d31;
@@ -127,6 +131,12 @@ p.lyrics {
   color: #546254;
 }
 
+p.translated {
+  font-family: "SpotifyMix", sans-serif;
+  font-size: 15px;
+  color: #c6d0f5;
+}
+
 p.highlight {
   font-family: "SpotifyMix-Bold", sans-serif;
   color: #1ed760;
@@ -170,6 +180,8 @@ span.highlight {
   height: 30px;
   border-radius: 50%;
   cursor: pointer;
+  margin-left: 10px;
+  margin-right: 10px;
   -webkit-tap-highlight-color: transparent;
 }
 
