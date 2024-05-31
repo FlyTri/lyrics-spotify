@@ -8,21 +8,24 @@ window.document.addEventListener("DOMContentLoaded", () => {
 
   translateBtn.addEventListener("click", () => {
     const lines = document.querySelectorAll(".translated");
-    if (lines.length) return lines.forEach((element) => element.remove());
 
-    document.querySelectorAll(".lyrics").forEach((element) => {
-      const translated = lyrics.translated.find(
-        (obj) => obj.original === element.textContent
-      );
+    if (lines.length) {
+      lines.forEach((element) => element.remove());
+    } else
+      document.querySelectorAll(".lyrics").forEach((element) => {
+        const translated = lyrics.translated.find(
+          (obj) => obj.original === element.textContent
+        );
 
-      if (translated) {
-        const p = document.createElement("p");
+        if (translated) {
+          const p = document.createElement("p");
 
-        p.classList.add("translated");
-        p.textContent = translated.text;
-        element.appendChild(p);
-      }
-    });
+          p.classList.add("translated");
+          p.textContent = translated.text;
+          element.appendChild(p);
+        }
+      });
+    
     document
       .querySelector(".highlight")
       .scrollIntoView({ behavior: "smooth", block: "center" });
