@@ -176,16 +176,16 @@ app
       const language =
         body["track.lyrics.get"].message.body.lyrics.lyrics_language;
 
-      // if (track.has_richsync && body["matcher.track.get"].message.body) {
-      //   const data = await getTextSyncedData(body);
-      //   if (data)
-      //     return res.send({
-      //       type: "TEXT_SYNCED",
-      //       data,
-      //       translated:
-      //         language !== "vi" ? await translate(track.track_id) : null,
-      //     });
-      // }
+      if (track.has_richsync && body["matcher.track.get"].message.body) {
+        const data = await getTextSyncedData(body);
+        if (data)
+          return res.send({
+            type: "TEXT_SYNCED",
+            data,
+            translated:
+              language !== "vi" ? await translate(track.track_id) : null,
+          });
+      }
 
       if (
         track.has_subtitles &&
