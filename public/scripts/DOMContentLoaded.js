@@ -59,5 +59,5 @@ window.document.addEventListener("DOMContentLoaded", () => {
       }%`;
     } else if (width !== "0%")
       document.querySelector(".progress-bar").style.width = "0%";
-  }, 250);
+  }, 1000);
 });

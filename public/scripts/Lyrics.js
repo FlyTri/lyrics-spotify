@@ -1,5 +1,5 @@
 let timeouts = [];
-let lyrics;
+let lyrics = {};
 let spotify = {};
 let playing = false;
 
@@ -16,6 +16,8 @@ const scrollIntoView = (element, check = true) => {
 };
 
 const setLyricsStatus = (text) => {
+  timeouts.forEach(clearTimeout);
+  timeouts = [];
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
   const element = document.createElement("p");
@@ -35,6 +37,8 @@ const writeLyrics = () => {
 
   if (typeof lyrics === "string") setLyricsStatus(lyrics);
   else {
+    const translateBtn = document.querySelector(".translate");
+
     switch (lyrics.type) {
       case "TEXT_SYNCED": {
         lyrics.data.forEach((obj) => {
@@ -87,6 +91,11 @@ const writeLyrics = () => {
         break;
       }
     }
+
+    if (lyrics.translated?.length) {
+      translateBtn.classList.remove("disabled");
+      if (localStorage.getItem("translate") === "true") writeTranslates();
+    }
   }
 };
 const writeTranslates = () => {
@@ -115,7 +124,7 @@ const writeTranslates = () => {
   scrollIntoView(document.querySelector(".highlight"), false);
 };
 const update = (adjust = false) => {
-  timeouts.forEach((t) => clearTimeout(t));
+  timeouts.forEach(clearTimeout);
   timeouts = [];
 
   if (!playing && !adjust)
@@ -235,7 +244,7 @@ const handleData = async ({ d }) => {
     }).toString();
 
     translateBtn.classList.add("disabled");
-    timeouts.forEach((t) => clearTimeout(t));
+    timeouts.forEach(clearTimeout);
     timeouts = [];
     setLyricsStatus("Đang tải...");
 
@@ -250,13 +259,6 @@ const handleData = async ({ d }) => {
       .catch(() => "Không thể gửi yêu cầu");
 
     writeLyrics();
-    if (lyrics.translated.length) {
-      translateBtn.classList.remove("disabled");
-      if (localStorage.getItem("translate") === "true") {
-        writeTranslates();
-        console.log("called");
-      }
-    }
   }
 
   spotify = d.spotify;
@@ -268,6 +270,5 @@ const handleData = async ({ d }) => {
     currentIndex() === -1
   )
     writeLyrics();
-  if (!lyrics) debugger;
   update();
 };
