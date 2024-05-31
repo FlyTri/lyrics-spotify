@@ -224,7 +224,7 @@ const handleData = async ({ d }) => {
       .catch(() => "Không thể gửi yêu cầu");
 
     writeLyrics();
-    if (lyrics.translated) translateBtn.classList.remove("disabled");
+    if (lyrics.translated?.length) translateBtn.classList.remove("disabled");
   }
 
   spotify = d.spotify;

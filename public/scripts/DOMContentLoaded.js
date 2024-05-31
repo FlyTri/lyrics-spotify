@@ -7,10 +7,9 @@ window.document.addEventListener("DOMContentLoaded", () => {
   const fromStorage = Number(localStorage.getItem("count"));
 
   translateBtn.addEventListener("click", () => {
-    if (document.querySelectorAll(".translated").length)
-      return document
-        .querySelectorAll(".translated")
-        .forEach((element) => element.remove());
+    const lines = document.querySelectorAll(".translated");
+    if (lines.length) return lines.forEach((element) => element.remove());
+
     document.querySelectorAll(".lyrics").forEach((element) => {
       const translated = lyrics.translated.find(
         (obj) => obj.original === element.textContent
