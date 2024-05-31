@@ -153,7 +153,7 @@ app
             })
           )
         )
-        .catch(() => null);
+        .catch(() => []);
 
     const handleAPIResponse = async (response) => {
       if (!checkStatusCode(response)) {

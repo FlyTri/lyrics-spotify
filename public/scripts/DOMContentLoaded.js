@@ -6,31 +6,7 @@ window.document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.querySelector(".logout");
   const fromStorage = Number(localStorage.getItem("count"));
 
-  translateBtn.addEventListener("click", () => {
-    const lines = document.querySelectorAll(".translated");
-
-    if (lines.length) {
-      lines.forEach((element) => element.remove());
-      localStorage.setItem("translate", false);
-    } else {
-      document.querySelectorAll(".lyrics").forEach((element) => {
-        const translated = lyrics.translated.find(
-          (obj) => obj.original === element.textContent
-        );
-
-        if (translated) {
-          const p = document.createElement("p");
-
-          p.classList.add("translated");
-          p.textContent = translated.text;
-          element.appendChild(p);
-        }
-      });
-      localStorage.setItem("translate", true);
-    }
-
-    scrollIntoView(document.querySelector(".highlight"), false);
-  });
+  translateBtn.addEventListener("click", () => writeTranslates());
 
   countDiv.textContent = fromStorage / 1000 + "s";
   if (fromStorage === 5000) upBtn.classList.add("disabled");
@@ -65,7 +41,7 @@ window.document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState == "visible") {
+    if (document.visibilityState === "visible") {
       scrollIntoView(document.querySelector(".highlight"), false);
     }
   });

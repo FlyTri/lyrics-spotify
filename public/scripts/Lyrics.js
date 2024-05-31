@@ -4,6 +4,7 @@ let spotify = {};
 let playing = false;
 
 const scrollIntoView = (element, check = true) => {
+  if (!element) return;
   if (!check)
     return element.scrollIntoView({ behavior: "smooth", block: "center" });
 
@@ -36,11 +37,11 @@ const writeLyrics = () => {
   else {
     switch (lyrics.type) {
       case "TEXT_SYNCED": {
-        lyrics.data.map((obj) => {
+        lyrics.data.forEach((obj) => {
           const element = document.createElement("p");
 
           element.classList.add("lyrics");
-          obj.map(({ text, time, index }) => {
+          obj.forEach(({ text, time, index }) => {
             const span = document.createElement("span");
             span.classList.add(`index-${index}`);
 
@@ -59,7 +60,7 @@ const writeLyrics = () => {
         break;
       }
       case "LINE_SYNCED": {
-        lyrics.data.map((obj) => {
+        lyrics.data.forEach((obj) => {
           const element = document.createElement("p");
           element.classList.add("lyrics", `index-${obj.index}`);
 
@@ -76,7 +77,7 @@ const writeLyrics = () => {
         break;
       }
       case "NOT_SYNCED": {
-        lyrics.data.map((obj) => {
+        lyrics.data.forEach((obj) => {
           const element = document.createElement("p");
           element.classList.add("lyrics", "highlight");
           element.textContent = obj.text;
@@ -88,13 +89,38 @@ const writeLyrics = () => {
     }
   }
 };
+const writeTranslates = () => {
+  const lines = document.querySelectorAll(".translated");
+
+  if (lines.length) {
+    lines.forEach((element) => element.remove());
+    localStorage.setItem("translate", false);
+  } else {
+    document.querySelectorAll(".lyrics").forEach((element) => {
+      const translated = lyrics.translated.find(
+        (obj) => obj.original === element.textContent
+      );
+
+      if (translated) {
+        const p = document.createElement("p");
+
+        p.classList.add("translated");
+        p.textContent = translated.text;
+        element.appendChild(p);
+      }
+    });
+    localStorage.setItem("translate", true);
+  }
+
+  scrollIntoView(document.querySelector(".highlight"), false);
+};
 const update = (adjust = false) => {
   timeouts.forEach((t) => clearTimeout(t));
   timeouts = [];
 
   if (!playing && !adjust)
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
-  if (!lyrics || lyrics.type === "NOT_SYNCED") return;
+  if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
 
   const now = (DateNow() - spotify.timestamps.start) / 1000;
 
@@ -106,7 +132,7 @@ const update = (adjust = false) => {
   if (currentIndex() === -1) {
     const wait =
       (flatted[1].time * 1000 - (DateNow() - spotify.timestamps.start)) / 4;
-    [3, 2, 1, 0].map((number, index) =>
+    [3, 2, 1, 0].forEach((number, index) =>
       timeouts.push(
         setTimeout(() => {
           currentLine.textContent = " ⬤ ".repeat(number);
@@ -129,7 +155,7 @@ const update = (adjust = false) => {
       case "TEXT_SYNCED": {
         nextLyrics
           .filter((lyric) => lyric.text != " ")
-          .map((lyric) => {
+          .forEach((lyric) => {
             timeouts.push(
               setTimeout(() => {
                 if (!playing) return;
@@ -153,7 +179,7 @@ const update = (adjust = false) => {
         break;
       }
       case "LINE_SYNCED": {
-        nextLyrics.map((lyric) => {
+        nextLyrics.forEach((lyric) => {
           timeouts.push(
             setTimeout(() => {
               if (!playing) return;
@@ -224,9 +250,12 @@ const handleData = async ({ d }) => {
       .catch(() => "Không thể gửi yêu cầu");
 
     writeLyrics();
-    if (lyrics.translated?.length) {
+    if (lyrics.translated.length) {
       translateBtn.classList.remove("disabled");
-      if (localStorage.getItem("translate") === "true") translateBtn.click();
+      if (localStorage.getItem("translate") === "true") {
+        writeTranslates();
+        console.log("called");
+      }
     }
   }
 
@@ -239,5 +268,6 @@ const handleData = async ({ d }) => {
     currentIndex() === -1
   )
     writeLyrics();
+  if (!lyrics) debugger;
   update();
 };
