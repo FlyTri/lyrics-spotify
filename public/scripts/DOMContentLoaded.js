@@ -11,7 +11,8 @@ window.document.addEventListener("DOMContentLoaded", () => {
 
     if (lines.length) {
       lines.forEach((element) => element.remove());
-    } else
+      localStorage.setItem("translate", false);
+    } else {
       document.querySelectorAll(".lyrics").forEach((element) => {
         const translated = lyrics.translated.find(
           (obj) => obj.original === element.textContent
@@ -25,7 +26,9 @@ window.document.addEventListener("DOMContentLoaded", () => {
           element.appendChild(p);
         }
       });
-    
+      localStorage.setItem("translate", true);
+    }
+
     document
       .querySelector(".highlight")
       .scrollIntoView({ behavior: "smooth", block: "center" });
