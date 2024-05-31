@@ -126,14 +126,13 @@ app
       return data;
     };
 
-    const translate = (id) =>
+    const translate = (id, language) =>
       axios
         .get(
           "https://apic-desktop.musixmatch.com/ws/1.1/crowd.track.translations.get",
           {
             params: {
-              //translation_fields_set: "minimal",
-              selected_language: "vi",
+              selected_language: language === "vi" ? "en" : "vi",
               comment_format: "text",
               format: "json",
               app_id: "web-desktop-app-v1.0",
@@ -182,8 +181,7 @@ app
           return res.send({
             type: "TEXT_SYNCED",
             data,
-            translated:
-              language !== "vi" ? await translate(track.track_id) : null,
+            translated: await translate(track.track_id, language),
           });
       }
 
@@ -195,8 +193,7 @@ app
         return res.send({
           type: "LINE_SYNCED",
           data,
-          translated:
-            language !== "vi" ? await translate(track.track_id) : null,
+          translated: await translate(track.track_id, language),
         });
       }
 
@@ -209,7 +206,7 @@ app
       return res.send({
         type: "NOT_SYNCED",
         data: lyricsData,
-        translated: language !== "vi" ? await translate(track.track_id) : null,
+        translated: await translate(track.track_id, language),
       });
     };
 
