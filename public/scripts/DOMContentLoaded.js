@@ -29,9 +29,7 @@ window.document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("translate", true);
     }
 
-    document
-      .querySelector(".highlight")
-      .scrollIntoView({ behavior: "smooth", block: "center" });
+    scrollIntoView(document.querySelector(".highlight"), false);
   });
 
   countDiv.textContent = fromStorage / 1000 + "s";
@@ -66,6 +64,12 @@ window.document.addEventListener("DOMContentLoaded", () => {
     window.location.reload();
   });
 
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState == "visible") {
+      scrollIntoView(document.querySelector(".highlight"), false);
+    }
+  });
+
   setInterval(() => {
     const width = document.querySelector(".progress-bar").style.width;
 
@@ -79,5 +83,5 @@ window.document.addEventListener("DOMContentLoaded", () => {
       }%`;
     } else if (width !== "0%")
       document.querySelector(".progress-bar").style.width = "0%";
-  });
+  }, 250);
 });

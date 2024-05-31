@@ -3,7 +3,7 @@ let lyrics;
 let spotify = {};
 let playing = false;
 
-const scroolTo = (element, check = true) => {
+const scrollIntoView = (element, check = true) => {
   if (!check)
     return element.scrollIntoView({ behavior: "smooth", block: "center" });
 
@@ -122,7 +122,7 @@ const update = (adjust = false) => {
   currentLine.classList.add("highlight");
   if (lyrics.type === "TEXT_SYNCED")
     currentLine.parentElement.classList.add("bold");
-  scroolTo(currentLine, false);
+  scrollIntoView(currentLine, false);
 
   if (playing) {
     switch (lyrics.type) {
@@ -146,7 +146,7 @@ const update = (adjust = false) => {
                 currentLine.parentElement.classList.add("bold");
 
                 currentLine.classList.add("highlight");
-                scroolTo(currentLine.parentElement);
+                scrollIntoView(currentLine.parentElement);
               }, (lyric.time - now) * 1000)
             );
           });
@@ -166,7 +166,7 @@ const update = (adjust = false) => {
               );
 
               currentLine.classList.add("highlight");
-              scroolTo(currentLine);
+              scrollIntoView(currentLine);
             }, (lyric.time - now) * 1000)
           );
         });
