@@ -11,6 +11,19 @@
   src: url("/fonts/SpotifyMix-Bold.woff");
 }
 
+:root {
+  --spotify-green: #1ed760;
+  --discord-color: #2b2d31;
+  --text-color: #c6d0f5;
+
+  --background-color: #1e1e2e;
+  --progress-bar-color: #427e9d;
+  --text-bold-color: #c6d0f5;
+  --highlight-color: var(--spotify-green);
+  --lyrics-color: #546254;
+  --translated-color: #f5e0dc;
+}
+
 html,
 body {
   margin: 0;
@@ -19,8 +32,9 @@ body {
 
 body {
   font-family: "SpotifyMix", sans-serif;
-  background-color: #1e1e2e;
-  color: #c6d0f5;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease-in-out;
 }
 
 svg {
@@ -29,7 +43,7 @@ svg {
 
 .loader-screen {
   position: fixed;
-  background-color: #2b2d31;
+  background-color: var(--discord-color);
   width: 100%;
   height: 100%;
   z-index: 2;
@@ -47,7 +61,7 @@ svg {
   display: grid;
   border: 4px solid #0000;
   border-radius: 50%;
-  border-right-color: #1ed760;
+  border-right-color: var(--spotify-green);
   animation: animate 1s infinite linear;
 }
 
@@ -93,7 +107,7 @@ svg {
 
 .progress-bar {
   height: 3px;
-  background-color: #427e9d;
+  background-color: var(--progress-bar-color);
   width: 0%;
 }
 
@@ -128,34 +142,32 @@ p.lyrics {
   font-family: "SpotifyMix-Medium", sans-serif;
   font-size: 28px;
   position: sticky;
-  color: #546254;
+  color: var(--lyrics-color);
 }
 
 p.translated {
   font-family: "SpotifyMix", sans-serif;
   font-size: 15px;
-  color: #f5e0dc;
+  color: var(--translated-color);
 }
 
 p.highlight {
   font-family: "SpotifyMix-Bold", sans-serif;
-  color: #1ed760;
+  color: var(--highlight-color) !important;
 }
 
 p.bold {
   font-family: "SpotifyMix-Bold", sans-serif;
-  color: #c6d0f5;
+  color: var(--text-bold-color) !important;
 }
 
 span.highlight {
-  color: #1ed760;
-  transition: 0.3s;
+  color: var(--highlight-color) !important;
 }
 
 .content p {
   margin: 0;
   text-align: center;
-  transition: all 0.3s ease;
 }
 
 .bottom-container {
@@ -174,7 +186,7 @@ span.highlight {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #1ed760;
+  background-color: var(--spotify-green);
   color: #000;
   width: 30px;
   height: 30px;
