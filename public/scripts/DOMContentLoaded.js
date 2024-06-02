@@ -41,23 +41,28 @@ window.document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
+    if (
+      document.visibilityState === "visible" &&
+      lyrics &&
+      lyrics.type !== "NOT_SYNCED"
+    )
       scrollIntoView(document.querySelector(".highlight"), false);
-    }
   });
 
   setInterval(() => {
-    const width = document.querySelector(".progress-bar").style.width;
-
     if (playing) {
-      document.querySelector(".progress-bar").style.width = `${
-        ((DateNow() - spotify.timestamps.start) /
-          (spotify.timestamps.end -
-            DateNow() +
-            (DateNow() - spotify.timestamps.start))) *
-        100
-      }%`;
-    } else if (width !== "0%")
-      document.querySelector(".progress-bar").style.width = "0%";
-  }, 1000);
+      document.documentElement.style.setProperty(
+        "--progress-bar-width",
+        `${
+          ((DateNow() - spotify.timestamps.start) /
+            (spotify.timestamps.end -
+              DateNow() +
+              (DateNow() - spotify.timestamps.start))) *
+          100
+        }%`
+      );
+    } else {
+      document.documentElement.style.setProperty("--progress-bar-width", "0%");
+    }
+  }, 500);
 });

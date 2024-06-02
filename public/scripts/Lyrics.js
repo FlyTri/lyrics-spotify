@@ -3,8 +3,6 @@ let lyrics = {};
 let spotify = {};
 let playing = false;
 
-const colorThief = new ColorThief();
-
 const scrollIntoView = (element, check = true) => {
   if (!element) return;
   if (!check)
@@ -37,7 +35,7 @@ const currentIndex = () => {
 const writeLyrics = () => {
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
-  if (typeof lyrics === "string") setLyricsStatus(lyrics);
+  if (lyrics.message) setLyricsStatus(lyrics.message);
   else {
     const translateBtn = document.querySelector(".translate");
 
@@ -171,9 +169,10 @@ const update = (adjust = false) => {
               setTimeout(() => {
                 if (!playing) return;
 
-                document
-                  .querySelectorAll("span")
-                  .forEach((i) => i.classList.remove("highlight"));
+                if (lyric.newLine)
+                  document
+                    .querySelectorAll("span")
+                    .forEach((i) => i.classList.remove("highlight"));
                 document
                   .querySelectorAll("p")
                   .forEach((i) => i.classList.remove("bold"));
@@ -213,6 +212,9 @@ const update = (adjust = false) => {
   }
 };
 const handleData = async ({ d }) => {
+  timeouts.forEach(clearTimeout);
+  timeouts = [];
+
   if (d.discord_status === "offline" || !d.spotify) {
     document.documentElement.style = null;
     spotify = {};
@@ -249,9 +251,34 @@ const handleData = async ({ d }) => {
     }).toString();
 
     translateBtn.classList.add("disabled");
-    timeouts.forEach(clearTimeout);
-    timeouts = [];
     setLyricsStatus("Đang tải...");
+
+    fetch(`/api/colors?id=` + d.spotify.album_art_url.split("/").pop())
+      .then((response) =>
+        response.json().then((data) => {
+          if (data.message) return;
+
+          const { text, background, translated } = data;
+          document.documentElement.style.setProperty("--lyrics-color", text);
+          document.documentElement.style.setProperty(
+            "--highlight-color",
+            "#fff"
+          );
+          document.documentElement.style.setProperty(
+            "--progress-bar-color",
+            "#fff"
+          );
+          document.documentElement.style.setProperty(
+            "--background-color",
+            background
+          );
+          document.documentElement.style.setProperty(
+            "--translated-color",
+            translated
+          );
+        })
+      )
+      .catch(() => null);
 
     lyrics = await fetch("/api/lyrics?" + params)
       .then((response) =>
@@ -262,54 +289,7 @@ const handleData = async ({ d }) => {
         })
       )
       .catch(() => "Không thể gửi yêu cầu");
-
     writeLyrics();
-
-    const img = new Image();
-    img.src = d.spotify.album_art_url;
-    img.crossOrigin = "Anonymous";
-
-    img.addEventListener("load", () => {
-      const lighter = (n, percent = 50) =>
-        Math.min(255, Math.floor(n + (255 - n) * (percent / 100)));
-      const darker = (n, percent = 70) => Math.floor(n * (1 - percent / 100));
-      const colors = colorThief
-        .getPalette(img)
-        .filter(
-          ([r, g, b]) =>
-            !["0,0,0", "255,255,255"].includes(String) &&
-            0.299 * r + 0.587 * g + 0.114 * b > 112.5 &&
-            0.299 * r + 0.587 * g + 0.114 * b < 168.75
-        );
-      if (!colors.length)
-        return log("COLORS", "Not suitable", "All colors are too dark");
-
-      const [r, g, b] = colors[Math.floor(Math.random() * colors.length)];
-      const textR = darker(r);
-      const textG = darker(g);
-      const textB = darker(b);
-
-      document.documentElement.style.setProperty(
-        "--background-color",
-        `rgb(${r}, ${g}, ${b})`
-      );
-      document.documentElement.style.setProperty(
-        "--highlight-color",
-        0.299 * r + 0.587 * g + 0.114 * b < 128 ? "white" : "black"
-      );
-      document.documentElement.style.setProperty(
-        "--text-bold-color",
-        `rgb(${lighter(r, 40)}, ${lighter(g, 40)}, ${lighter(b, 40)})`
-      );
-      document.documentElement.style.setProperty(
-        "--lyrics-color",
-        `rgb(${textR}, ${textG}, ${textB})`
-      );
-      document.documentElement.style.setProperty(
-        "--translated-color",
-        `rgb(${darker(r, 80)}, ${darker(g, 60)}, ${darker(b, 60)})`
-      );
-    });
   }
 
   spotify = d.spotify;
@@ -321,5 +301,6 @@ const handleData = async ({ d }) => {
     currentIndex() === -1
   )
     writeLyrics();
+  console.log("update");
   update();
 };

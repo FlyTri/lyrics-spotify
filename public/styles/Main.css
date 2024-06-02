@@ -1,0 +1,75 @@
+@font-face {
+  font-family: "SpotifyMix";
+  src: url("/fonts/SpotifyMix-Regular.woff");
+}
+@font-face {
+  font-family: "SpotifyMix-Medium";
+  src: url("/fonts/SpotifyMix-Medium.woff");
+}
+@font-face {
+  font-family: "SpotifyMix-Bold";
+  src: url("/fonts/SpotifyMix-Bold.woff");
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: "SpotifyMix", sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease-in-out;
+}
+
+svg {
+  height: 1em;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  scrollbar-width: none;
+}
+
+p.translated {
+  font-family: "SpotifyMix", sans-serif;
+  font-size: 18px;
+  color: var(--translated-color);
+}
+
+p.highlight {
+  font-family: "SpotifyMix-Bold", sans-serif;
+  color: var(--highlight-color) !important;
+}
+
+p.bold {
+  font-family: "SpotifyMix-Bold", sans-serif;
+}
+
+span.highlight {
+  color: var(--highlight-color) !important;
+}
+
+@media only screen and (max-width: 750px) {
+  .content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  p.lyrics {
+    font-size: 28px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .artist {
+    font-size: 12px;
+  }
+}

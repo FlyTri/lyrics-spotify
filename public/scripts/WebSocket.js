@@ -10,7 +10,7 @@ if (!storedID) {
 
 const connect = () => {
   if (!storedID) return;
-  
+
   const ws = new WebSocket("wss://api.lanyard.rest/socket");
   const start = Date.now();
   let heartbeat_interval = null;
@@ -24,13 +24,16 @@ const connect = () => {
 
     log("LANYARD", "Message", "pink", parsed.t || "-", parsed);
     if (parsed.t === "INIT_STATE") {
-      if (!d.discord_user)
+      if (!d.discord_user) {
+        alert("Bạn chưa tham gia máy chủ Lanyard (https://discord.gg/lanyard)");
+        
         return log(
           "USER",
           "Not found",
           "red",
           "Please join https://discord.gg/lanyard"
         );
+      }
 
       log("USER", "Hello", "yellow", d.discord_user.username);
     }
