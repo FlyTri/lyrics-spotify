@@ -281,14 +281,8 @@ const handleData = async ({ d }) => {
       .catch(() => null);
 
     lyrics = await fetch("/api/lyrics?" + params)
-      .then((response) =>
-        response.json().then((data) => {
-          if (data.message) return data.message;
-
-          return data;
-        })
-      )
-      .catch(() => "Không thể gửi yêu cầu");
+      .then((response) => response.json())
+      .catch(() => ({ message: "Không thể gửi yêu cầu" }));
     writeLyrics();
   }
 
@@ -301,6 +295,5 @@ const handleData = async ({ d }) => {
     currentIndex() === -1
   )
     writeLyrics();
-  console.log("update");
   update();
 };
