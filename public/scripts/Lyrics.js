@@ -34,7 +34,7 @@ const currentIndex = () => {
 };
 const writeContent = (index, text, element) => {
   if (index === -1 && currentIndex() === -1) {
-    element.textContent = "⬤ ⬤ ⬤ ⬤";
+    element.textContent = "⬤ ⬤ ⬤";
   } else if (index === -1) {
     element.textContent = "";
   } else {
@@ -208,6 +208,10 @@ const handleData = async ({ d }) => {
   timeouts.forEach(clearTimeout);
   timeouts = [];
 
+  document
+    .querySelectorAll("p")
+    .forEach((i) => i.classList.remove("highlight"));
+
   if (d.discord_status === "offline" || !d.spotify) {
     document.documentElement.style = null;
     spotify = {};
@@ -287,6 +291,6 @@ const handleData = async ({ d }) => {
     currentIndex() === -1
   )
     writeLyrics();
-  
+
   update();
 };
