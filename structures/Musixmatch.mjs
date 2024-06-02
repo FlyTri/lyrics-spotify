@@ -188,7 +188,7 @@ export default class Musixmatch {
         )
       )
     );
-    if (data[0].time) data.unshift([{ index: -1, time: 0 }]);
+    if (data[0][0].time) data.unshift([{ index: -1, time: 0 }]);
     return data;
   }
   /**
