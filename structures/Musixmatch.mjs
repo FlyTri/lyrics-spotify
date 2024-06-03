@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "axios"
 
 export default class Musixmatch {
   constructor() {
@@ -8,10 +8,10 @@ export default class Musixmatch {
         authority: "apic-desktop.musixmatch.com",
         cookie: "x-mxm-token-guid=",
       },
-    }).get;
+    }).get
 
-    this.token = null;
-    this.getNewAccessToken();
+    this.token = null
+    this.getNewAccessToken()
   }
   /**
    *
@@ -26,30 +26,30 @@ export default class Musixmatch {
       .then((response) => {
         switch (response.data.message.header.status_code) {
           case 200: {
-            console.log("Successfully refreshed Musixmatch token");
-            this.token = response.data.message.body.user_token;
+            console.log("Successfully refreshed Musixmatch token")
+            this.token = response.data.message.body.user_token
 
-            return true;
+            return true
           }
           case 401: {
-            console.log("Too many attempts on the server side");
+            console.log("Too many attempts on the server side")
 
-            return false;
+            return false
           }
           default: {
             console.log(
               `Failed to refresh Musixmatch token with status code ${response.data.message.header.status_code}`
-            );
+            )
 
-            return false;
+            return false
           }
         }
       })
       .catch(() => {
-        console.log("Failed to refresh Musixmatch token");
+        console.log("Failed to refresh Musixmatch token")
 
-        return false;
-      });
+        return false
+      })
   }
   /**
    *
@@ -60,50 +60,50 @@ export default class Musixmatch {
     if (response.data.message.header.status_code !== 200)
       return response.data.message.header.hint === "captcha"
         ? "Hiện có quá nhiều yêu cầu. Hãy thử lại sau"
-        : "Không thể tìm lời bài hát";
+        : "Không thể tìm lời bài hát"
 
-    const body = response.data.message.body.macro_calls;
+    const body = response.data.message.body.macro_calls
 
     if (!body["track.lyrics.get"].message.body?.lyrics?.lyrics_body)
-      return { message: "Không có kết quả" };
+      return { message: "Không có kết quả" }
 
-    const { track } = body["matcher.track.get"].message.body;
+    const { track } = body["matcher.track.get"].message.body
     const language =
-      body["track.lyrics.get"].message.body.lyrics.lyrics_language;
+      body["track.lyrics.get"].message.body.lyrics.lyrics_language
 
     if (track.has_richsync && body["matcher.track.get"].message.body) {
-      const data = await this.getTextSynced(track);
+      const data = await this.getTextSynced(track)
       if (data)
         return {
           type: "TEXT_SYNCED",
           data,
           translated: await this.translate(track.track_id, language),
-        };
+        }
     }
 
-    const { subtitle_list } = body["track.subtitles.get"].message.body;
+    const { subtitle_list } = body["track.subtitles.get"].message.body
     if (track.has_subtitles && subtitle_list) {
       const data = JSON.parse(subtitle_list[0].subtitle.subtitle_body).map(
         ({ text, time }, i) => ({ text, index: i + 1, time: time.total })
-      );
-      if (data[0].time) data.unshift({ index: -1, time: 0 });
+      )
+      if (data[0].time) data.unshift({ index: -1, time: 0 })
 
       return {
         type: "LINE_SYNCED",
         data,
         translated: await this.translate(track.track_id, language),
-      };
+      }
     }
 
     const lyricsData = body["track.lyrics.get"].message.body.lyrics.lyrics_body
       .split("\n")
-      .map((text) => ({ text: text || "" }));
+      .map((text) => ({ text: text || "" }))
 
     return {
       type: "NOT_SYNCED",
       data: lyricsData,
       translated: await this.translate(track.track_id, language),
-    };
+    }
   }
   /**
    *
@@ -115,9 +115,9 @@ export default class Musixmatch {
    * @returns {Promise<string|object>}
    */
   async getLyrics(name, album, artist, id, duration) {
-    if (!this.token) await this.getNewAccessToken();
-    if (!this.token) return { message: "Chưa thể tìm lời bài hát vào lúc này" };
-    let data;
+    if (!this.token) await this.getNewAccessToken()
+    if (!this.token) return { message: "Chưa thể tìm lời bài hát vào lúc này" }
+    let data
 
     const call = () =>
       this.get("/macro.subtitles.get", {
@@ -135,23 +135,23 @@ export default class Musixmatch {
           f_subtitle_length: Math.round(duration / 1000),
           usertoken: this.token,
         },
-      });
+      })
 
     await call()
       .then(async (response) => {
         if (response.data.message.header.status_code === 401) {
-          await this.getNewAccessToken();
+          await this.getNewAccessToken()
 
-          const newResponse = await call();
+          const newResponse = await call()
 
-          data = await this.handleAPIResponse(newResponse);
+          data = await this.handleAPIResponse(newResponse)
         } else {
-          data = await this.handleAPIResponse(response);
+          data = await this.handleAPIResponse(response)
         }
       })
-      .catch(() => (data = "Không thể tìm lời bài hát"));
+      .catch(() => (data = "Không thể tìm lời bài hát"))
 
-    return data;
+    return data
   }
   /**
    *
@@ -173,11 +173,11 @@ export default class Musixmatch {
       .then((response) =>
         JSON.parse(response.data.message.body.richsync.richsync_body)
       )
-      .catch(() => null);
+      .catch(() => null)
 
-    if (!textSynced) return null;
+    if (!textSynced) return null
 
-    let count = 0;
+    let count = 0
     const data = textSynced.map((obj) =>
       obj.l.map((data, i) =>
         JSON.parse(
@@ -189,9 +189,9 @@ export default class Musixmatch {
           })
         )
       )
-    );
-    if (data[0][0].time) data.unshift([{ index: -1, time: 0 }]);
-    return data;
+    )
+    if (data[0][0].time) data.unshift([{ index: -1, time: 0 }])
+    return data
   }
   /**
    *
@@ -218,6 +218,6 @@ export default class Musixmatch {
           })
         )
       )
-      .catch(() => []);
+      .catch(() => [])
   }
 }

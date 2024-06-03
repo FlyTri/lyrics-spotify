@@ -5,4 +5,4 @@ const log = (name, type, color, ...text) =>
     "",
     `background: ${color}; color: black; font-weight: bold; border-radius: 5px;`,
     ...text
-  );
+  )
