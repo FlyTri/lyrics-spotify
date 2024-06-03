@@ -48,7 +48,7 @@ p.highlight {
 }
 
 p.bold {
-  font-family: "SpotifyMix-Bold", sans-serif;
+  font-family: "SpotifyMix-Bold", sans-serif !important;
 }
 
 span.highlight {
