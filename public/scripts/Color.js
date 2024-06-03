@@ -1,5 +1,14 @@
 const colorThief = new ColorThief();
 
+const convertHEXToRGB = (hex) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+  return [
+    parseInt(result[1], 16),
+    parseInt(result[2], 16),
+    parseInt(result[3], 16),
+  ];
+};
 const getLuminance = (r, g, b) => {
   const a = [r, g, b].map((v) => {
     v /= 255;
@@ -13,11 +22,17 @@ const getContrastRatio = (a, b) => {
 const isReadable = ([r, g, b]) => {
   const luminanceBackground = getLuminance(r, g, b);
   const luminanceBlack = 0;
-  const luminanceWhite = 1;
+  const luminanceText = getLuminance(
+    ...convertHEXToRGB(
+      getComputedStyle(document.documentElement).getPropertyValue(
+        "--text-color"
+      )
+    )
+  );
 
   return (
     getContrastRatio(luminanceBackground, luminanceBlack) >= 3 &&
-    getContrastRatio(luminanceBackground, luminanceWhite) >= 3
+    getContrastRatio(luminanceBackground, luminanceText) >= 3
   );
 };
 const changeColor = () => {
@@ -35,9 +50,12 @@ const changeColor = () => {
     if (!colors.length) return;
 
     const color = colors[Math.floor(Math.random() * colors.length)];
-
+    console.log(color);
     document.documentElement.style.setProperty("--lyrics-color", "#000");
-    document.documentElement.style.setProperty("--highlight-color", "#fff");
+    document.documentElement.style.setProperty(
+      "--highlight-color",
+      "var(--text-color)"
+    );
     document.documentElement.style.setProperty("--progress-bar-color", "#fff");
     document.documentElement.style.setProperty(
       "--background-color",
