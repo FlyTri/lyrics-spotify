@@ -56,11 +56,6 @@ span.highlight {
 }
 
 @media only screen and (max-width: 750px) {
-  .content {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
   p.lyrics {
     font-size: 28px;
   }

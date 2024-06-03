@@ -93,6 +93,8 @@
   overflow-y: auto;
   padding-top: 80px;
   padding-bottom: 100px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 p.lyrics {

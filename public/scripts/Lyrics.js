@@ -2,6 +2,7 @@ let timeouts = [];
 let lyrics = {};
 let spotify = {};
 let playing = false;
+let controller;
 
 const scrollIntoView = (element, check = true) => {
   if (!element) return;
@@ -41,7 +42,7 @@ const writeContent = (index, text, element) => {
     element.textContent = text || "♪";
   }
 };
-const writeLyrics = () => {
+const writeLyrics = (callUpdate) => {
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
   if (lyrics.message) return setLyricsStatus(lyrics.message);
@@ -90,6 +91,7 @@ const writeLyrics = () => {
     translateBtn.classList.remove("disabled");
     if (localStorage.getItem("translate") === "true") writeTranslates();
   }
+  if (callUpdate) update();
 };
 const writeTranslates = () => {
   const lines = document.querySelectorAll(".translated");
@@ -233,6 +235,7 @@ const handleData = async ({ d }) => {
     : "Tên nghệ sĩ";
 
   if (d.listening_to_spotify && spotify.track_id != d.spotify.track_id) {
+    if (controller) controller.abort();
     document.documentElement.style = null;
     spotify = d.spotify;
     playing = d.listening_to_spotify;
@@ -249,37 +252,13 @@ const handleData = async ({ d }) => {
     translateBtn.classList.add("disabled");
     setLyricsStatus("Đang tải...");
 
-    fetch(`/api/colors?id=` + d.spotify.album_art_url.split("/").pop())
-      .then((response) =>
-        response.json().then((data) => {
-          if (data.message) return;
+    controller = new AbortController();
 
-          const { text, background, translated } = data;
-          document.documentElement.style.setProperty("--lyrics-color", text);
-          document.documentElement.style.setProperty(
-            "--highlight-color",
-            "#fff"
-          );
-          document.documentElement.style.setProperty(
-            "--progress-bar-color",
-            "#fff"
-          );
-          document.documentElement.style.setProperty(
-            "--background-color",
-            background
-          );
-          document.documentElement.style.setProperty(
-            "--translated-color",
-            translated
-          );
-        })
-      )
-      .catch(() => null);
-
-    lyrics = await fetch("/api/lyrics?" + params)
+    changeColor();
+    lyrics = await fetch("/api/lyrics?" + params, { signal: controller.signal })
       .then((response) => response.json())
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
-    writeLyrics();
+    return writeLyrics(true);
   }
   spotify = d.spotify;
   playing = d.listening_to_spotify;
