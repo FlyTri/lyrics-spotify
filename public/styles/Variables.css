@@ -1,12 +1,12 @@
 :root {
-  --spotify-green: #1ed760;
+  --green: #00ff59;
   --discord-color: #2b2d31;
   --text-color: #c6d0f5;
 
   --background-color: #1e1e2e;
   --progress-bar-color: #427e9d;
-  --highlight-color: var(--spotify-green);
-  --lyrics-color: #546254;
+  --highlight-color: var(--green);
+  --lyrics-color: #567456;
   --translated-color: #f5e0dc;
 
   --progress-bar-width: 0;

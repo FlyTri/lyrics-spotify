@@ -20,34 +20,46 @@ export default class Spotify {
    * @returns {Promise<boolean>}
    */
   async getNewAccessToken() {
-    return axios
-      .get(this.accessTokenURL, {
-        params: {
-          reason: "transport",
-          productType: "web_player",
-        },
-        headers: {
-          "App-Platform": "WebPlayer",
-          "Content-Type": "text/html; charset=utf-8",
-          cookie: "sp_dc=" + this.SP_DC,
-        },
-      })
-      .then((response) => {
-        const { accessToken, accessTokenExpirationTimestampMs } = response.data;
+    return (
+      axios
+        .get(this.accessTokenURL, {
+          params: {
+            reason: "transport",
+            productType: "web_player",
+          },
+          headers: {
+            "App-Platform": "WebPlayer",
+            "Content-Type": "text/html; charset=utf-8",
+            cookie: "sp_dc=" + this.SP_DC,
+          },
+        })
+        .then((response) => {
+          const { accessToken, accessTokenExpirationTimestampMs } =
+            response.data;
 
-        if (accessToken.isAnonymous) {
-          console.log("Invalid SP_DC cookie was provided");
+          if (accessToken.isAnonymous) {
+            console.log("Invalid SP_DC cookie was provided");
+            return false;
+          }
+
+          console.log("Successfully refreshed Spotify token");
+          this.accessToken = accessToken;
+          this.accessTokenExpirationTimestampMs =
+            accessTokenExpirationTimestampMs;
+
+          return true;
+        })
+        /**
+         * @type {import("axios").AxiosError}
+         */
+        .catch((error) => {
+          console.log(
+            `Failed to refresh Spotify token with status code ${error.response.status}`
+          );
+
           return false;
-        }
-
-        console.log("Successfully refreshed Spotify token");
-        this.accessToken = accessToken;
-        this.accessTokenExpirationTimestampMs =
-          accessTokenExpirationTimestampMs;
-
-        return true;
-      })
-      .catch(() => false);
+        })
+    );
   }
   /**
    *
@@ -55,15 +67,14 @@ export default class Spotify {
    * @returns {Promise<null | {text: string, background: string}>}
    */
   async getColors(id) {
-    if (!this.accessToken) return;
-    if (this.accessTokenExpirationTimestampMs < Date.now())
+    if (this.accessTokenExpirationTimestampMs < Date.now() || !this.accessToken)
       await this.getNewAccessToken().then((success) => {
         if (!success) {
           this.accessToken = null;
           this.accessTokenExpirationTimestampMs = null;
         }
       });
-    if (!this.accessToken) return null;
+    if (!this.accessToken) return { message: "Chưa thể tìm màu vào lúc này" };
 
     return axios
       .get(this.colorURL.replace("id", id), {
@@ -98,7 +109,7 @@ export default class Spotify {
           ),
         };
       })
-      .catch(() => "Không thể tìm màu của bài hát");
+      .catch(() => ({ message: "Không thể tìm màu của bài hát" }));
   }
   /**
    *

@@ -38,7 +38,7 @@ export default class Musixmatch {
           }
           default: {
             console.log(
-              `Failed to refresh token with status code ${response.data.message.header.status_code}`
+              `Failed to refresh Musixmatch token with status code ${response.data.message.header.status_code}`
             );
 
             return false;
@@ -46,7 +46,7 @@ export default class Musixmatch {
         }
       })
       .catch(() => {
-        console.log("Failed to refresh token");
+        console.log("Failed to refresh Musixmatch token");
 
         return false;
       });
@@ -115,6 +115,8 @@ export default class Musixmatch {
    * @returns {Promise<string|object>}
    */
   async getLyrics(name, album, artist, id, duration) {
+    if (!this.token) await this.getNewAccessToken();
+    if (!this.token) return { message: "Chưa thể tìm lời bài hát vào lúc này" };
     let data;
 
     const call = () =>

@@ -35,4 +35,4 @@ app
     const data = await Spotify.getColors(id);
     res.setHeader("Content-Type", "application/json").send(data);
   })
-  .listen(PORT);
+  .listen(PORT, () => console.log(`Listening on port ${PORT}`));

@@ -21,7 +21,7 @@ const setLyricsStatus = (text) => {
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
   const element = document.createElement("p");
-  element.classList.add("lyrics", "highlight");
+  element.classList.add("lyrics");
   element.textContent = text;
   document.querySelector(".content").appendChild(element);
 };
