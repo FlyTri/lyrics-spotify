@@ -1,14 +1,19 @@
 @font-face {
   font-family: "SpotifyMix";
   src: url("/fonts/SpotifyMix-Regular.woff");
+  font-display: swap;
 }
+
 @font-face {
   font-family: "SpotifyMix-Medium";
   src: url("/fonts/SpotifyMix-Medium.woff");
+  font-display: swap;
 }
+
 @font-face {
   font-family: "SpotifyMix-Bold";
   src: url("/fonts/SpotifyMix-Bold.woff");
+  font-display: swap;
 }
 
 html,
