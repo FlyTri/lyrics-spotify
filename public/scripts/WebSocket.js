@@ -14,6 +14,7 @@ const connect = () => {
   const ws = new WebSocket("wss://api.lanyard.rest/socket")
   const start = Date.now()
   let heartbeat_interval = null
+
   ws.onopen = (event) => {
     log("LANYARD", "Connected", "aqua", Date.now() - start)
     ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: storedID } }))
@@ -22,7 +23,7 @@ const connect = () => {
     const parsed = JSON.parse(data)
     const { op, d } = parsed
 
-    log("LANYARD", "Message", "pink", parsed.t || "-", parsed)
+    log("LANYARD", "Message", "pink", parsed.t || "-")
     if (parsed.t === "INIT_STATE") {
       if (!d.discord_user) {
         alert("Bạn chưa tham gia máy chủ Lanyard (https://discord.gg/lanyard)")

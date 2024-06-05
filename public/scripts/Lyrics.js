@@ -230,8 +230,9 @@ const handleData = async ({ d }) => {
     ? d.spotify.artist.replaceAll(";", ",")
     : "Tên nghệ sĩ"
 
-  if (d.listening_to_spotify && spotify.track_id != d.spotify.track_id) {
+  if (d.listening_to_spotify && spotify.track_id !== d.spotify.track_id) {
     if (controller) controller.abort()
+
     document.documentElement.style = null
     spotify = d.spotify
     playing = d.listening_to_spotify

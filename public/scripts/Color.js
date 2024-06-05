@@ -43,14 +43,23 @@ const changeColor = () => {
   img.addEventListener("load", () => {
     if (spotify.album_art_url !== img.src) return
 
-    const colors = colorThief
-      .getPalette(img)
-      .filter((background) => isReadable(background))
-    console.log(colorThief.getPalette(img))
-    if (!colors.length) return
+    const colors = colorThief.getPalette(img)
+    const valid = colors.filter((background) => isReadable(background))
 
-    const color = colors[Math.floor(Math.random() * colors.length)]
-    console.log(color)
+    log(
+      "COLORS",
+      "VALID",
+      "aqua",
+      [`%c  %c `.repeat(valid.length)],
+      ...valid
+      .map((color) => [`background: rgb(${color.join(", ")});`, ""])
+      .flat(Infinity),
+    )
+
+    if (!valid.length) return
+
+    const color = valid[Math.floor(Math.random() * valid.length)]
+
     document.documentElement.style.setProperty("--lyrics-color", "#000")
     document.documentElement.style.setProperty(
       "--highlight-color",
