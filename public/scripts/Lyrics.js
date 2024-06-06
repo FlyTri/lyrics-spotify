@@ -143,13 +143,25 @@ const update = (adjust = false) => {
   if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
 
   document
-    .querySelectorAll("p")
+    .querySelectorAll(".highlight")
     .forEach((i) => i.classList.remove("highlight", "bold"));
 
   const now = (DateNow() - spotify.timestamps.start) / 1000;
   const flatted = lyrics.data.flat(Infinity);
   const nextLyrics = flatted.filter((obj) => obj.time >= now);
   const currentLine = document.querySelector(`.index-${currentIndex()}`);
+
+  if (lyrics.type === "TEXT_SYNCED") {
+    const playedWords = lyrics.data
+      .find((arr) => arr.find((obj) => obj.index === currentIndex()))
+      .filter((obj) => obj.index < currentIndex());
+
+    for (const { index } of playedWords) {
+      const word = document.querySelector(`.index-${index}`);
+
+      word.classList.add("highlight");
+    }
+  }
 
   if (!currentIndex()) {
     const wait =

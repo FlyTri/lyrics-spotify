@@ -97,6 +97,11 @@
   padding-right: 10px;
 }
 
+.lyrics,
+.lyrics > * {
+  transition: 0.3s;
+}
+
 p.lyrics {
   font-family: "SpotifyMix-Medium", sans-serif;
   font-size: 28px;
