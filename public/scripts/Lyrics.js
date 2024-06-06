@@ -34,9 +34,24 @@ const currentIndex = () => {
   return before[before.length - 1].index;
 };
 const writeContent = (index, text, element) => {
-  if (index === -1 && currentIndex() === -1) {
-    element.textContent = "⬤ ⬤ ⬤";
-  } else if (index === -1) {
+  if (!index && !currentIndex()) {
+    const first = lyrics.data.flat(Infinity)[1].time * 1000;
+    const played = DateNow() - spotify.timestamps.start;
+    const wait = first - played - 2000;
+
+    if (wait > 0) {
+      element.textContent = "⬤ ⬤ ⬤";
+      return;
+    }
+    if (wait + 1000 > 0) {
+      element.textContent = "⬤ ⬤";
+      return;
+    }
+    if (wait + 2000 > 0) {
+      element.textContent = "⬤";
+      return;
+    }
+  } else if (!index) {
     element.textContent = "";
   } else {
     element.textContent = text || "♪";
@@ -127,28 +142,30 @@ const update = (adjust = false) => {
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
   if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
 
+  document
+    .querySelectorAll("p")
+    .forEach((i) => i.classList.remove("highlight", "bold"));
+
   const now = (DateNow() - spotify.timestamps.start) / 1000;
   const flatted = lyrics.data.flat(Infinity);
   const nextLyrics = flatted.filter((obj) => obj.time >= now);
   const currentLine = document.querySelector(`.index-${currentIndex()}`);
 
-  if (currentIndex() === -1) {
+  if (!currentIndex()) {
     const wait =
-      (flatted[1].time * 1000 - (DateNow() - spotify.timestamps.start)) / 3;
+      flatted[1].time * 1000 - (DateNow() - spotify.timestamps.start) - 2000;
 
-    [2, 1, 0].forEach((number, index) =>
-      timeouts.push(
-        setTimeout(() => {
-          currentLine.textContent = " ⬤ ".repeat(number);
-        }, wait * (index + 1))
-      )
-    );
+    ["⬤ ⬤", "⬤", ""].forEach((state, index) => {
+      if (wait + index * 1000 > 0) {
+        timeouts.push(
+          setTimeout(() => {
+            currentLine.textContent = state;
+          }, wait + index * 1000)
+        );
+      }
+    });
   }
 
-  document
-    .querySelectorAll("p")
-    .forEach((i) => i.classList.remove("highlight"));
-  document.querySelectorAll("p").forEach((i) => i.classList.remove("bold"));
   currentLine.classList.add("highlight");
 
   if (lyrics.type === "TEXT_SYNCED")
@@ -159,7 +176,7 @@ const update = (adjust = false) => {
   if (playing) {
     switch (lyrics.type) {
       case "TEXT_SYNCED": {
-        for (const lyric of nextLyrics.filter((lyric) => lyric.text != " ")) {
+        for (const lyric of nextLyrics) {
           timeouts.push(
             setTimeout(() => {
               if (!playing) return;
@@ -264,12 +281,7 @@ const handleData = async ({ d }) => {
   spotify = d.spotify;
   playing = d.listening_to_spotify;
 
-  if (
-    playing &&
-    lyrics.type !== "NOT_SYNCED" &&
-    lyrics.data &&
-    currentIndex() === -1
-  )
+  if (playing && lyrics.type !== "NOT_SYNCED" && lyrics.data && !currentIndex())
     writeLyrics();
 
   update();
