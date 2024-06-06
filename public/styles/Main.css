@@ -59,17 +59,3 @@ p.bold {
 span.highlight {
   color: var(--highlight-color) !important;
 }
-
-@media only screen and (max-width: 750px) {
-  p.lyrics {
-    font-size: 28px;
-  }
-
-  .title {
-    font-size: 14px;
-  }
-
-  .artist {
-    font-size: 12px;
-  }
-}
