@@ -1,43 +1,53 @@
 window.document.addEventListener("DOMContentLoaded", () => {
-  const countDiv = document.querySelector(".count")
-  const translateBtn = document.querySelector(".translate")
-  const upBtn = document.querySelector(".c-up")
-  const downBtn = document.querySelector(".c-down")
-  const logoutBtn = document.querySelector(".logout")
-  const fromStorage = Number(localStorage.getItem("count"))
+  const countDiv = document.querySelector(".count");
+  const translateBtn = document.querySelector(".translate");
+  const upBtn = document.querySelector(".c-up");
+  const downBtn = document.querySelector(".c-down");
+  const logoutBtn = document.querySelector(".logout");
+  const fromStorage = Number(localStorage.getItem("count"));
 
-  translateBtn.addEventListener("click", () => writeTranslates())
+  translateBtn.addEventListener("click", () => writeTranslates());
 
-  countDiv.textContent = fromStorage / 1000 + "s"
-  if (fromStorage === 5000) upBtn.classList.add("disabled")
-  if (fromStorage === -5000) downBtn.classList.add("disabled")
+  countDiv.textContent = fromStorage / 1000 + "s";
+  if (fromStorage === 5000) upBtn.classList.add("disabled");
+  if (fromStorage === -5000) downBtn.classList.add("disabled");
   upBtn.addEventListener("click", () => {
-    const count = Number(localStorage.getItem("count"))
-    const newCount = count + 250
-    if (newCount + 250 > 5000) upBtn.classList.add("disabled")
+    const count = Number(localStorage.getItem("count"));
+    const newCount = count + 250;
+    if (newCount + 250 > 5000) upBtn.classList.add("disabled");
 
     if (downBtn.classList.contains("disabled"))
-      downBtn.classList.remove("disabled")
-    localStorage.setItem("count", newCount)
-    countDiv.textContent = newCount / 1000 + "s"
-    update(true)
-  })
+      downBtn.classList.remove("disabled");
+    localStorage.setItem("count", newCount);
+    countDiv.textContent = newCount / 1000 + "s";
+    update(true);
+  });
 
   downBtn.addEventListener("click", () => {
-    const count = Number(localStorage.getItem("count"))
-    const newCount = count - 250
-    if (newCount - 250 < -5000) downBtn.classList.add("disabled")
+    const count = Number(localStorage.getItem("count"));
+    const newCount = count - 250;
+    if (newCount - 250 < -5000) downBtn.classList.add("disabled");
 
-    if (upBtn.classList.contains("disabled")) upBtn.classList.remove("disabled")
-    localStorage.setItem("count", newCount)
-    countDiv.textContent = newCount / 1000 + "s"
-    update(true)
-  })
+    if (upBtn.classList.contains("disabled"))
+      upBtn.classList.remove("disabled");
+    localStorage.setItem("count", newCount);
+    countDiv.textContent = newCount / 1000 + "s";
+    update(true);
+  });
+
+  countDiv.addEventListener("click", () => {
+    upBtn.classList.remove("disabled");
+    downBtn.classList.remove("disabled");
+    localStorage.setItem("count", 0);
+    countDiv.textContent = "0s";
+
+    update(true);
+  });
 
   logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("id")
-    window.location.reload()
-  })
+    localStorage.removeItem("id");
+    window.location.reload();
+  });
 
   document.addEventListener("visibilitychange", () => {
     if (
@@ -45,8 +55,8 @@ window.document.addEventListener("DOMContentLoaded", () => {
       lyrics &&
       lyrics.type !== "NOT_SYNCED"
     )
-      scrollIntoView(document.querySelector(".highlight"), false)
-  })
+      scrollIntoView(document.querySelector(".highlight"), false);
+  });
 
   setInterval(() => {
     if (playing) {
@@ -59,9 +69,9 @@ window.document.addEventListener("DOMContentLoaded", () => {
               (DateNow() - spotify.timestamps.start))) *
           100
         }%`
-      )
+      );
     } else {
-      document.documentElement.style.setProperty("--progress-bar-width", "0%")
+      document.documentElement.style.setProperty("--progress-bar-width", "0%");
     }
-  }, 500)
-})
+  }, 500);
+});

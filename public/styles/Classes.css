@@ -105,7 +105,6 @@
 p.lyrics {
   font-family: "SpotifyMix-Medium", sans-serif;
   font-size: 28px;
-  position: sticky;
   color: var(--lyrics-color);
 }
 
@@ -120,8 +119,8 @@ p.lyrics {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding-top: 15px;
-  padding-bottom: 15px;
+  padding-top: 12px;
+  padding-bottom: 12px;
   background: #0d0d14;
   overflow-x: hidden;
 }
@@ -158,4 +157,10 @@ p.lyrics {
 
 .count {
   font-size: 20px;
+}
+
+@media only screen and (max-width: 600px) {
+  .content p {
+    text-align: left;
+  }
 }

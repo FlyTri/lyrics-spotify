@@ -23,6 +23,7 @@ const setLyricsStatus = (text) => {
 
   const element = document.createElement("p");
   element.classList.add("lyrics");
+  element.style.textAlign = "center";
   element.textContent = text;
   document.querySelector(".content").appendChild(element);
 };
@@ -40,15 +41,15 @@ const writeContent = (index, text, element) => {
     const wait = first - played - 2000;
 
     if (wait > 0) {
-      element.textContent = "⬤ ⬤ ⬤";
+      element.textContent = "● ● ●";
       return;
     }
     if (wait + 1000 > 0) {
-      element.textContent = "⬤ ⬤";
+      element.textContent = "● ●";
       return;
     }
     if (wait + 2000 > 0) {
-      element.textContent = "⬤";
+      element.textContent = "●";
       return;
     }
   } else if (!index) {
@@ -105,7 +106,7 @@ const writeLyrics = (callUpdate) => {
 
   if (lyrics.translated?.length) {
     translateBtn.classList.remove("disabled");
-    
+
     if (localStorage.getItem("translate") === "true") writeTranslates();
   }
   if (callUpdate) update();
@@ -169,7 +170,7 @@ const update = (adjust = false) => {
     const wait =
       flatted[1].time * 1000 - (DateNow() - spotify.timestamps.start) - 2000;
 
-    ["⬤ ⬤", "⬤", ""].forEach((state, index) => {
+    ["● ●", "●", ""].forEach((state, index) => {
       if (wait + index * 1000 > 0) {
         timeouts.push(
           setTimeout(() => {
