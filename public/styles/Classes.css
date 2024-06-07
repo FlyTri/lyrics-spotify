@@ -106,6 +106,8 @@ p.lyrics {
   font-family: "SpotifyMix-Medium", sans-serif;
   font-size: 28px;
   color: var(--lyrics-color);
+  padding-top: 7px;
+  padding-bottom: 7px;
 }
 
 .content p {
