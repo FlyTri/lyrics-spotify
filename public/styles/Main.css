@@ -48,7 +48,7 @@ p.translated {
 }
 
 p.highlight {
-  font-family: "SpotifyMix-Bold", sans-serif;
+  font-family: "SpotifyMix-Bold", sans-serif !important;
   color: var(--highlight-color) !important;
 }
 

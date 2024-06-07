@@ -54,7 +54,7 @@ const writeContent = (index, text, element) => {
   } else if (!index) {
     element.textContent = "";
   } else {
-    element.textContent = text || "♪";
+    element.textContent = text || "♫";
   }
 };
 const writeLyrics = (callUpdate) => {
@@ -71,6 +71,7 @@ const writeLyrics = (callUpdate) => {
         element.classList.add("lyrics");
         for (const { text, index } of obj) {
           const span = document.createElement("span");
+
           span.classList.add(`index-${index}`);
           writeContent(index, text, span);
           element.appendChild(span);
@@ -83,9 +84,9 @@ const writeLyrics = (callUpdate) => {
     case "LINE_SYNCED": {
       for (const obj of lyrics.data) {
         const element = document.createElement("p");
+
         element.classList.add("lyrics", `index-${obj.index}`);
         writeContent(obj.index, obj.text, element);
-
         document.querySelector(".content").appendChild(element);
       }
       break;
@@ -93,9 +94,9 @@ const writeLyrics = (callUpdate) => {
     case "NOT_SYNCED": {
       for (const obj of lyrics.data) {
         const element = document.createElement("p");
+
         element.classList.add("lyrics", "highlight");
         element.textContent = obj.text;
-
         document.querySelector(".content").appendChild(element);
       }
       break;
@@ -104,6 +105,7 @@ const writeLyrics = (callUpdate) => {
 
   if (lyrics.translated?.length) {
     translateBtn.classList.remove("disabled");
+    
     if (localStorage.getItem("translate") === "true") writeTranslates();
   }
   if (callUpdate) update();
@@ -159,7 +161,7 @@ const update = (adjust = false) => {
     for (const { index } of playedWords) {
       const word = document.querySelector(`.index-${index}`);
 
-      word.classList.add("highlight");
+      word?.classList.add("highlight");
     }
   }
 
@@ -185,53 +187,49 @@ const update = (adjust = false) => {
 
   scrollIntoView(currentLine, false);
 
-  if (playing) {
-    switch (lyrics.type) {
-      case "TEXT_SYNCED": {
-        for (const lyric of nextLyrics) {
-          timeouts.push(
-            setTimeout(() => {
-              if (!playing) return;
-              if (lyric.newLine)
-                document
-                  .querySelectorAll("span")
-                  .forEach((i) => i.classList.remove("highlight"));
+  if (!playing) return;
 
-              const currentLine = document.querySelector(
-                `.index-${lyric.index}`
-              );
-
+  switch (lyrics.type) {
+    case "TEXT_SYNCED": {
+      for (const lyric of nextLyrics) {
+        timeouts.push(
+          setTimeout(() => {
+            if (!playing) return;
+            if (lyric.newLine)
               document
-                .querySelectorAll("p")
-                .forEach((i) => i.classList.remove("bold"));
-              currentLine.parentElement.classList.add("bold");
-              currentLine.classList.add("highlight");
-              scrollIntoView(currentLine.parentElement);
-            }, (lyric.time - now) * 1000)
-          );
-        }
-        break;
-      }
-      case "LINE_SYNCED": {
-        for (const lyric of nextLyrics) {
-          timeouts.push(
-            setTimeout(() => {
-              if (!playing) return;
-
-              const currentLine = document.querySelector(
-                `.index-${lyric.index}`
-              );
-
-              document
-                .querySelectorAll("p")
+                .querySelectorAll("span")
                 .forEach((i) => i.classList.remove("highlight"));
-              currentLine.classList.add("highlight");
-              scrollIntoView(currentLine);
-            }, (lyric.time - now) * 1000)
-          );
-        }
-        break;
+
+            const currentLine = document.querySelector(`.index-${lyric.index}`);
+
+            document
+              .querySelectorAll("p")
+              .forEach((i) => i.classList.remove("bold"));
+            currentLine.parentElement.classList.add("bold");
+            currentLine.classList.add("highlight");
+            scrollIntoView(currentLine.parentElement);
+          }, (lyric.time - now) * 1000)
+        );
       }
+      break;
+    }
+    case "LINE_SYNCED": {
+      for (const lyric of nextLyrics) {
+        timeouts.push(
+          setTimeout(() => {
+            if (!playing) return;
+
+            const currentLine = document.querySelector(`.index-${lyric.index}`);
+
+            document
+              .querySelectorAll("p")
+              .forEach((i) => i.classList.remove("highlight"));
+            currentLine.classList.add("highlight");
+            scrollIntoView(currentLine);
+          }, (lyric.time - now) * 1000)
+        );
+      }
+      break;
     }
   }
 };
@@ -286,7 +284,14 @@ const handleData = async ({ d }) => {
 
     changeColor();
     lyrics = await fetch("/api/lyrics?" + params, { signal: controller.signal })
-      .then((response) => response.json())
+      .then((response) => {
+        let data = response.json();
+
+        if (data.type === "LINE_SYNCED")
+          data = data.map((obj) => !obj.text.trim() && !obj.newLine);
+
+        return data;
+      })
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
     return writeLyrics(true);
   }
