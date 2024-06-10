@@ -86,7 +86,8 @@ const writeLyrics = (callUpdate) => {
   const translateBtn = document.querySelector(".translate");
   const lyricsToWrite = [...lyrics.data];
 
-  if (currentIndex() !== 0) lyricsToWrite.shift();
+  if (lyrics.type !== "NOT_SYNCED" && currentIndex() !== 0)
+    lyricsToWrite.shift();
 
   switch (lyrics.type) {
     case "TEXT_SYNCED": {
