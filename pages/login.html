@@ -219,10 +219,14 @@
             "Đăng nhập Spotify",
             `width=${width},height=${height},top=${top},left=${left}`
           );
+          const interval = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(interval);
 
-          popup.addEventListener("unload", () => {
-            if (localStorage.getItem("token")) window.location.href = "/";
-          });
+              if (localStorage.hasOwnProperty("token"))
+                window.location.href = "/";
+            }
+          }, 250);
         });
       });
     </script>
