@@ -2,43 +2,38 @@ let timeouts = [];
 let lyrics = {};
 let spotify = {};
 let playing = false;
-let controller;
 
-const scrollIntoView = (element, check = true) => {
-  if (!element) return;
-  if (!check)
-    return element.scrollIntoView({ behavior: "smooth", block: "center" });
-
-  const { clientHeight } = document.body;
-  const elementRectBottom = element.getBoundingClientRect().bottom;
-
-  if (elementRectBottom >= -50 && elementRectBottom <= clientHeight)
-    element.scrollIntoView({ behavior: "smooth", block: "center" });
-};
-
-const setLyricsStatus = (text) => {
+const clearTimeouts = () => {
   timeouts.forEach(clearTimeout);
   timeouts = [];
+};
+const clearHighlights = () => {
+  document.querySelectorAll(".highlight").forEach((i) => {
+    i.classList.remove("highlight");
+    i.parentElement.classList.remove("bold");
+  });
+};
+const currentIndex = () => {
+  const flatted = lyrics.data.flat(Infinity);
+  const before = flatted.filter((obj) => obj.time <= spotify.progress() / 1000);
+
+  return before[before.length - 1].index;
+};
+const setLyricsStatus = (text) => {
+  clearTimeouts();
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
   const element = document.createElement("p");
+
   element.classList.add("lyrics");
   element.style.textAlign = "center";
   element.textContent = text;
   document.querySelector(".content").appendChild(element);
 };
-const currentIndex = () => {
-  const now = (DateNow() - spotify.timestamps.start) / 1000;
-  const flatted = lyrics.data.flat(Infinity);
-  const before = now < 0 ? flatted : flatted.filter((obj) => obj.time <= now);
-
-  return before[before.length - 1].index;
-};
 const writeContent = (index, text, element) => {
   if (!index && !currentIndex()) {
     const first = lyrics.data.flat(Infinity)[1].time * 1000;
-    const played = DateNow() - spotify.timestamps.start;
-    const wait = first - played - 2000;
+    const wait = first - spotify.progress() - 2000;
 
     if (wait > 0) {
       element.textContent = "● ● ●";
@@ -58,59 +53,7 @@ const writeContent = (index, text, element) => {
     element.textContent = text || "♫";
   }
 };
-const writeLyrics = (callUpdate) => {
-  document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
-  if (lyrics.message) return setLyricsStatus(lyrics.message);
-  const translateBtn = document.querySelector(".translate");
-
-  switch (lyrics.type) {
-    case "TEXT_SYNCED": {
-      for (const obj of lyrics.data) {
-        const element = document.createElement("p");
-
-        element.classList.add("lyrics");
-        for (const { text, index } of obj) {
-          const span = document.createElement("span");
-
-          span.classList.add(`index-${index}`);
-          writeContent(index, text, span);
-          element.appendChild(span);
-        }
-
-        document.querySelector(".content").appendChild(element);
-      }
-      break;
-    }
-    case "LINE_SYNCED": {
-      for (const obj of lyrics.data) {
-        const element = document.createElement("p");
-
-        element.classList.add("lyrics", `index-${obj.index}`);
-        writeContent(obj.index, obj.text, element);
-        document.querySelector(".content").appendChild(element);
-      }
-      break;
-    }
-    case "NOT_SYNCED": {
-      for (const obj of lyrics.data) {
-        const element = document.createElement("p");
-
-        element.classList.add("lyrics", "highlight");
-        element.textContent = obj.text;
-        document.querySelector(".content").appendChild(element);
-      }
-      break;
-    }
-  }
-
-  if (lyrics.translated?.length) {
-    translateBtn.classList.remove("disabled");
-
-    if (localStorage.getItem("translate") === "true") writeTranslates();
-  }
-  if (callUpdate) update();
-};
 const writeTranslates = () => {
   const lines = document.querySelectorAll(".translated");
 
@@ -135,25 +78,79 @@ const writeTranslates = () => {
   }
 
   localStorage.setItem("translate", true);
-  scrollIntoView(document.querySelector(".highlight"), false);
 };
-const update = (adjust = false) => {
-  timeouts.forEach(clearTimeout);
-  timeouts = [];
+const writeLyrics = (callUpdate) => {
+  document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
-  if (!playing && !adjust)
+  if (lyrics.message) return setLyricsStatus(lyrics.message);
+  const translateBtn = document.querySelector(".translate");
+  const lyricsToWrite = [...lyrics.data];
+
+  if (currentIndex() !== 0) lyricsToWrite.shift();
+
+  switch (lyrics.type) {
+    case "TEXT_SYNCED": {
+      for (const obj of lyricsToWrite) {
+        const element = document.createElement("p");
+
+        element.classList.add("lyrics");
+        for (const { text, index } of obj) {
+          const span = document.createElement("span");
+
+          span.classList.add(`index-${index}`);
+          writeContent(index, text, span);
+          element.appendChild(span);
+        }
+
+        document.querySelector(".content").appendChild(element);
+      }
+      break;
+    }
+    case "LINE_SYNCED": {
+      for (const obj of lyricsToWrite) {
+        const element = document.createElement("p");
+
+        element.classList.add("lyrics", `index-${obj.index}`);
+        writeContent(obj.index, obj.text, element);
+        document.querySelector(".content").appendChild(element);
+      }
+      break;
+    }
+    case "NOT_SYNCED": {
+      for (const obj of lyricsToWrite) {
+        const element = document.createElement("p");
+
+        element.classList.add("lyrics", "highlight");
+        writeContent(1, obj.text, element);
+        document.querySelector(".content").appendChild(element);
+      }
+      break;
+    }
+  }
+
+  if (lyrics.translated?.length) {
+    translateBtn.classList.remove("disabled");
+
+    if (localStorage.getItem("translate") === "true") writeTranslates();
+  }
+
+  if (callUpdate) update();
+};
+const update = () => {
+  clearTimeouts();
+
+  if (!spotify.name && !adjust)
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
   if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
 
-  document
-    .querySelectorAll(".highlight")
-    .forEach((i) => i.classList.remove("highlight", "bold"));
+  clearHighlights();
 
-  const now = (DateNow() - spotify.timestamps.start) / 1000;
+  const now = spotify.progress() / 1000;
   const flatted = lyrics.data.flat(Infinity);
   const nextLyrics = flatted.filter((obj) => obj.time >= now);
   const currentLine = document.querySelector(`.index-${currentIndex()}`);
 
+  if (!currentLine) return;
   if (lyrics.type === "TEXT_SYNCED") {
     const playedWords = lyrics.data
       .find((arr) => arr.find((obj) => obj.index === currentIndex()))
@@ -166,14 +163,26 @@ const update = (adjust = false) => {
     }
   }
 
-  if (!currentIndex()) {
-    const wait =
-      flatted[1].time * 1000 - (DateNow() - spotify.timestamps.start) - 2000;
+  currentLine.classList.add("highlight");
+  scrollIntoView(currentLine, false);
 
-    ["● ●", "●", ""].forEach((state, index) => {
+  if (!playing) return;
+  if (!currentIndex()) {
+    const wait = flatted[1].time * 1000 - now * 1000 - 2000;
+
+    ["● ●", "●", false].forEach((state, index) => {
       if (wait + index * 1000 > 0) {
         timeouts.push(
           setTimeout(() => {
+            if (!state) {
+              (lyrics.type === "TEXT_SYNCED"
+                ? currentLine.parentElement
+                : currentLine
+              ).remove();
+              console.log("delted");
+              return;
+            }
+
             currentLine.textContent = state;
           }, wait + index * 1000)
         );
@@ -181,21 +190,13 @@ const update = (adjust = false) => {
     });
   }
 
-  currentLine.classList.add("highlight");
-
-  if (lyrics.type === "TEXT_SYNCED")
-    currentLine.parentElement.classList.add("bold");
-
-  scrollIntoView(currentLine, false);
-
-  if (!playing) return;
-
   switch (lyrics.type) {
     case "TEXT_SYNCED": {
+      currentLine.parentElement.classList.add("bold");
+
       for (const lyric of nextLyrics) {
         timeouts.push(
           setTimeout(() => {
-            if (!playing) return;
             if (lyric.newLine)
               document
                 .querySelectorAll("span")
@@ -208,7 +209,7 @@ const update = (adjust = false) => {
               .forEach((i) => i.classList.remove("bold"));
             currentLine.parentElement.classList.add("bold");
             currentLine.classList.add("highlight");
-            scrollIntoView(currentLine.parentElement);
+            if (lyric.newLine) scrollIntoView(currentLine.parentElement);
           }, (lyric.time - now) * 1000)
         );
       }
@@ -218,13 +219,9 @@ const update = (adjust = false) => {
       for (const lyric of nextLyrics) {
         timeouts.push(
           setTimeout(() => {
-            if (!playing) return;
-
             const currentLine = document.querySelector(`.index-${lyric.index}`);
 
-            document
-              .querySelectorAll("p")
-              .forEach((i) => i.classList.remove("highlight"));
+            clearHighlights();
             currentLine.classList.add("highlight");
             scrollIntoView(currentLine);
           }, (lyric.time - now) * 1000)
@@ -234,57 +231,67 @@ const update = (adjust = false) => {
     }
   }
 };
-const handleData = async ({ d }) => {
-  timeouts.forEach(clearTimeout);
-  timeouts = [];
+const handleData = async (data) => {
+  clearTimeouts();
+  clearHighlights();
 
-  document
-    .querySelectorAll("p")
-    .forEach((i) => i.classList.remove("highlight"));
-
-  if (d.discord_status === "offline" || !d.spotify) {
+  if (!data.name) {
     document.documentElement.style = null;
     spotify = {};
     playing = false;
 
+    document.documentElement.style.setProperty("--progress-bar-width", "0%");
     document.querySelector(".title").textContent = "Tên bài hát";
-    document.querySelector(".artist").textContent = "Tên nghệ sĩ";
-    return setLyricsStatus(
-      d.discord_status === "offline" ? "Đang offline" : "Hiện không phát"
-    );
+    document.querySelector(".artists").textContent = "Tên nghệ sĩ";
+
+    if (!data.playing) return setLyricsStatus("Hiện không phát");
   }
 
-  document.title = d.listening_to_spotify ? "Đang phát" : "Đã tạm dừng";
-  document.querySelector(".title").textContent = d.listening_to_spotify
-    ? d.spotify.song
-    : "Tên bài hát";
-  document.querySelector(".artist").textContent = d.listening_to_spotify
-    ? d.spotify.artist.replaceAll(";", ",")
-    : "Tên nghệ sĩ";
+  if (data.type !== "track")
+    switch (data.type) {
+      case "episode": {
+        return setLyricsStatus("Đang phát podcast");
+      }
+      case "ad": {
+        return setLyricsStatus("Đang phát quảng cáo");
+      }
+      case "unknown": {
+        return setLyricsStatus("(._.) Không rõ bạn đang phát gì");
+      }
+    }
 
-  if (d.listening_to_spotify && spotify.track_id !== d.spotify.track_id) {
-    if (controller) controller.abort();
+  document.documentElement.style.setProperty(
+    "--progress-bar-width",
+    `${
+      ((data.progress() + Number(localStorage.getItem("count"))) /
+        data.duration) *
+      100
+    }%`
+  );
 
+  document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
+  document.querySelector(".title").innerHTML = data.innerHTMLname;
+  document.querySelector(".artists").innerHTML = data.innerHTMLartists;
+
+  if (data.name && spotify.id !== data.id) {
     document.documentElement.style = null;
-    spotify = d.spotify;
-    playing = d.listening_to_spotify;
+    spotify = data;
+    playing = data.playing;
 
     const translateBtn = document.querySelector(".translate");
-    const params = new URLSearchParams({
-      name: d.spotify.song,
-      id: d.spotify.track_id,
-      album: d.spotify.album,
-      artist: d.spotify.artist,
-      duration: d.spotify.timestamps.end - d.spotify.timestamps.start,
-    }).toString();
+    const options = new URLSearchParams({
+      name: data.name,
+      id: data.id,
+      album: data.album,
+      artist: data.artists,
+      duration: data.duration,
+    });
 
     translateBtn.classList.add("disabled");
     setLyricsStatus("Đang tải...");
 
-    controller = new AbortController();
-
-    changeColor();
-    lyrics = await fetch("/api/lyrics?" + params, { signal: controller.signal })
+    changeColor(spotify);
+    lyrics = await fetch(`/api/lyrics?${options}`)
       .then((response) => {
         let data = response.json();
 
@@ -296,10 +303,15 @@ const handleData = async ({ d }) => {
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
     return writeLyrics(true);
   }
-  spotify = d.spotify;
-  playing = d.listening_to_spotify;
+  spotify = data;
+  playing = data.playing;
 
-  if (playing && lyrics.type !== "NOT_SYNCED" && lyrics.data && !currentIndex())
+  if (
+    spotify.name &&
+    lyrics.type !== "NOT_SYNCED" &&
+    lyrics.data &&
+    !currentIndex()
+  )
     writeLyrics();
 
   update();

@@ -3,6 +3,8 @@
   <head>
     <title>Lyrics</title>
 
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="theme-color" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
@@ -22,26 +24,36 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.4.0/color-thief.min.js"></script>
 
     <script src="scripts/Logger.js"></script>
-    <script src="scripts/Time.js"></script>
-    <script src="scripts/Lyrics.js"></script>
-    <script src="scripts/WebSocket.js"></script>
+    <script src="scripts/Functions.js"></script>
+
+    <script src="scripts/Account.js"></script>
     <script src="scripts/Color.js"></script>
-    <script src="scripts/DOMContentLoaded.js"></script>
+    <script src="scripts/Lyrics.js"></script>
+
+    <script src="scripts/Main.js"></script>
   </head>
 
   <body>
     <div class="loader-screen"><div class="loader"></div></div>
     <div class="sticky-header">
       <div class="title">Tên bài hát</div>
-      <div class="artist">Tên nghệ sĩ</div>
-      <div class="progress">
-        <div class="progress-bar"></div>
-      </div>
+      <div class="artists">Tên nghệ sĩ</div>
     </div>
 
     <div class="content"></div>
 
+    <!-- TODO: Remake -->
     <div class="bottom-container">
+      <div class="progress">
+        <div class="progress-bar"></div>
+      </div>
+      <div class="control-button fullscreen">
+        <svg viewBox="0 0 448 512">
+          <path
+            d="M32 32C14.3 32 0 46.3 0 64v96c0 17.7 14.3 32 32 32s32-14.3 32-32V96h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H64V352zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32h64v64c0 17.7 14.3 32 32 32s32-14.3 32-32V64c0-17.7-14.3-32-32-32H320zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64H320c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V352z"
+          />
+        </svg>
+      </div>
       <div class="control-button translate disabled">
         <svg viewBox="0 0 24 24">
           <path
@@ -53,7 +65,6 @@
       <div class="control-button c-down">
         <svg viewBox="0 0 448 512">
           <path
-            fill="currentColor"
             d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"
           ></path>
         </svg>
@@ -62,7 +73,6 @@
       <div class="control-button c-up">
         <svg viewBox="0 0 448 512">
           <path
-            fill="currentColor"
             d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"
           ></path>
         </svg>
@@ -70,27 +80,24 @@
       <div class="control-button logout">
         <svg viewBox="0 0 24 24">
           <path
-            fill="currentColor"
-            d="M15.3 14.48c-.46.45-1.08.67-1.86.67h-1.39V9.2h1.39c.78 0 1.4.22 1.86.67.46.45.68 1.22.68 2.31 0 1.1-.22 1.86-.68 2.31Z"
+            d="M9 12a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1Z"
           ></path>
           <path
-            fill="currentColor"
             fill-rule="evenodd"
-            d="M5 2a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V5a3 3 0 0 0-3-3H5Zm1 15h2.04V7.34H6V17Zm4-9.66V17h3.44c1.46 0 2.6-.42 3.38-1.25.8-.83 1.2-2.02 1.2-3.58s-.4-2.75-1.2-3.58c-.79-.83-1.92-1.25-3.38-1.25H10Z"
-            clip-rule="evenodd"
+            d="M2.75 3.02A3 3 0 0 1 5 2h10a3 3 0 0 1 3 3v7.64c0 .44-.55.7-.95.55a3 3 0 0 0-3.17 4.93l.02.03a.5.5 0 0 1-.35.85h-.05a.5.5 0 0 0-.5.5 2.5 2.5 0 0 1-3.68 2.2l-5.8-3.09A3 3 0 0 1 2 16V5a3 3 0 0 1 .76-1.98Zm1.3 1.95A.04.04 0 0 0 4 5v11c0 .36.2.68.49.86l5.77 3.08a.5.5 0 0 0 .74-.44V8.02a.5.5 0 0 0-.32-.46l-6.63-2.6Z"
           ></path>
+          <path
+            d="M15.3 16.7a1 1 0 0 1 1.4-1.4l4.3 4.29V16a1 1 0 1 1 2 0v6a1 1 0 0 1-1 1h-6a1 1 0 1 1 0-2h3.59l-4.3-4.3Z"
+          ></path>
+        </svg>
+      </div>
+      <div class="control-button theme">
+        <svg viewBox="0 0 384 512">
+          <path
+            d="M162.4 6c-1.5-3.6-5-6-8.9-6h-19c-3.9 0-7.5 2.4-8.9 6L104.9 57.7c-3.2 8-14.6 8-17.8 0L66.4 6c-1.5-3.6-5-6-8.9-6H48C21.5 0 0 21.5 0 48V224v22.4V256H9.6 374.4 384v-9.6V224 48c0-26.5-21.5-48-48-48H230.5c-3.9 0-7.5 2.4-8.9 6L200.9 57.7c-3.2 8-14.6 8-17.8 0L162.4 6zM0 288v32c0 35.3 28.7 64 64 64h64v64c0 35.3 28.7 64 64 64s64-28.7 64-64V384h64c35.3 0 64-28.7 64-64V288H0zM192 432a16 16 0 1 1 0 32 16 16 0 1 1 0-32z"
+          />
         </svg>
       </div>
     </div>
   </body>
-  <script>
-    if (!localStorage.getItem("count")) localStorage.setItem("count", 0)
-
-    document.addEventListener("DOMContentLoaded", () => {
-      setTimeout(
-        () => (document.querySelector(".loader-screen").style.display = "none"),
-        500
-      )
-    })
-  </script>
 </html>

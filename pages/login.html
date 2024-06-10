@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Form</title>
+    <link rel="stylesheet" href="styles/Variables.css" />
+
+    <style>
+      @font-face {
+        font-family: "SpotifyMix";
+        src: url("/fonts/SpotifyMix-Regular.woff");
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "OpenSans";
+        src: url("/fonts/OpenSans-Regular.woff");
+        font-display: swap;
+      }
+
+      html {
+        height: 100%;
+      }
+
+      body,
+      .login-button {
+        font-family: "SpotifyMix", sans-serif;
+      }
+
+      body {
+        display: flex;
+        background-color: var(--background-color);
+        justify-content: center;
+        align-items: center;
+        min-height: 100%;
+        margin: 0;
+      }
+
+      .login-container {
+        position: absolute;
+        background-color: var(--discord-color);
+        padding: 32px;
+        border-radius: 3px;
+        width: 400px;
+        color: var(--text-color);
+        box-sizing: border-box;
+      }
+
+      img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100px;
+        height: 100px;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+
+      p {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 30px;
+      }
+
+      .field:nth-child(1) {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        text-transform: uppercase;
+        font-size: 12px;
+        margin-bottom: 5px;
+        color: #b5bac1;
+        font-weight: bold;
+      }
+
+      input {
+        font-family: "OpenSans", sans-serif;
+        box-sizing: border-box;
+        color: var(--text-color);
+        background-color: #1a1a1d;
+        width: 100%;
+        height: 40px;
+        padding: 10px;
+        font-size: 16px;
+        border: 0;
+        outline: 0;
+        border-radius: 3px;
+      }
+
+      .login-button {
+        margin-top: 15px;
+        margin-bottom: 10px;
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 3px;
+        background-color: var(--green);
+        color: #000;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .login-button:hover {
+        background-color: var(--button-hover);
+        color: #fff;
+      }
+
+      .login-button:disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      .help {
+        padding-top: 7px;
+        padding-bottom: 15px;
+      }
+
+      a {
+        display: inline-block;
+        color: #00a8fc;
+        font-size: 12px;
+      }
+
+      a:link,
+      a:visited {
+        text-decoration: none;
+      }
+
+      a:hover,
+      a:active {
+        text-decoration: underline !important;
+      }
+
+      @media (max-width: 500px) {
+        .login-container {
+          width: 100%;
+          height: 100%;
+          padding: 20px;
+        }
+      }
+    </style>
+    <script>
+      let controller;
+      let savedID = localStorage.getItem("client_id") || "";
+      let savedSecret = localStorage.getItem("client_secret") || "";
+
+      const check = (clientId, clientSecret) =>
+        fetch(
+          "https://accounts.spotify.com/api/token?grant_type=client_credentials",
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Basic " + btoa(clientId + ":" + clientSecret),
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            signal: controller.signal,
+          }
+        ).then((response) => {
+          if (response.status === 200) return true;
+        });
+      const checkInput = async () => {
+        if (controller) controller.abort();
+
+        const id = document.querySelector("#id");
+        const secret = document.querySelector("#secret");
+        const loginBtn = document.querySelector(".login-button");
+
+        if (!id || !secret) return;
+
+        controller = new AbortController();
+        const valid = await check(id.value, secret.value);
+
+        if (valid) loginBtn.disabled = false;
+        else loginBtn.disabled = true;
+      };
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const id = document.querySelector("#id");
+        const secret = document.querySelector("#secret");
+        const loginBtn = document.querySelector(".login-button");
+
+        id.value = savedID;
+        secret.value = savedSecret;
+
+        id.addEventListener("input", checkInput);
+        secret.addEventListener("input", checkInput);
+        checkInput();
+
+        loginBtn.addEventListener("click", (event) => {
+          event.preventDefault();
+          localStorage.removeItem("token");
+
+          localStorage.setItem("client_id", id.value);
+          localStorage.setItem("client_secret", secret.value);
+
+          const options = new URLSearchParams({
+            response_type: "code",
+            client_id: id.value,
+            redirect_uri: `${window.location.origin}/callback`,
+            scope: "user-read-currently-playing",
+            show_dialog: true,
+          });
+
+          const width = 500;
+          const height = 700;
+          const left = (screen.width - width) / 2;
+          const top = (screen.height - height) / 2;
+          const popup = window.open(
+            `https://accounts.spotify.com/authorize?${options}`,
+            "Đăng nhập Spotify",
+            `width=${width},height=${height},top=${top},left=${left}`
+          );
+
+          popup.addEventListener("unload", () => {
+            if (localStorage.getItem("token")) window.location.href = "/";
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div class="login-container">
+      <img src="favicon.ico" alt="Logo" />
+      <h2>Đăng nhập</h2>
+      <p>Chào mừng trở lại :)</p>
+      <form>
+        <div class="field">
+          <label for="id">Client ID</label>
+          <input id="id" name="id" autocomplete="off" required />
+        </div>
+        <div class="field">
+          <label for="secret">Client Secret</label>
+          <input id="secret" type="password" name="secret" required />
+        </div>
+        <div class="help">
+          <a
+            href="https://github.com/FlyTri/lyrics-spotify?tab=readme-ov-file#client-id-client-secret"
+            >Cần trợ giúp?</a
+          >
+        </div>
+        <button type="submit" class="login-button" disabled>Đăng nhập</button>
+      </form>
+    </div>
+  </body>
+</html>

@@ -4,7 +4,7 @@
   width: 100%;
   height: 100%;
   z-index: 2;
-  overflow: hidden;
+  opacity: 1;
 }
 
 .loader {
@@ -44,14 +44,18 @@
 }
 
 .sticky-header {
+  height: 100px;
   position: fixed;
   top: 0;
-  background-color: #0d0d14;
   text-align: center;
-  padding-top: 5px;
-  padding-bottom: 8px;
   z-index: 1;
   width: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--background-color) 0%,
+    var(--background-color) 70%,
+    var(--background-color-transparent) 100%
+  );
 }
 
 .progress {
@@ -70,44 +74,46 @@
 
 .title {
   font-size: 15px;
+  font-family: "SpotifyMix-Bold", sans-serif;
   white-space: nowrap;
   overflow: hidden;
-  padding-left: 30px;
-  padding-right: 30px;
+  /*h*/margin-top: 15px;
+  /*h*/margin-left: 30px;
+  /*h*/margin-right: 30px;
   text-overflow: ellipsis;
 }
 
-.artist {
+.artists {
   font-size: 13px;
-  color: #737994;
   white-space: nowrap;
   overflow: hidden;
-  padding-left: 85px;
-  padding-right: 85px;
+  /*h*/margin-top: 3px;
+  /*h*/margin-left: 85px;
+  /*h*/margin-right: 85px;
   text-overflow: ellipsis;
 }
 
 .content {
+  width: 100%;
   position: sticky;
   line-height: 1.6;
   overflow-y: auto;
-  padding-top: 80px;
-  padding-bottom: 100px;
-  padding-left: 10px;
-  padding-right: 10px;
+  /*h*/margin-top: 100px;
+  /*h*/margin-bottom: 100px;
+  /*h*/margin-left: 10px;
+  /*h*/margin-right: 10px;
 }
 
 .lyrics,
 .lyrics > * {
-  transition: 0.3s;
+  transition: 0.2s;
 }
 
 p.lyrics {
   font-family: "SpotifyMix-Medium", sans-serif;
   font-size: 28px;
   color: var(--lyrics-color);
-  padding-top: 7px;
-  padding-bottom: 7px;
+  /*h*/margin-bottom: 14px;
 }
 
 .content p {
@@ -121,9 +127,9 @@ p.lyrics {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding-top: 12px;
-  padding-bottom: 12px;
-  background: #0d0d14;
+  padding: 10px;
+  padding-bottom: 10px;
+  background-color: #0d0d14;
   overflow-x: hidden;
 }
 
@@ -137,13 +143,13 @@ p.lyrics {
   height: 30px;
   border-radius: 50%;
   cursor: pointer;
-  margin-left: 10px;
-  margin-right: 10px;
-  -webkit-tap-highlight-color: transparent;
+  margin-left: 7px;
+  margin-right: 7px;
+  transition: 0.3s;
 }
 
-.control-button:active {
-  background-color: #1aa34a;
+.control-button:hover {
+  background-color: var(--button-hover);
 }
 
 .disabled {
@@ -153,7 +159,7 @@ p.lyrics {
 }
 
 .count-container {
-  width: 80px;
+  width: 70px;
   text-align: center;
 }
 

@@ -1,13 +1,40 @@
-window.document.addEventListener("DOMContentLoaded", () => {
+if (!localStorage.getItem("token")) window.location.href = "/login";
+
+window.document.addEventListener("DOMContentLoaded", async () => {
+  setTimeout(
+    () => (document.querySelector(".loader-screen").style.display = "none"),
+    500
+  );
+
   const countDiv = document.querySelector(".count");
+  const fullscreenBtn = document.querySelector(".fullscreen");
   const translateBtn = document.querySelector(".translate");
   const upBtn = document.querySelector(".c-up");
   const downBtn = document.querySelector(".c-down");
   const logoutBtn = document.querySelector(".logout");
+  const themeBtn = document.querySelector(".theme");
   const fromStorage = Number(localStorage.getItem("count"));
 
   translateBtn.addEventListener("click", () => writeTranslates());
+  if (!localStorage.getItem("count")) localStorage.setItem("count", 0);
 
+  // TODO: Theme color
+  themeBtn.addEventListener("click", () => {
+    changeColor();
+  });
+
+  // Fullscreen
+  fullscreenBtn.addEventListener("click", () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen();
+    }
+  });
+
+  // Theme
+
+  // Adjustments
   countDiv.textContent = fromStorage / 1000 + "s";
   if (fromStorage === 5000) upBtn.classList.add("disabled");
   if (fromStorage === -5000) downBtn.classList.add("disabled");
@@ -22,7 +49,6 @@ window.document.addEventListener("DOMContentLoaded", () => {
     countDiv.textContent = newCount / 1000 + "s";
     update(true);
   });
-
   downBtn.addEventListener("click", () => {
     const count = Number(localStorage.getItem("count"));
     const newCount = count - 250;
@@ -34,7 +60,6 @@ window.document.addEventListener("DOMContentLoaded", () => {
     countDiv.textContent = newCount / 1000 + "s";
     update(true);
   });
-
   countDiv.addEventListener("click", () => {
     upBtn.classList.remove("disabled");
     downBtn.classList.remove("disabled");
@@ -44,34 +69,39 @@ window.document.addEventListener("DOMContentLoaded", () => {
     update(true);
   });
 
+  // Logout
   logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("id");
+    localStorage.removeItem("token");
     window.location.reload();
   });
 
+  // Auto scroll when page is visible
   document.addEventListener("visibilitychange", () => {
-    if (
-      document.visibilityState === "visible" &&
-      lyrics &&
-      lyrics.type !== "NOT_SYNCED"
-    )
-      scrollIntoView(document.querySelector(".highlight"), false);
+    const elemet = document.querySelector(".highlight");
+
+    if (document.visibilityState === "visible" && elemet)
+      scrollIntoView(elemet, false);
   });
 
+  // Main
+  getCurrentlyPlaying().then((data) => handleData(data));
+  setInterval(async () => {
+    const data = await getCurrentlyPlaying();
+
+    if (data.timestamp !== spotify.timestamp) handleData(data);
+  }, 1000);
+
   setInterval(() => {
-    if (playing) {
+    if (spotify.name)
       document.documentElement.style.setProperty(
         "--progress-bar-width",
         `${
-          ((DateNow() - spotify.timestamps.start) /
-            (spotify.timestamps.end -
-              DateNow() +
-              (DateNow() - spotify.timestamps.start))) *
+          ((spotify.progress() + Number(localStorage.getItem("count"))) /
+            spotify.duration) *
           100
         }%`
       );
-    } else {
-      document.documentElement.style.setProperty("--progress-bar-width", "0%");
-    }
-  }, 500);
+    else
+      document.documentElement.style.setProperty("--progress-bar-width", `0%`);
+  }, 250);
 });

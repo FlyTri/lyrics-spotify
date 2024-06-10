@@ -16,30 +16,39 @@
   font-display: swap;
 }
 
-html,
-body {
-  margin: 0;
+html {
   height: 100%;
-  user-select: none;
 }
 
 body {
+  display: flex;
   font-family: "SpotifyMix", sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
-  transition: background-color 0.3s ease-in-out;
-}
-
-svg {
-  height: 1em;
+  min-height: 100%;
+  margin: 0;
 }
 
 body::-webkit-scrollbar {
   display: none;
 }
 
-html {
-  scrollbar-width: none;
+svg {
+  height: 1em;
+}
+
+a {
+  color: var(--text-color);
+}
+
+a:link,
+a:visited {
+  text-decoration: none;
+}
+
+a:hover,
+a:active {
+  text-decoration: underline !important;
 }
 
 p.translated {
