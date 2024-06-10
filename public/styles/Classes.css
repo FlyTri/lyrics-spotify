@@ -127,7 +127,7 @@ p.lyrics {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 10px;
+  padding-top: 10px;
   padding-bottom: 10px;
   background-color: #0d0d14;
   overflow-x: hidden;
