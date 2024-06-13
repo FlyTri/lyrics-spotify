@@ -8,3 +8,6 @@ const scrollIntoView = (element, check = true) => {
   if (elementRectBottom >= -50 && elementRectBottom <= clientHeight)
     element.scrollIntoView({ behavior: "smooth", block: "center" });
 };
+// const formatTime
+const appendChild = (query, element) =>
+  document.querySelector(query).appendChild(element);

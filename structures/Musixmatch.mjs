@@ -1,7 +1,11 @@
 import axios from "axios";
 
 export default class Musixmatch {
-  constructor() {
+  /**
+   *
+   * @param {import("./Redis.mjs").default} redis
+   */
+  constructor(redis) {
     this.get = axios.create({
       baseURL: "https://apic-desktop.musixmatch.com/ws/1.1",
       headers: {
@@ -10,14 +14,15 @@ export default class Musixmatch {
       },
     }).get;
 
+    this.redis = redis;
     this.token = null;
-    this.getNewAccessToken();
+    this.#getNewAccessToken();
   }
   /**
    *
    * @returns {Promise<boolean>}
    */
-  async getNewAccessToken() {
+  async #getNewAccessToken() {
     return this.get("/token.get", {
       params: {
         app_id: "web-desktop-app-v1.0",
@@ -56,7 +61,7 @@ export default class Musixmatch {
    * @param {import("axios").AxiosResponse} response
    * @returns
    */
-  async handleAPIResponse(response) {
+  async #handleAPIResponse(response) {
     if (response.data.message.header.status_code !== 200)
       return response.data.message.header.hint === "captcha"
         ? "Hiện có quá nhiều yêu cầu. Hãy thử lại sau"
@@ -73,12 +78,17 @@ export default class Musixmatch {
 
     if (track.has_richsync && body["matcher.track.get"].message.body) {
       const data = await this.getTextSynced(track);
-      if (data)
+      if (data) {
+        const translated = await this.translate(track.track_id, language);
+
+        if (translated === null) this.redis.set(`TEXT_SYNCED:${track.commontrack_id}`, data);
+
         return {
           type: "TEXT_SYNCED",
           data,
-          translated: await this.translate(track.track_id, language),
+          translated,
         };
+      }
     }
 
     const { subtitle_list } = body["track.subtitles.get"].message.body;
@@ -115,8 +125,12 @@ export default class Musixmatch {
    * @returns {Promise<string|object>}
    */
   async getLyrics(name, album, artist, id, duration) {
-    if (!this.token) await this.getNewAccessToken();
+    const redis = await this.redis.get(`lyrics:${id}`);
+
+    if (redis) return redis;
+    if (!this.token) await this.#getNewAccessToken();
     if (!this.token) return { message: "Chưa thể tìm lời bài hát vào lúc này" };
+
     let data;
 
     const call = () =>
@@ -144,13 +158,14 @@ export default class Musixmatch {
 
           const newResponse = await call();
 
-          data = await this.handleAPIResponse(newResponse);
+          data = await this.#handleAPIResponse(newResponse);
         } else {
-          data = await this.handleAPIResponse(response);
+          data = await this.#handleAPIResponse(response);
         }
       })
       .catch(() => (data = "Không thể tìm lời bài hát"));
 
+    if (data.translated !== null) this.redis.set(`lyrics:${id}`, data);
     return data;
   }
   /**
@@ -159,6 +174,9 @@ export default class Musixmatch {
    * @returns
    */
   async getTextSynced({ commontrack_id, track_length }) {
+    const redis = await this.redis.get(`TEXT_SYNCED:${commontrack_id}`);
+    if (redis) return redis;
+
     const textSynced = await this.get("/track.richsync.get", {
       params: {
         format: "json",
@@ -191,6 +209,7 @@ export default class Musixmatch {
       )
     );
     if (data[0][0].time) data.unshift([{ index: 0, time: 0 }]);
+
     return data;
   }
   /**
@@ -200,6 +219,9 @@ export default class Musixmatch {
    * @returns
    */
   async translate(id, language) {
+    const redis = await this.redis.get(`translations:${id}`);
+    if (redis) return redis;
+
     return this.get("/crowd.track.translations.get", {
       params: {
         selected_language: language === "vi" ? "en" : "vi",
@@ -210,14 +232,17 @@ export default class Musixmatch {
         usertoken: this.token,
       },
     })
-      .then((response) =>
-        response.data.message.body.translations_list?.map(
+      .then((response) => {
+        const data = response.data.message.body.translations_list?.map(
           ({ translation }) => ({
-            original: translation.matched_line.normalize("NFKD"),
-            text: translation.description.normalize("NFKD"),
+            original: translation.matched_line,
+            text: translation.description,
           })
-        )
-      )
+        );
+
+        this.redis.set(`translations:${id}`, data);
+        return data;
+      })
       .catch(() => []);
   }
 }

@@ -83,6 +83,7 @@ const writeLyrics = (callUpdate) => {
   document.querySelectorAll(".lyrics").forEach((i) => i.remove());
 
   if (lyrics.message) return setLyricsStatus(lyrics.message);
+
   const translateBtn = document.querySelector(".translate");
   const lyricsToWrite = [...lyrics.data];
 
@@ -91,40 +92,40 @@ const writeLyrics = (callUpdate) => {
 
   switch (lyrics.type) {
     case "TEXT_SYNCED": {
-      for (const obj of lyricsToWrite) {
+      lyricsToWrite.forEach((obj) => {
         const element = document.createElement("p");
 
         element.classList.add("lyrics");
-        for (const { text, index } of obj) {
+        obj.forEach(({ text, index }) => {
           const span = document.createElement("span");
 
           span.classList.add(`index-${index}`);
           writeContent(index, text, span);
           element.appendChild(span);
-        }
+        });
 
-        document.querySelector(".content").appendChild(element);
-      }
+        appendChild(".content", element);
+      });
       break;
     }
     case "LINE_SYNCED": {
-      for (const obj of lyricsToWrite) {
+      lyricsToWrite.forEach((obj) => {
         const element = document.createElement("p");
 
         element.classList.add("lyrics", `index-${obj.index}`);
         writeContent(obj.index, obj.text, element);
-        document.querySelector(".content").appendChild(element);
-      }
+        appendChild(".content", element);
+      });
       break;
     }
     case "NOT_SYNCED": {
-      for (const obj of lyricsToWrite) {
+      lyricsToWrite.forEach((obj) => {
         const element = document.createElement("p");
 
         element.classList.add("lyrics", "highlight");
         writeContent(1, obj.text, element);
-        document.querySelector(".content").appendChild(element);
-      }
+        appendChild(".content", element);
+      });
       break;
     }
   }
@@ -172,22 +173,22 @@ const update = () => {
     const wait = flatted[1].time * 1000 - now * 1000 - 2000;
 
     ["● ●", "●", false].forEach((state, index) => {
-      if (wait + index * 1000 > 0) {
+      if (wait + index * 1000 > 0)
         timeouts.push(
           setTimeout(() => {
             if (!state) {
-              (lyrics.type === "TEXT_SYNCED"
-                ? currentLine.parentElement
-                : currentLine
-              ).remove();
-              console.log("delted");
+              const line =
+                lyrics.type === "TEXT_SYNCED"
+                  ? currentLine.parentElement
+                  : currentLine;
+
+              line.remove();
               return;
             }
 
             currentLine.textContent = state;
           }, wait + index * 1000)
         );
-      }
     });
   }
 
@@ -195,7 +196,7 @@ const update = () => {
     case "TEXT_SYNCED": {
       currentLine.parentElement.classList.add("bold");
 
-      for (const lyric of nextLyrics) {
+      nextLyrics.forEach((lyric) => {
         timeouts.push(
           setTimeout(() => {
             if (lyric.newLine)
@@ -213,11 +214,11 @@ const update = () => {
             if (lyric.newLine) scrollIntoView(currentLine.parentElement);
           }, (lyric.time - now) * 1000)
         );
-      }
+      });
       break;
     }
     case "LINE_SYNCED": {
-      for (const lyric of nextLyrics) {
+      nextLyrics.forEach((lyric) => {
         timeouts.push(
           setTimeout(() => {
             const currentLine = document.querySelector(`.index-${lyric.index}`);
@@ -227,7 +228,7 @@ const update = () => {
             scrollIntoView(currentLine);
           }, (lyric.time - now) * 1000)
         );
-      }
+      });
       break;
     }
   }
