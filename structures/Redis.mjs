@@ -12,15 +12,23 @@ export default class Redis {
         }ms`
       );
 
-      this.client.on("error", (error) => {
-        console.log(`Redis error: ${error}`);
-      }).on("ready", () => console.log("Successfully reconnected to Redis database"));
+      this.client.on("ready", () =>
+        console.log("Successfully reconnected to Redis database")
+      );
+    });
+
+    this.client.on("error", (error) => {
+      console.log(`Redis error: ${error}`);
     });
   }
   async set(key, value) {
-    return this.client.setEx(key, 43200, value).catch(() => null);
+    if (!this.client.isReady || true) return;
+
+    return this.client.set(key, 43200, JSON.stringify(value)); //.catch(() => null);
   }
   async get(key) {
-    return this.client.get(key).catch(() => null);
+    if (!this.client.isReady || true) return;
+
+    return this.client.get(key).then(JSON.parse); //.catch(() => null);
   }
 }
