@@ -141,7 +141,7 @@ const writeLyrics = (callUpdate) => {
 const update = () => {
   clearTimeouts();
 
-  if (!spotify.name && !adjust)
+  if (!spotify.name)
     return document.querySelectorAll(".lyrics").forEach((i) => i.remove());
   if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
 
@@ -158,11 +158,11 @@ const update = () => {
       .find((arr) => arr.find((obj) => obj.index === currentIndex()))
       .filter((obj) => obj.index < currentIndex());
 
-    for (const { index } of playedWords) {
+    playedWords.forEach(({ index }) => {
       const word = document.querySelector(`.index-${index}`);
 
       word?.classList.add("highlight");
-    }
+    });
   }
 
   currentLine.classList.add("highlight");

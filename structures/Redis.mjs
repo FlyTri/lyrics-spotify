@@ -22,13 +22,13 @@ export default class Redis {
     });
   }
   async set(key, value) {
-    if (!this.client.isReady || true) return;
+    if (!this.client.isReady) return;
 
-    return this.client.set(key, 43200, JSON.stringify(value)); //.catch(() => null);
+    return this.client.setEx(key, 43200, JSON.stringify(value)).catch(() => null);
   }
   async get(key) {
-    if (!this.client.isReady || true) return;
+    if (!this.client.isReady) return;
 
-    return this.client.get(key).then(JSON.parse); //.catch(() => null);
+    return this.client.get(key).then(JSON.parse).catch(() => null);
   }
 }
