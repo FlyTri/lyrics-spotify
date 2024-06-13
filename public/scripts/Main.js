@@ -1,6 +1,7 @@
 if (!localStorage.getItem("token")) window.location.href = "/login";
 
 window.document.addEventListener("DOMContentLoaded", async () => {
+  navigator.wakeLock?.request();
   setTimeout(
     () => (document.querySelector(".loader-screen").style.display = "none"),
     500
@@ -79,8 +80,11 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   document.addEventListener("visibilitychange", () => {
     const elemet = document.querySelector(".highlight");
 
-    if (document.visibilityState === "visible" && elemet)
-      scrollIntoView(elemet, false);
+    if (document.visibilityState === "visible") {
+      navigator.wakeLock?.request();
+
+      if (elemet) scrollIntoView(elemet, false);
+    }
   });
 
   // Main
