@@ -289,10 +289,10 @@ const handleData = async (data) => {
       duration: data.duration,
     });
 
+    changeColor(spotify);
     translateBtn.classList.add("disabled");
     setLyricsStatus("Đang tải...");
 
-    changeColor(spotify);
     lyrics = await fetch(`/api/lyrics?${options}`)
       .then((response) => {
         let data = response.json();

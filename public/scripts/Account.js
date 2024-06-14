@@ -32,6 +32,7 @@ const getToken = async (authCode = false) => {
         delete data.expires_in;
 
         localStorage.setItem("token", JSON.stringify(data));
+        token = data;
 
         return true;
       } else alert(`Không thể lấy token. Lỗi: ${JSON.stringify(data)}`);

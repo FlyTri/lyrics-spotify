@@ -30,6 +30,7 @@ app
   })
   .get("/api/lyrics", async (req, res) => {
     const { name, album, artist, id, duration } = req.query;
+    
     if (!name || !album || !artist || !id || !duration)
       return res.sendStatus(400);
 

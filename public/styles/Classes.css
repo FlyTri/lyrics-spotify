@@ -77,9 +77,9 @@
   font-family: "SpotifyMix-Bold", sans-serif;
   white-space: nowrap;
   overflow: hidden;
-  /*h*/margin-top: 15px;
-  /*h*/margin-left: 30px;
-  /*h*/margin-right: 30px;
+  margin-top: 15px;
+  margin-left: 30px;
+  margin-right: 30px;
   text-overflow: ellipsis;
 }
 
@@ -87,9 +87,9 @@
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
-  /*h*/margin-top: 3px;
-  /*h*/margin-left: 85px;
-  /*h*/margin-right: 85px;
+  margin-top: 3px;
+  margin-left: 85px;
+  margin-right: 85px;
   text-overflow: ellipsis;
 }
 
@@ -98,10 +98,10 @@
   position: sticky;
   line-height: 1.6;
   overflow-y: auto;
-  /*h*/margin-top: 100px;
-  /*h*/margin-bottom: 100px;
-  /*h*/margin-left: 10px;
-  /*h*/margin-right: 10px;
+  margin-top: 100px;
+  margin-bottom: 100px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 .lyrics,
@@ -113,7 +113,7 @@ p.lyrics {
   font-family: "SpotifyMix-Medium", sans-serif;
   font-size: 28px;
   color: var(--lyrics-color);
-  /*h*/margin-bottom: 14px;
+  margin-bottom: 14px;
 }
 
 .content p {
