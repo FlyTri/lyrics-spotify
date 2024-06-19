@@ -98,7 +98,7 @@
   position: fixed;
   top: 70px;
   width: 100%;
-  max-height: calc(100% - 120px);
+  max-height: calc(100% - 123px);
   overflow-y: auto;
 }
 
@@ -157,7 +157,7 @@ p.lyrics {
   justify-content: center;
   padding-top: 13px;
   padding-bottom: 10px;
-  background-color: rgb(0, 0, 0, 0.5);
+  background-color: rgb(0, 0, 0, 0.3);
   overflow-x: hidden;
 }
 

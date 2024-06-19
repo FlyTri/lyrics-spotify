@@ -88,6 +88,27 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     if (elemet) scrollIntoView(elemet, false);
   });
 
+  // Seek to word/line
+  document
+    .querySelector(".content")
+    .addEventListener("click", async (event) => {
+      const { classList } = event.target;
+      const index = new Array(...classList).find((name) =>
+        name.startsWith("index")
+      );
+
+      if (index) {
+        const position = Number(index.replace("index-", ""));
+        const word = lyrics.data[position];
+
+        seekTo(word.time * 1000);
+        setTimeout(
+          () => getCurrentlyPlaying().then((data) => handleData(data)),
+          500
+        );
+      }
+    });
+
   // Main
   getCurrentlyPlaying().then((data) => handleData(data));
   setInterval(async () => {

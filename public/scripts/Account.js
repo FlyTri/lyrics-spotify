@@ -87,3 +87,14 @@ const getCurrentlyPlaying = async () => {
       type: "error",
     }));
 };
+const seekTo = async (ms) => {
+  if (Date.now() >= token.expires_at) await getToken();
+
+  return fetch(
+    `https://api.spotify.com/v1/me/player/seek?position_ms=${Math.round(ms)}`,
+    {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token.access_token}` },
+    }
+  );
+};

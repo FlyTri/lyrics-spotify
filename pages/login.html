@@ -206,7 +206,7 @@
             response_type: "code",
             client_id: id.value,
             redirect_uri: `${window.location.origin}/callback`,
-            scope: "user-read-currently-playing",
+            scope: "user-read-currently-playing user-modify-playback-state",
             show_dialog: true,
           });
 
