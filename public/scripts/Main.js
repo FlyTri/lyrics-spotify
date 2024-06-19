@@ -19,7 +19,6 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   translateBtn.addEventListener("click", () => writeTranslates());
   if (!localStorage.getItem("count")) localStorage.setItem("count", 0);
 
-  // TODO: Theme color
   themeBtn.addEventListener("click", () => {
     changeColor();
   });
@@ -85,6 +84,10 @@ window.document.addEventListener("DOMContentLoaded", async () => {
 
       if (elemet) scrollIntoView(elemet, false);
     }
+  });
+  window.addEventListener("resize", () => {
+    const elemet = document.querySelector(".highlight");
+    if (elemet) scrollIntoView(elemet, false);
   });
 
   // Main

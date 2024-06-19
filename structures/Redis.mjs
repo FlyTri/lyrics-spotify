@@ -2,7 +2,10 @@ import { createClient } from "redis";
 
 export default class Redis {
   constructor() {
-    this.client = createClient({ url: process.env.REDIS_URL });
+    this.client = createClient({
+      url: process.env.REDIS_URL,
+      socket: { reconnectStrategy: () => 5000 },
+    });
 
     const date = Date.now();
     this.client.connect().then(() => {
@@ -18,17 +21,27 @@ export default class Redis {
     });
 
     this.client.on("error", (error) => {
-      console.log(`Redis error: ${error}`);
+      console.log(`Redis error: ${error.message}`);
     });
   }
-  async set(key, value) {
+  async set(key, value, time = 43200) {
     if (!this.client.isReady) return;
 
-    return this.client.setEx(key, 43200, JSON.stringify(value)).catch(() => null);
+    return this.client
+      .setEx(key, time, JSON.stringify(value))
+      .catch(() => null);
   }
   async get(key) {
     if (!this.client.isReady) return;
 
-    return this.client.get(key).then(JSON.parse).catch(() => null);
+    return this.client
+      .get(key)
+      .then((f) => {
+        if (f) {
+          console.log(`get ${key} from `);
+          return JSON.parse(f);
+        }
+      })
+      .catch(() => null);
   }
 }

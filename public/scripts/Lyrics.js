@@ -25,7 +25,7 @@ const setLyricsStatus = (text) => {
 
   const element = document.createElement("p");
 
-  element.classList.add("lyrics");
+  element.classList.add("lyrics", "highlight");
   element.style.textAlign = "center";
   element.textContent = text;
   document.querySelector(".content").appendChild(element);
@@ -294,14 +294,7 @@ const handleData = async (data) => {
     setLyricsStatus("Đang tải...");
 
     lyrics = await fetch(`/api/lyrics?${options}`)
-      .then((response) => {
-        let data = response.json();
-
-        if (data.type === "LINE_SYNCED")
-          data = data.map((obj) => !obj.text.trim() && !obj.newLine);
-
-        return data;
-      })
+      .then((response) => response.json())
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
     return writeLyrics(true);
   }

@@ -1,4 +1,7 @@
 import axios from "axios";
+import { isJapanese, toRomaji, tokenize } from "wanakana";
+import { pinyin } from "pinyin-pro";
+import aromanize from "aromanize";
 
 export default class Musixmatch {
   /**
@@ -58,61 +61,118 @@ export default class Musixmatch {
   }
   /**
    *
+   * @param {string} text
+   * @returns {string}
+   */
+  #format(text) {
+    if (!text) return "";
+    if (/^\s*$/.test(text)) return " ";
+
+    const words = tokenize(text);
+    const Chinese = /\p{Script=Han}/u;
+    const Korean = /\p{Script=Hangul}/u;
+    const replacements = [
+      { from: "（", to: "(" },
+      { from: "）", to: ")" },
+      { from: "【", to: "[" },
+      { from: "】", to: "]" },
+      { from: "。", to: ". " },
+      { from: "；", to: "; " },
+      { from: "：", to: ": " },
+      { from: "？", to: "? " },
+      { from: "！", to: "! " },
+      { from: "、", to: ", " },
+      { from: "，", to: ", " },
+      { from: "‘", to: "'" },
+      { from: "’", to: "'" },
+      { from: "′", to: "'" },
+      { from: "＇", to: "'" },
+      { from: "“", to: '"' },
+      { from: "”", to: '"' },
+      { from: "〜", to: "~" },
+      { from: "·", to: "•" },
+      { from: "・", to: "•" },
+    ];
+
+    words.forEach((word, index) => {
+      if (Chinese.test(word)) word = pinyin(word);
+      else if (isJapanese(word)) word = toRomaji(word);
+      else if (Korean.test(word)) word = aromanize.romanize(word);
+
+      words[index] = word;
+    });
+
+    replacements.forEach((pair) => {
+      const regex = new RegExp(pair.from, "g");
+      text = text.replaceAll(regex, pair.to);
+    });
+
+    return words.join("");
+  }
+
+  /**
+   *
    * @param {import("axios").AxiosResponse} response
    * @returns
    */
   async #handleAPIResponse(response) {
-    if (response.data.message.header.status_code !== 200)
-      return response.data.message.header.hint === "captcha"
-        ? "Hiện có quá nhiều yêu cầu. Hãy thử lại sau"
-        : "Không thể tìm lời bài hát";
+    const { status_code, hint } = response.data.message.header;
+
+    if (status_code !== 200) {
+      return {
+        message:
+          hint === "captcha"
+            ? "Hiện có quá nhiều yêu cầu. Hãy thử lại sau"
+            : "Không thể tìm lời bài hát",
+      };
+    }
 
     const body = response.data.message.body.macro_calls;
+    const lyrics = body["track.lyrics.get"].message.body?.lyrics;
+    const lyricsData = lyrics?.lyrics_body;
 
-    if (!body["track.lyrics.get"].message.body?.lyrics?.lyrics_body)
-      return { message: "Không có kết quả" };
+    if (!lyricsData) return { message: "Không có kết quả" };
 
     const { track } = body["matcher.track.get"].message.body;
-    const language =
-      body["track.lyrics.get"].message.body.lyrics.lyrics_language;
+    const translate = () =>
+      this.translate(track.track_id, lyrics.lyrics_language);
 
-    if (track.has_richsync && body["matcher.track.get"].message.body) {
+    if (track.has_richsync) {
       const data = await this.getTextSynced(track);
-      if (data) {
-        const translated = await this.translate(track.track_id, language);
 
-        if (translated === null) this.redis.set(`TEXT_SYNCED:${track.commontrack_id}`, data);
-
+      if (data)
         return {
           type: "TEXT_SYNCED",
           data,
-          translated,
+          translated: await translate(),
         };
-      }
     }
 
     const { subtitle_list } = body["track.subtitles.get"].message.body;
-    if (track.has_subtitles && subtitle_list) {
+
+    if (track.has_subtitles) {
       const data = JSON.parse(subtitle_list[0].subtitle.subtitle_body).map(
-        ({ text, time }, i) => ({ text, index: i + 1, time: time.total })
+        ({ text, time }, i) => ({
+          text: this.#format(text),
+          index: i + 1,
+          time: time.total,
+        })
       );
       if (data[0].time) data.unshift({ index: 0, time: 0 });
 
       return {
         type: "LINE_SYNCED",
         data,
-        translated: await this.translate(track.track_id, language),
+        translated: await translate(),
       };
     }
 
-    const lyricsData = body["track.lyrics.get"].message.body.lyrics.lyrics_body
-      .split("\n")
-      .map((text) => ({ text: (text || "").normalize("NFKD") }));
-
     return {
       type: "NOT_SYNCED",
-      data: lyricsData,
-      translated: await this.translate(track.track_id, language),
+      data: lyricsData
+        .split("\n")
+        .map((text) => ({ text: this.#format(text) || "" })),
+      translated: await translate(),
     };
   }
   /**
@@ -125,9 +185,6 @@ export default class Musixmatch {
    * @returns {Promise<string|object>}
    */
   async getLyrics(name, album, artist, id, duration) {
-    const redis = await this.redis.get(`lyrics:${id}`);
-
-    if (redis) return redis;
     if (!this.token) await this.#getNewAccessToken();
     if (!this.token) return { message: "Chưa thể tìm lời bài hát vào lúc này" };
 
@@ -151,21 +208,21 @@ export default class Musixmatch {
         },
       });
 
-    await call()
-      .then(async (response) => {
-        if (response.data.message.header.status_code === 401) {
-          await this.getNewAccessToken();
+    await call().then(async (response) => {
+      if (response.data.message.header.status_code === 401) {
+        await this.#getNewAccessToken();
 
-          const newResponse = await call();
+        const newResponse = await call();
 
-          data = await this.#handleAPIResponse(newResponse);
-        } else {
-          data = await this.#handleAPIResponse(response);
-        }
-      })
-      .catch(() => (data = "Không thể tìm lời bài hát"));
+        data = await this.#handleAPIResponse(newResponse);
+      } else {
+        data = await this.#handleAPIResponse(response);
+      }
+    });
+    // .catch(() => {
+    //   data = { message: "Không thể tìm lời bài hát" };
+    // });
 
-    if (data.translated !== null) this.redis.set(`lyrics:${id}`, data);
     return data;
   }
   /**
@@ -174,9 +231,6 @@ export default class Musixmatch {
    * @returns
    */
   async getTextSynced({ commontrack_id, track_length }) {
-    const redis = await this.redis.get(`TEXT_SYNCED:${commontrack_id}`);
-    if (redis) return redis;
-
     const textSynced = await this.get("/track.richsync.get", {
       params: {
         format: "json",
@@ -200,7 +254,7 @@ export default class Musixmatch {
       obj.l.map((data, i) =>
         JSON.parse(
           JSON.stringify({
-            text: data.c.normalize("NFKD"),
+            text: this.#format(data.c),
             time: obj.ts + data.o,
             index: count++ + 1,
             newLine: i === 0 ? true : undefined,
@@ -219,9 +273,6 @@ export default class Musixmatch {
    * @returns
    */
   async translate(id, language) {
-    const redis = await this.redis.get(`translations:${id}`);
-    if (redis) return redis;
-
     return this.get("/crowd.track.translations.get", {
       params: {
         selected_language: language === "vi" ? "en" : "vi",
@@ -232,17 +283,14 @@ export default class Musixmatch {
         usertoken: this.token,
       },
     })
-      .then((response) => {
-        const data = response.data.message.body.translations_list?.map(
+      .then((response) =>
+        response.data.message.body.translations_list?.map(
           ({ translation }) => ({
             original: translation.matched_line,
             text: translation.description,
           })
-        );
-
-        this.redis.set(`translations:${id}`, data);
-        return data;
-      })
-      .catch(() => []);
+        )
+      )
+      .catch(() => null);
   }
 }

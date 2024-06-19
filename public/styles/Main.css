@@ -25,6 +25,7 @@ body {
   font-family: "SpotifyMix", sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
+  -webkit-tap-highlight-color: transparent;
   min-height: 100%;
   margin: 0;
 }
