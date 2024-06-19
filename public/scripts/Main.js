@@ -32,8 +32,6 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Theme
-
   // Adjustments
   countDiv.textContent = fromStorage / 1000 + "s";
   if (fromStorage === 5000) upBtn.classList.add("disabled");
@@ -96,7 +94,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     const data = await getCurrentlyPlaying();
 
     if (data.timestamp !== spotify.timestamp) handleData(data);
-  }, 1000);
+  }, 2500);
 
   setInterval(() => {
     if (spotify.name)
@@ -110,5 +108,5 @@ window.document.addEventListener("DOMContentLoaded", async () => {
       );
     else
       document.documentElement.style.setProperty("--progress-bar-width", `0%`);
-  }, 250);
+  }, 500);
 });

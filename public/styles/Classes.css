@@ -60,16 +60,17 @@
 
 .progress {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
   width: 100%;
-  background-color: #3d3f50;
+  background-color: rgb(255, 255, 255, 0.3);
 }
 
 .progress-bar {
   height: 3px;
   background-color: var(--progress-bar-color);
   width: var(--progress-bar-width);
+  border-radius: 3px;
 }
 
 .title {
@@ -93,15 +94,41 @@
   text-overflow: ellipsis;
 }
 
-.content {
+.content-container {
+  position: fixed;
+  top: 70px;
   width: 100%;
-  position: sticky;
-  line-height: 1.6;
+  max-height: calc(100% - 120px);
   overflow-y: auto;
-  margin-top: 100px;
-  margin-bottom: 100px;
+}
+
+.content {
+  height: 100%;
+  line-height: 1.6;
   margin-left: 10px;
-  margin-right: 10px;
+  margin-right: 5px;
+}
+
+.lyrics:nth-child(1) {
+  margin-top: 30px;
+}
+
+.lyrics:last-child {
+  margin-bottom: 80px;
+}
+
+.content-container::-webkit-scrollbar {
+  width: 5px;
+  min-height: 40px;
+}
+
+.content-container::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: rgb(255, 255, 255, 0.4);
+}
+
+.content-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(255, 255, 255, 0.7);
 }
 
 .lyrics,
@@ -122,14 +149,15 @@ p.lyrics {
 }
 
 .bottom-container {
+  height: 30px;
   position: fixed;
   bottom: 0;
   width: 100%;
   display: flex;
   justify-content: center;
-  padding-top: 10px;
+  padding-top: 13px;
   padding-bottom: 10px;
-  background-color: #0d0d14;
+  background-color: rgb(0, 0, 0, 0.5);
   overflow-x: hidden;
 }
 
@@ -148,7 +176,7 @@ p.lyrics {
   transition: 0.3s;
 }
 
-.control-button:hover {
+.control-button:active {
   background-color: var(--button-hover);
 }
 

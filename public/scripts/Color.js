@@ -82,8 +82,5 @@ const changeColor = () => {
       "--translated-color",
       `rgb(${color.map((c) => c / 4).join(", ")})`
     );
-    document
-      .querySelector('meta[name="theme-color"]')
-      .setAttribute("content", `rgb(${color.map((c) => c / 2).join(", ")})`);
   });
 };

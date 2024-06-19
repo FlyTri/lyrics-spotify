@@ -74,8 +74,7 @@ const getCurrentlyPlaying = async () => {
           id: item.id,
           progress: () =>
             data.progress_ms +
-            Date.now() -
-            date +
+            (data.is_playing ? Date.now() - date : 0) +
             Number(localStorage.getItem("count")),
           duration: item.duration_ms,
         };
