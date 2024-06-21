@@ -150,7 +150,7 @@ export default class Musixmatch {
 
     const { subtitle_list } = body["track.subtitles.get"].message.body;
 
-    if (track.has_subtitles) {
+    if (track.has_subtitles && subtitle_list) {
       const data = JSON.parse(subtitle_list[0].subtitle.subtitle_body).map(
         ({ text, time }, i) => ({
           text: this.#format(text),

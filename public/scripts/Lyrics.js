@@ -8,20 +8,21 @@ const clearTimeouts = () => {
   timeouts = [];
 };
 const clearHighlights = () => {
-  document.querySelectorAll(".highlight").forEach((i) => {
-    i.classList.remove("highlight");
-    i.parentElement.classList.remove("bold");
-  });
+  document
+    .querySelectorAll(".highlight")
+    .forEach((el) => (el.className = el.className.replace("highlight", "")));
 };
 const currentIndex = () => {
-  const flatted = lyrics.data.flat(Infinity);
-  const before = flatted.filter((obj) => obj.time <= spotify.progress() / 1000);
+  const current = _.findLast(
+    _.flattenDeep(lyrics.data),
+    (obj) => obj.time <= spotify.progress() / 1000
+  );
 
-  return before[before.length - 1].index;
+  return current.index;
 };
 const setLyricsStatus = (text) => {
   clearTimeouts();
-  document.querySelectorAll(".lyrics").forEach((i) => i.remove());
+  document.querySelector(".content").innerHTML = "";
 
   const element = document.createElement("p");
 
@@ -32,7 +33,7 @@ const setLyricsStatus = (text) => {
 };
 const writeContent = (index, text, element) => {
   if (!index && !currentIndex()) {
-    const first = lyrics.data.flat(Infinity)[1].time * 1000;
+    const first = _.flattenDeep(lyrics.data)[1].time * 1000;
     const wait = first - spotify.progress() - 2000;
 
     if (wait > 0) {
@@ -148,15 +149,21 @@ const update = () => {
   clearHighlights();
 
   const now = spotify.progress() / 1000;
-  const flatted = lyrics.data.flat(Infinity);
-  const nextLyrics = flatted.filter((obj) => obj.time >= now);
-  const currentLine = document.querySelector(`.index-${currentIndex()}`);
+  const flatted = _.filter(
+    _.flattenDeep(lyrics.data),
+    (obj) => obj.text !== " "
+  );
+  const currIndex = currentIndex();
+  const nextLyrics = _.filter(flatted, (obj) => obj.time > now);
+  const currentLine = document.querySelector(`.index-${currIndex}`);
 
   if (!currentLine) return;
+
   if (lyrics.type === "TEXT_SYNCED") {
-    const playedWords = lyrics.data
-      .find((arr) => arr.find((obj) => obj.index === currentIndex()))
-      .filter((obj) => obj.index < currentIndex());
+    const playedWords = _.chain(lyrics.data)
+      .find((arr) => _.some(arr, (obj) => obj.index === currIndex))
+      .filter((obj) => obj.index < currIndex)
+      .value();
 
     playedWords.forEach(({ index }) => {
       const word = document.querySelector(`.index-${index}`);
@@ -166,10 +173,13 @@ const update = () => {
   }
 
   currentLine.classList.add("highlight");
-  scrollIntoView(currentLine, false);
+  scrollIntoView(
+    lyrics.type === "TEXT_SYNCED" ? currentLine.parentElement : currentLine,
+    false
+  );
 
   if (!playing) return;
-  if (!currentIndex()) {
+  if (!currIndex) {
     const wait = flatted[1].time * 1000 - now * 1000 - 2000;
 
     ["● ●", "●", false].forEach((state, index) => {

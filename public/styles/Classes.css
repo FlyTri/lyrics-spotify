@@ -104,9 +104,13 @@
 
 .content {
   height: 100%;
-  line-height: 1.6;
   margin-left: 10px;
   margin-right: 5px;
+}
+
+.lyrics {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .lyrics:nth-child(1) {
