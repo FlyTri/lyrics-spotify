@@ -2,111 +2,133 @@ if (!localStorage.getItem("token")) window.location.href = "/login";
 
 window.document.addEventListener("DOMContentLoaded", async () => {
   navigator.wakeLock?.request();
-  setTimeout(
-    () => (document.querySelector(".loader-screen").style.display = "none"),
-    500
-  );
+  setTimeout(() => {
+    $(".loader-screen").style.display = "none";
+  }, 500);
 
-  const countDiv = document.querySelector(".count");
-  const fullscreenBtn = document.querySelector(".fullscreen");
-  const translateBtn = document.querySelector(".translate");
-  const upBtn = document.querySelector(".c-up");
-  const downBtn = document.querySelector(".c-down");
-  const logoutBtn = document.querySelector(".logout");
-  const themeBtn = document.querySelector(".theme");
-  const fromStorage = Number(localStorage.getItem("count"));
+  const elements = {
+    countDiv: $(".count"),
+    fullscreenBtn: $(".fullscreen"),
+    translateBtn: $(".translate"),
+    upBtn: $(".c-up"),
+    downBtn: $(".c-down"),
+    logoutBtn: $(".logout"),
+    themeBtn: $(".theme"),
+  };
 
-  translateBtn.addEventListener("click", () => writeTranslates());
+  // Initial setup
+  const fromStorage = _.toNumber(localStorage.getItem("count")) || 0;
+  const updateCountDiv = (count) => {
+    elements.countDiv.textContent = `${count / 1000}s`;
+  };
+  const toggleFullscreenIcons = (
+    isFullscreen = window.innerHeight === screen.height
+  ) => {
+    $(".fullscreen-icon").hidden = isFullscreen;
+    $(".compress-icon").hidden = !isFullscreen;
+  };
+
+  // Event listeners
+  elements.translateBtn.addEventListener("click", writeTranslates);
+
   if (!localStorage.getItem("count")) localStorage.setItem("count", 0);
 
-  themeBtn.addEventListener("click", () => {
-    changeColor();
-  });
+  elements.themeBtn.addEventListener("click", changeColor);
 
-  // Fullscreen
-  fullscreenBtn.addEventListener("click", () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
+  elements.fullscreenBtn.addEventListener("click", async () => {
+    if (window.innerHeight === screen.height) {
+      await document.exitFullscreen();
     } else {
-      document.documentElement.requestFullscreen();
+      await document.documentElement.requestFullscreen();
     }
+
+    toggleFullscreenIcons();
   });
 
-  // Adjustments
-  countDiv.textContent = fromStorage / 1000 + "s";
-  if (fromStorage === 5000) upBtn.classList.add("disabled");
-  if (fromStorage === -5000) downBtn.classList.add("disabled");
-  upBtn.addEventListener("click", () => {
-    const count = Number(localStorage.getItem("count"));
-    const newCount = count + 250;
-    if (newCount + 250 > 5000) upBtn.classList.add("disabled");
+  // Count adjustments
+  updateCountDiv(fromStorage);
+  elements.upBtn.classList.toggle("disabled", fromStorage === 5000);
+  elements.downBtn.classList.toggle("disabled", fromStorage === -5000);
 
-    if (downBtn.classList.contains("disabled"))
-      downBtn.classList.remove("disabled");
-    localStorage.setItem("count", newCount);
-    countDiv.textContent = newCount / 1000 + "s";
+  const updateCount = (increment) => {
+    let count = _.toNumber(localStorage.getItem("count"));
+
+    count = _.clamp(count + increment, -5000, 5000);
+    localStorage.setItem("count", count);
+    updateCountDiv(count);
     update(true);
-  });
-  downBtn.addEventListener("click", () => {
-    const count = Number(localStorage.getItem("count"));
-    const newCount = count - 250;
-    if (newCount - 250 < -5000) downBtn.classList.add("disabled");
+    elements.upBtn.classList.toggle("disabled", count === 5000);
+    elements.downBtn.classList.toggle("disabled", count === -5000);
+  };
 
-    if (upBtn.classList.contains("disabled"))
-      upBtn.classList.remove("disabled");
-    localStorage.setItem("count", newCount);
-    countDiv.textContent = newCount / 1000 + "s";
-    update(true);
-  });
-  countDiv.addEventListener("click", () => {
-    upBtn.classList.remove("disabled");
-    downBtn.classList.remove("disabled");
+  elements.upBtn.addEventListener("click", () => updateCount(250));
+  elements.downBtn.addEventListener("click", () => updateCount(-250));
+  elements.countDiv.addEventListener("click", () => {
     localStorage.setItem("count", 0);
-    countDiv.textContent = "0s";
-
+    updateCountDiv(0);
+    elements.upBtn.classList.remove("disabled");
+    elements.downBtn.classList.remove("disabled");
     update(true);
   });
 
   // Logout
-  logoutBtn.addEventListener("click", () => {
+  elements.logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("token");
     window.location.reload();
   });
 
-  // Auto scroll when page is visible
+  // Auto scroll and fullscreen handling
   document.addEventListener("visibilitychange", () => {
-    const elemet = document.querySelector(".highlight");
-
+    const element = $(".highlight");
     if (document.visibilityState === "visible") {
       navigator.wakeLock?.request();
-
-      if (elemet) scrollIntoView(elemet, false);
+      if (element) scrollIntoView(element, false);
     }
   });
+
   window.addEventListener("resize", () => {
-    const elemet = document.querySelector(".highlight");
-    if (elemet) scrollIntoView(elemet, false);
+    const element = $(".highlight");
+    if (element) scrollIntoView(element, false);
+    toggleFullscreenIcons();
   });
 
-  // Main
-  getCurrentlyPlaying().then((data) => handleData(data));
-  setInterval(async () => {
-    const data = await getCurrentlyPlaying();
-
-    if (data.timestamp !== spotify.timestamp) handleData(data);
-  }, 2500);
-
-  setInterval(() => {
-    if (spotify.name)
+  // Main functionality
+  const handleDataWithUpdate = (data) => {
+    handleData(data);
+    if (spotify.name) {
       document.documentElement.style.setProperty(
         "--progress-bar-width",
-        `${
-          ((spotify.progress() + Number(localStorage.getItem("count"))) /
-            spotify.duration) *
-          100
-        }%`
+        `${((spotify.progress() + fromStorage) / spotify.duration) * 100}%`
       );
-    else
+    } else {
       document.documentElement.style.setProperty("--progress-bar-width", `0%`);
+    }
+  };
+
+  getCurrentlyPlaying().then(handleDataWithUpdate);
+  setInterval(async () => {
+    if (!navigator.onLine) return;
+    const data = await getCurrentlyPlaying();
+    if (data.timestamp !== spotify.timestamp) handleDataWithUpdate(data);
+  }, 2500);
+
+  window.addEventListener("online", () => {
+    showMessage("Đã kết nối Internet");
+    handleDataWithUpdate({ playing: false });
+  });
+  window.addEventListener("offline", () => {
+    showMessage("Đã ngắt kết nối Internet");
+    handleDataWithUpdate({ playing: false });
+  });
+
+  setInterval(() => {
+    if (spotify.name) {
+      document.documentElement.style.setProperty(
+        "--progress-bar-width",
+        `${((spotify.progress() + fromStorage) / spotify.duration) * 100}%`
+      );
+    } else {
+      document.documentElement.style.setProperty("--progress-bar-width", `0%`);
+    }
   }, 500);
 });

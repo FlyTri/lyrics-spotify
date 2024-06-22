@@ -4,8 +4,7 @@
   --discord-color: #2b2d31;
   --text-color: #c6d0f5;
 
-  --background-color: rgb(30, 30, 46);
-  --background-color-transparent: rgb(30, 30, 46, 0.1);
+  --background-color: rgba(30, 30, 46);
   --progress-bar-color: #427e9d;
   --highlight-color: var(--green);
   --lyrics-color: #567456;

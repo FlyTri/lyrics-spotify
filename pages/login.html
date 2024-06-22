@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Form</title>
     <link rel="stylesheet" href="styles/Variables.css" />
+    <link rel="stylesheet" href="styles/Main.css" />
+
+    <script src="scripts/Functions.js"></script>
 
     <style>
-      @font-face {
-        font-family: "SpotifyMix";
-        src: url("/fonts/SpotifyMix-Regular.woff");
-        font-display: swap;
-      }
-
       @font-face {
         font-family: "OpenSans";
         src: url("/fonts/OpenSans-Regular.woff");
@@ -49,23 +46,19 @@
 
       img {
         display: block;
-        margin-left: auto;
-        margin-right: auto;
         width: 100px;
         height: 100px;
-        margin-bottom: 10px;
+        margin: 0 auto 10px auto;
       }
 
       h2 {
         text-align: center;
-        margin-top: 0;
-        margin-bottom: 0;
+        margin: 0 0 0 0;
       }
 
       p {
         text-align: center;
-        margin-top: 0;
-        margin-bottom: 30px;
+        margin: 0 0 30px 0;
       }
 
       .field:nth-child(1) {
@@ -96,8 +89,7 @@
       }
 
       .login-button {
-        margin-top: 15px;
-        margin-bottom: 10px;
+        margin: 15px 0 10px 0;
         width: 100%;
         padding: 10px;
         border: none;
@@ -106,7 +98,6 @@
         color: #000;
         font-size: 16px;
         cursor: pointer;
-        transition: 0.3s;
       }
 
       .login-button:hover {
@@ -120,24 +111,13 @@
       }
 
       .help {
-        padding-top: 7px;
-        padding-bottom: 15px;
+        padding: 7px 0 15px 0;
       }
 
       a {
         display: inline-block;
         color: #00a8fc;
         font-size: 12px;
-      }
-
-      a:link,
-      a:visited {
-        text-decoration: none;
-      }
-
-      a:hover,
-      a:active {
-        text-decoration: underline !important;
       }
 
       @media (max-width: 500px) {
@@ -206,7 +186,7 @@
             response_type: "code",
             client_id: id.value,
             redirect_uri: `${window.location.origin}/callback`,
-            scope: "user-read-currently-playing user-modify-playback-state",
+            scope: "user-read-currently-playing",
             show_dialog: true,
           });
 

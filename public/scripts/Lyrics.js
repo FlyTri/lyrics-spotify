@@ -8,7 +8,7 @@ const clearTimeouts = () => {
   timeouts = [];
 };
 const clearHighlights = () => {
-  _.each(document.querySelectorAll(".highlight"), (el) => {
+  _.each($All(".highlight"), (el) => {
     el.className = el.className.replace("highlight", "");
   });
 };
@@ -21,13 +21,13 @@ const currentIndex = () => {
 };
 const setLyricsStatus = (text) => {
   clearTimeouts();
-  document.querySelector(".content").innerHTML = "";
+  $(".content").innerHTML = "";
 
   const element = document.createElement("p");
   element.classList.add("lyrics", "highlight");
   element.style.textAlign = "center";
   element.textContent = text;
-  document.querySelector(".content").appendChild(element);
+  $(".content").appendChild(element);
 };
 const writeContent = (index, text, element) => {
   if (!index && !currentIndex()) {
@@ -53,14 +53,14 @@ const writeContent = (index, text, element) => {
   }
 };
 const writeTranslates = () => {
-  const lines = document.querySelectorAll(".translated");
+  const lines = $All(".translated");
 
   if (lines.length) {
     _.each(lines, (element) => element.remove());
     return localStorage.setItem("translate", false);
   }
 
-  _.each(document.querySelectorAll(".lyrics"), (element) => {
+  _.each($All(".lyrics"), (element) => {
     const translated = _.find(lyrics.translated, {
       original: element.textContent,
     });
@@ -76,11 +76,11 @@ const writeTranslates = () => {
   localStorage.setItem("translate", true);
 };
 const writeLyrics = (callUpdate) => {
-  _.each(document.querySelectorAll(".lyrics"), (i) => i.remove());
+  _.each($All(".lyrics"), (i) => i.remove());
 
   if (lyrics.message) return setLyricsStatus(lyrics.message);
 
-  const translateBtn = document.querySelector(".translate");
+  const translateBtn = $(".translate");
   const lyricsToWrite = _.clone(lyrics.data);
 
   if (lyrics.type !== "NOT_SYNCED" && currentIndex() !== 0)
@@ -134,7 +134,7 @@ const update = () => {
   clearTimeouts();
 
   if (!spotify.name) {
-    return _.each(document.querySelectorAll(".lyrics"), (i) => i.remove());
+    return _.each($All(".lyrics"), (i) => i.remove());
   }
   if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
 
@@ -147,7 +147,7 @@ const update = () => {
   );
   const currIndex = currentIndex();
   const nextLyrics = _.filter(flatted, (obj) => obj.time > now);
-  const currentLine = document.querySelector(`.index-${currIndex}`);
+  const currentLine = $(`.index-${currIndex}`);
 
   if (!currentLine) return;
 
@@ -158,7 +158,7 @@ const update = () => {
       .value();
 
     _.each(playedWords, ({ index }) => {
-      const word = document.querySelector(`.index-${index}`);
+      const word = $(`.index-${index}`);
       word?.classList.add("highlight");
     });
   }
@@ -200,13 +200,13 @@ const update = () => {
         timeouts.push(
           setTimeout(() => {
             if (lyric.newLine)
-              _.each(document.querySelectorAll("span"), (i) =>
+              _.each($All("span"), (i) =>
                 i.classList.remove("highlight")
               );
 
-            const currentLine = document.querySelector(`.index-${lyric.index}`);
+            const currentLine = $(`.index-${lyric.index}`);
 
-            _.each(document.querySelectorAll("p"), (i) =>
+            _.each($All("p"), (i) =>
               i.classList.remove("bold")
             );
             currentLine.parentElement.classList.add("bold");
@@ -221,7 +221,7 @@ const update = () => {
       _.each(nextLyrics, (lyric) => {
         timeouts.push(
           setTimeout(() => {
-            const currentLine = document.querySelector(`.index-${lyric.index}`);
+            const currentLine = $(`.index-${lyric.index}`);
             clearHighlights();
             currentLine.classList.add("highlight");
             scrollIntoView(currentLine);
@@ -242,10 +242,13 @@ const handleData = async (data) => {
     playing = false;
 
     document.documentElement.style.setProperty("--progress-bar-width", "0%");
-    document.querySelector(".title").textContent = "Tên bài hát";
-    document.querySelector(".artists").textContent = "Tên nghệ sĩ";
+    $(".title").textContent = "Tên bài hát";
+    $(".artists").textContent = "Tên nghệ sĩ";
 
-    if (!data.playing) return setLyricsStatus("Hiện không phát");
+    if (!data.playing)
+      return setLyricsStatus(
+        navigator.onLine ? "Hiện không phát" : "Ngoại tuyến :("
+      );
   }
 
   if (data.type !== "track")
@@ -268,15 +271,15 @@ const handleData = async (data) => {
   );
 
   document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
-  document.querySelector(".title").innerHTML = data.innerHTMLname;
-  document.querySelector(".artists").innerHTML = data.innerHTMLartists;
+  $(".title").innerHTML = data.innerHTMLname;
+  $(".artists").innerHTML = data.innerHTMLartists;
 
   if (data.name && spotify.id !== data.id) {
     document.documentElement.style = null;
     spotify = data;
     playing = data.playing;
 
-    const translateBtn = document.querySelector(".translate");
+    const translateBtn = $(".translate");
     const options = new URLSearchParams({
       name: data.name,
       id: data.id,

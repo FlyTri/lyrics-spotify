@@ -1,18 +1,18 @@
 @font-face {
   font-family: "SpotifyMix";
-  src: url("/fonts/SpotifyMix-Regular.woff");
+  src: url("/fonts/SpotifyMix-Regular.woff") format("woff");
   font-display: swap;
 }
 
 @font-face {
   font-family: "SpotifyMix-Medium";
-  src: url("/fonts/SpotifyMix-Medium.woff");
+  src: url("/fonts/SpotifyMix-Medium.woff") format("woff");
   font-display: swap;
 }
 
 @font-face {
   font-family: "SpotifyMix-Bold";
-  src: url("/fonts/SpotifyMix-Bold.woff");
+  src: url("/fonts/SpotifyMix-Bold.woff") format("woff");
   font-display: swap;
 }
 
@@ -22,16 +22,16 @@ html {
 }
 
 body {
-  display: flex;
   font-family: "SpotifyMix", sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
   -webkit-tap-highlight-color: transparent;
-  min-height: 100%;
+  height: 100%;
   margin: 0;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-svg {
+img {
   width: 1em;
   height: 1em;
 }
@@ -50,16 +50,40 @@ a:active {
   text-decoration: underline !important;
 }
 
-p.translated {
+.popup-msg {
+  display: none;
   font-family: "SpotifyMix", sans-serif;
-  font-size: 18px;
-  color: var(--translated-color);
+  font-size: 16px;
+  color: #181825;
+  background-color: #cdd6f4;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  padding: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 450px;
+  border-radius: 6px;
+  text-align: center;
+  position: absolute;
+  justify-content: center;
+  align-items: center;
 }
 
-p.highlight {
-  color: var(--highlight-color) !important;
+.animatePopup {
+  display: flex !important;
+  animation: animatePopup 2.5s;
 }
 
-span.highlight {
-  color: var(--highlight-color) !important;
+@keyframes animatePopup {
+  0%,
+  100% {
+    bottom: -50px;
+  }
+  20%,
+  80% {
+    bottom: 70px;
+  }
+}
+
+[hidden] {
+  display: none !important;
 }

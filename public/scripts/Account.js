@@ -35,7 +35,7 @@ const getToken = async (authCode = false) => {
         token = data;
 
         return true;
-      } else alert(`Không thể lấy token. Lỗi: ${JSON.stringify(data)}`);
+      } else prompt(`Không thể lấy token. Lỗi:`, JSON.stringify(data));
     })
   );
 };
@@ -49,6 +49,16 @@ const getCurrentlyPlaying = async () => {
       if (response.status === 204) return { playing: false };
 
       const data = await response.json();
+      const error = data.error;
+
+      if (error) {
+        showMessage(
+          `Lỗi: ${error.status} | ${error.message}. Hãy thử đăng nhập lại`
+        );
+
+        return { playing: false };
+      }
+
       const item = data.item;
       const date = Date.now();
       const defaultData = {
@@ -81,9 +91,13 @@ const getCurrentlyPlaying = async () => {
 
       return defaultData;
     })
-    .catch(() => ({
-      playing: false,
-      timestamp: Date.now(),
-      type: "error",
-    }));
+    .catch(() => {
+      showMessage("Không thể cập nhật trình phát nhạc");
+
+      return {
+        playing: false,
+        timestamp: Date.now(),
+        type: "error",
+      };
+    });
 };

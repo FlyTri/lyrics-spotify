@@ -1,9 +1,31 @@
+body {
+  overflow: hidden;
+}
+
+p.translated {
+  font-family: "SpotifyMix", sans-serif;
+  font-size: 18px;
+  color: var(--translated-color);
+}
+
+.highlight {
+  text-shadow: var(--highlight-color) 0px 0px 15px;
+}
+
+p.highlight {
+  color: var(--highlight-color) !important;
+}
+
+span.highlight {
+  color: var(--highlight-color) !important;
+}
+
 .loader-screen {
   position: fixed;
   background-color: var(--discord-color);
   width: 100%;
   height: 100%;
-  z-index: 2;
+  z-index: 100;
   opacity: 1;
 }
 
@@ -11,15 +33,14 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  margin-top: -50px;
-  margin-left: -50px;
+  margin: -50px 0 -50px 0;
   width: 75px;
   aspect-ratio: 1;
   display: grid;
   border: 4px solid #0000;
   border-radius: 50%;
   border-right-color: var(--green);
-  animation: animate 1s infinite linear;
+  animation: load 1s infinite linear;
 }
 
 .loader::before,
@@ -29,7 +50,7 @@
   margin: 2px;
   border: inherit;
   border-radius: 50%;
-  animation: animate 2s infinite;
+  animation: load 2s infinite;
 }
 
 .loader::after {
@@ -37,25 +58,19 @@
   animation-duration: 3s;
 }
 
-@keyframes animate {
+@keyframes load {
   100% {
     transform: rotate(1turn);
   }
 }
 
 .sticky-header {
-  height: 100px;
   position: fixed;
   top: 0;
   text-align: center;
   z-index: 1;
   width: 100%;
-  background: linear-gradient(
-    to bottom,
-    var(--background-color) 0%,
-    var(--background-color) 70%,
-    var(--background-color-transparent) 100%
-  );
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .progress {
@@ -63,7 +78,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  background-color: rgb(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .progress-bar {
@@ -78,9 +93,7 @@
   font-family: "SpotifyMix-Bold", sans-serif;
   white-space: nowrap;
   overflow: hidden;
-  margin-top: 15px;
-  margin-left: 30px;
-  margin-right: 30px;
+  margin: 12px 30px 0 30px;
   text-overflow: ellipsis;
 }
 
@@ -88,29 +101,25 @@
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
-  margin-top: 3px;
-  margin-left: 85px;
-  margin-right: 85px;
+  margin: 3px 85px 12px 85px;
   text-overflow: ellipsis;
 }
 
 .content-container {
   position: fixed;
-  top: 70px;
+  top: 65.4px;
   width: 100%;
-  max-height: calc(100% - 123px);
+  max-height: calc(100% - 118.4px);
   overflow-y: auto;
 }
 
 .content {
   height: 100%;
-  margin-left: 10px;
-  margin-right: 5px;
+  margin: 0 0 0 10px;
 }
 
 .lyrics {
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding: 8px 0 8px 0;
 }
 
 .lyrics:nth-child(1) {
@@ -121,23 +130,24 @@
   margin-bottom: 80px;
 }
 
-.content-container::-webkit-scrollbar {
-  width: 5px;
+::-webkit-scrollbar {
+  width: 10px;
   min-height: 40px;
 }
 
-.content-container::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
+  border: 3px solid rgba(0, 0, 0, 0);
+  background-clip: padding-box;
   border-radius: 8px;
-  background-color: rgb(255, 255, 255, 0.4);
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
-.content-container::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(255, 255, 255, 0.7);
+::-webkit-scrollbar:hover {
+  background-color: rgba(45, 45, 45, 0.5);
 }
 
-.lyrics,
-.lyrics > * {
-  transition: 0.2s;
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.7);
 }
 
 p.lyrics {
@@ -153,15 +163,26 @@ p.lyrics {
 }
 
 .bottom-container {
-  height: 30px;
   position: fixed;
-  bottom: 0;
   width: 100%;
-  display: flex;
-  justify-content: center;
+  height: 30px;
+  bottom: 0;
+  background-color: var(--background-color);
   padding-top: 13px;
   padding-bottom: 10px;
-  background-color: rgb(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.bottom {
+  display: flex;
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  justify-content: center;
+  padding-top: inherit;
+  padding-bottom: inherit;
+  z-index: 3;
 }
 
 .control-button {
@@ -174,9 +195,7 @@ p.lyrics {
   height: 30px;
   border-radius: 50%;
   cursor: pointer;
-  margin-left: 7px;
-  margin-right: 7px;
-  transition: 0.3s;
+  margin: 0 7px 0 7px;
 }
 
 .control-button:active {
@@ -185,8 +204,7 @@ p.lyrics {
 
 .disabled {
   pointer-events: none;
-  background-color: #333;
-  color: #fff;
+  opacity: 0.5;
 }
 
 .count-container {

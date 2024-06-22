@@ -2,33 +2,24 @@ const colorThief = new ColorThief();
 
 const convertHEXToRGB = (hex) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-  return [
-    parseInt(result[1], 16),
-    parseInt(result[2], 16),
-    parseInt(result[3], 16),
-  ];
+  return _.map(result.slice(1), (val) => parseInt(val, 16));
 };
 const getLuminance = (r, g, b) => {
-  const a = [r, g, b].map((v) => {
+  const a = _.map([r, g, b], (v) => {
     v /= 255;
     return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
   });
-  return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+  return _.sum([a[0] * 0.2126, a[1] * 0.7152, a[2] * 0.0722]);
 };
-const getContrastRatio = (a, b) => {
-  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-};
+const getContrastRatio = (a, b) =>
+  (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 const isReadable = ([r, g, b]) => {
   const luminanceBackground = getLuminance(r, g, b);
   const luminanceBlack = 0;
-  const luminanceText = getLuminance(
-    ...convertHEXToRGB(
-      getComputedStyle(document.documentElement).getPropertyValue(
-        "--text-color"
-      )
-    )
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue(
+    "--text-color"
   );
+  const luminanceText = getLuminance(...convertHEXToRGB(textColor));
 
   return (
     getContrastRatio(luminanceBackground, luminanceBlack) >= 3 &&
@@ -48,21 +39,21 @@ const changeColor = () => {
     if (spotify.image !== img.src) return;
 
     const colors = colorThief.getPalette(img);
-    const valid = colors.filter((background) => isReadable(background));
+    const validColors = _.filter(colors, isReadable);
 
-    log(
+    console.log(
       "COLORS",
       "VALID",
       "aqua",
-      [`%c  %c `.repeat(valid.length)],
-      ...valid
-        .map((color) => [`background: rgb(${color.join(", ")});`, ""])
-        .flat(Infinity)
+      _.map(
+        validColors,
+        (color) => `background: rgb(${color.join(", ")});`
+      ).join(" ")
     );
 
-    if (!valid.length) return;
+    if (_.isEmpty(validColors)) return;
 
-    const color = valid[Math.floor(Math.random() * valid.length)];
+    const selectedColor = _.sample(validColors);
 
     document.documentElement.style.setProperty("--lyrics-color", "#000");
     document.documentElement.style.setProperty(
@@ -72,15 +63,11 @@ const changeColor = () => {
     document.documentElement.style.setProperty("--progress-bar-color", "#fff");
     document.documentElement.style.setProperty(
       "--background-color",
-      `rgb(${color.join(", ")})`
-    );
-    document.documentElement.style.setProperty(
-      `--background-color-transparent`,
-      `rgb(${color.join(", ")}, 0)`
+      `rgb(${selectedColor.join(", ")})`
     );
     document.documentElement.style.setProperty(
       "--translated-color",
-      `rgb(${color.map((c) => c / 4).join(", ")})`
+      `rgb(${_.map(selectedColor, (c) => c / 4).join(", ")})`
     );
   });
 };
