@@ -28,7 +28,10 @@ body {
   -webkit-tap-highlight-color: transparent;
   height: 100%;
   margin: 0;
-  transition: background-color 0.3s, color 0.3s;
+}
+
+* {
+  transition: background-color 0.3s, color 0.3s, text-shadow 0.3s;
 }
 
 img {
