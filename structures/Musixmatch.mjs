@@ -66,7 +66,7 @@ export default class Musixmatch {
    */
   #format(text) {
     if (!text) return "";
-    if (/^\s*$/.test(text)) return " ";
+    if (/^\s+$/.test(text)) return " ";
 
     const words = tokenize(text);
     const Chinese = /\p{Script=Han}/u;

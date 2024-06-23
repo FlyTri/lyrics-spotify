@@ -23,6 +23,7 @@ html {
 
 body {
   font-family: "SpotifyMix", sans-serif;
+  -webkit-font-smoothing: antialiased;
   background-color: var(--background-color);
   color: var(--text-color);
   -webkit-tap-highlight-color: transparent;

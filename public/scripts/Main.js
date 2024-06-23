@@ -3,7 +3,7 @@ if (!localStorage.getItem("token")) window.location.href = "/login";
 window.document.addEventListener("DOMContentLoaded", async () => {
   navigator.wakeLock?.request();
   setTimeout(() => {
-    $(".loader-screen").style.display = "none";
+    $(".loader-screen").remove();
   }, 500);
 
   const elements = {
