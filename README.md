@@ -6,7 +6,7 @@
 Xem lời bài hát ngay trên trình duyệt của bạn
 ## Client ID, Client Secret
 > [!WARNING]
-> Để tránh rủi ro bảo mật, app của bạn nên ở chế độ 'Development mode'
+> Để tránh rủi ro bảo mật, bạn nên tạo app mới, không sử dụng các app đã tạo
 
 Thực hiện các bước sau:
 - Vào trang [này](https://developer.spotify.com/dashboard/create) (Spotify for Developers)
@@ -15,8 +15,10 @@ Thực hiện các bước sau:
    + App description
 - Tại ô **Redirect URIs**, nhập nội dung bên dưới và chọn nút **Add**
   
-```
-https://lyrics-spotify.onrender.com/callback
+```js
+[url]/callback
+
+// [url] là địa chỉ truy cập vào trang web, bao gồm http/https...
 ```
 - Tiếp, đánh dấu vào ô **Web API** và điều khoản dịch vụ ở bên dưới
 - Chọn nút **Save** và chờ
