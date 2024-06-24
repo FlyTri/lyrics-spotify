@@ -200,15 +200,11 @@ const update = () => {
         timeouts.push(
           setTimeout(() => {
             if (lyric.newLine)
-              _.each($All("span"), (i) =>
-                i.classList.remove("highlight")
-              );
+              _.each($All("span"), (i) => i.classList.remove("highlight"));
 
             const currentLine = $(`.index-${lyric.index}`);
 
-            _.each($All("p"), (i) =>
-              i.classList.remove("bold")
-            );
+            _.each($All("p"), (i) => i.classList.remove("bold"));
             currentLine.parentElement.classList.add("bold");
             currentLine.classList.add("highlight");
             if (lyric.newLine) scrollIntoView(currentLine.parentElement);
