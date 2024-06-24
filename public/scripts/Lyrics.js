@@ -12,10 +12,11 @@ const clearHighlights = () => {
     el.className = el.className.replace("highlight", "");
   });
 };
-const currentIndex = () => {
+const currentIndex = async () => {
+  const progress = (await spotify.progress()) / 1000;
   const current = _.findLast(
     _.flattenDeep(lyrics.data),
-    (obj) => obj.time <= spotify.progress() / 1000
+    (obj) => obj.time <= progress
   );
   return current.index;
 };
@@ -29,10 +30,10 @@ const setLyricsStatus = (text) => {
   element.textContent = text;
   $(".content").appendChild(element);
 };
-const writeContent = (index, text, element) => {
-  if (!index && !currentIndex()) {
+const writeContent = async (index, text, element) => {
+  if (!index && !(await currentIndex())) {
     const first = _.flattenDeep(lyrics.data)[1].time * 1000;
-    const wait = first - spotify.progress() - 2000;
+    const wait = first - await spotify.progress() - 2000;
 
     if (wait > 0) {
       element.textContent = "● ● ●";
@@ -75,7 +76,7 @@ const writeTranslates = () => {
 
   localStorage.setItem("translate", true);
 };
-const writeLyrics = (callUpdate) => {
+const writeLyrics = async (callUpdate) => {
   _.each($All(".lyrics"), (i) => i.remove());
 
   if (lyrics.message) return setLyricsStatus(lyrics.message);
@@ -83,7 +84,7 @@ const writeLyrics = (callUpdate) => {
   const translateBtn = $(".translate");
   const lyricsToWrite = _.clone(lyrics.data);
 
-  if (lyrics.type !== "NOT_SYNCED" && currentIndex() !== 0)
+  if (lyrics.type !== "NOT_SYNCED" && (await currentIndex()) !== 0)
     lyricsToWrite.shift();
 
   switch (lyrics.type) {
@@ -130,7 +131,7 @@ const writeLyrics = (callUpdate) => {
 
   if (callUpdate) update();
 };
-const update = () => {
+const update = async () => {
   clearTimeouts();
 
   if (!spotify.name) {
@@ -140,12 +141,12 @@ const update = () => {
 
   clearHighlights();
 
-  const now = spotify.progress() / 1000;
+  const now = (await spotify.progress()) / 1000;
   const flatted = _.filter(
     _.flattenDeep(lyrics.data),
     (obj) => obj.text !== " "
   );
-  const currIndex = currentIndex();
+  const currIndex = await currentIndex();
   const nextLyrics = _.filter(flatted, (obj) => obj.time > now);
   const currentLine = $(`.index-${currIndex}`);
 
@@ -260,7 +261,7 @@ const handleData = async (data) => {
   document.documentElement.style.setProperty(
     "--progress-bar-width",
     `${
-      ((data.progress() + Number(localStorage.getItem("count"))) /
+      (((await data.progress()) + Number(localStorage.getItem("count"))) /
         data.duration) *
       100
     }%`

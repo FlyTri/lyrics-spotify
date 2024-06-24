@@ -67,12 +67,33 @@ const getCurrentlyPlaying = async () => {
         type: data.currently_playing_type,
       };
 
-      if (data.currently_playing_type === "track")
+      if (data.currently_playing_type === "track") {
+        const artists = _.join(
+          _.map(item.artists, (artist) => artist.name),
+          ", "
+        );
+        const progress = async () => {
+          if (window.Spotify) {
+            const data = await window.Spotify.GetData();
+
+            if (data.title === item.name && data.artist === artists)
+              return (
+                data.position * 1000 + Number(localStorage.getItem("count"))
+              );
+          }
+
+          return (
+            data.progress_ms +
+            (data.is_playing ? Date.now() - date : 0) +
+            Number(localStorage.getItem("count"))
+          );
+        };
+
         return {
           ...defaultData,
           name: item.name,
           innerHTMLname: `<a href="https://open.spotify.com/track/${item.id}" target="_blank">${item.name}</a>`,
-          artists: item.artists.map((artist) => artist.name).join(", "),
+          artists,
           innerHTMLartists: item.artists
             .map(
               ({ name, id }) =>
@@ -82,13 +103,10 @@ const getCurrentlyPlaying = async () => {
           image: item.album.images[0].url,
           album: item.album.name,
           id: item.id,
-          progress: () =>
-            data.progress_ms +
-            (data.is_playing ? Date.now() - date : 0) +
-            Number(localStorage.getItem("count")),
+          progress,
           duration: item.duration_ms,
         };
-
+      }
       return defaultData;
     })
     .catch(() => {

@@ -4,6 +4,8 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   navigator.wakeLock?.request();
   setTimeout(() => {
     $(".loader-screen").remove();
+
+    if(window.Spotify) showMessage("Đã cài đặt tiện ích mở rộng")
   }, 500);
 
   const elements = {
@@ -93,12 +95,12 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Main functionality
-  const handleDataWithUpdate = (data) => {
+  const handleDataWithUpdate = async(data) => {
     handleData(data);
     if (spotify.name) {
       document.documentElement.style.setProperty(
         "--progress-bar-width",
-        `${((spotify.progress() + fromStorage) / spotify.duration) * 100}%`
+        `${((await spotify.progress()) / spotify.duration) * 100}%`
       );
     } else {
       document.documentElement.style.setProperty("--progress-bar-width", `0%`);
@@ -121,11 +123,11 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     handleDataWithUpdate({ playing: false });
   });
 
-  setInterval(() => {
+  setInterval(async() => {
     if (spotify.name) {
       document.documentElement.style.setProperty(
         "--progress-bar-width",
-        `${((spotify.progress() + fromStorage) / spotify.duration) * 100}%`
+        `${((await spotify.progress() + fromStorage) / spotify.duration) * 100}%`
       );
     } else {
       document.documentElement.style.setProperty("--progress-bar-width", `0%`);
