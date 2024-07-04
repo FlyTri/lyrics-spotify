@@ -45,7 +45,7 @@ app
     if (!cached) {
       if (!lyrics) lyrics = await mongodb.getLyrics(id);
 
-      if (!lyrics) lyrics =NO_RESULT|| await qq.getLyrics(name, artist);
+      if (!lyrics) lyrics = await qq.getLyrics(name, artist);
       if (lyrics === NO_RESULT)
         lyrics = await musixmatch.getLyrics(name, album, artist, id, duration);
 
