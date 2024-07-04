@@ -12,28 +12,25 @@ const clearHighlights = () => {
     el.className = el.className.replace("highlight", "");
   });
 };
-const currentIndex = async () => {
-  const progress = (await spotify.progress()) / 1000;
-  const current = _.findLast(
-    _.flattenDeep(lyrics.data),
-    (obj) => obj.time <= progress
-  );
-  return current.index;
+const currentIndex = () => {
+  const progress = spotify.position / 1000;
+
+  return _.findLastIndex(lyrics.data, (obj) => obj.time <= progress);
 };
 const setLyricsStatus = (text) => {
   clearTimeouts();
   $(".content").innerHTML = "";
 
   const element = document.createElement("p");
-  element.classList.add("lyrics", "highlight");
-  element.style.textAlign = "center";
+
+  element.classList.add("lyrics", "status");
   element.textContent = text;
   $(".content").appendChild(element);
 };
-const writeContent = async (index, text, element) => {
-  if (!index && !(await currentIndex())) {
-    const first = _.flattenDeep(lyrics.data)[1].time * 1000;
-    const wait = first - await spotify.progress() - 2000;
+const writeContent = async (obj, element) => {
+  if (!currentIndex() && obj.wait) {
+    const first = lyrics.data[1].time * 1000;
+    const wait = first - spotify.position - 2000;
 
     if (wait > 0) {
       element.textContent = "● ● ●";
@@ -47,10 +44,10 @@ const writeContent = async (index, text, element) => {
       element.textContent = "●";
       return;
     }
-  } else if (!index) {
+  } else if (obj.wait) {
     element.textContent = "";
   } else {
-    element.textContent = text || "♫";
+    element.textContent = obj.text || "♫";
   }
 };
 const writeTranslates = () => {
@@ -58,57 +55,69 @@ const writeTranslates = () => {
 
   if (lines.length) {
     _.each(lines, (element) => element.remove());
-    return localStorage.setItem("translate", false);
-  }
+    localStorage.setItem("translate", false);
+  } else {
+    _.each($All(".lyrics"), (element) => {
+      const translated = _.find(lyrics.translated, {
+        original: element.textContent,
+      });
 
-  _.each($All(".lyrics"), (element) => {
-    const translated = _.find(lyrics.translated, {
-      original: element.textContent,
+      if (translated) {
+        const p = document.createElement("p");
+
+        p.classList.add("translated");
+        p.textContent = translated.text;
+        element.appendChild(p);
+      }
     });
-
-    if (translated) {
-      const p = document.createElement("p");
-      p.classList.add("translated");
-      p.textContent = translated.text;
-      element.appendChild(p);
-    }
-  });
+  }
 
   localStorage.setItem("translate", true);
 };
-const writeLyrics = async (callUpdate) => {
-  _.each($All(".lyrics"), (i) => i.remove());
+const writeLyrics = () => {
+  $(".content").innerHTML = "";
 
   if (lyrics.message) return setLyricsStatus(lyrics.message);
+  if (lyrics.type === "INSTRUMENTAL")
+    return setLyricsStatus("Hãy tận hưởng những giai điệu tuyệt vời~");
+  if (lyrics.type === "DJ") return setLyricsStatus("Quẩy lên nào! 🎧");
+  if (lyrics.type === "NO_RESULT")
+    return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
 
   const translateBtn = $(".translate");
   const lyricsToWrite = _.clone(lyrics.data);
 
-  if (lyrics.type !== "NOT_SYNCED" && (await currentIndex()) !== 0)
-    lyricsToWrite.shift();
-
   switch (lyrics.type) {
     case "TEXT_SYNCED": {
-      _.each(lyricsToWrite, (obj) => {
-        const element = document.createElement("p");
-        element.classList.add("lyrics");
+      let p = document.createElement("p");
 
-        _.each(obj, ({ text, index }) => {
-          const span = document.createElement("span");
-          span.classList.add(`index-${index}`);
-          writeContent(index, text, span);
-          element.appendChild(span);
-        });
+      p.classList.add("lyrics");
 
-        appendChild(".content", element);
+      _.each(lyricsToWrite, (obj, index) => {
+        if (obj.new) {
+          appendChild(".content", p);
+
+          p = document.createElement("p");
+
+          p.classList.add("lyrics");
+        }
+
+        const span = document.createElement("span");
+
+        span.classList.add(`index-${index}`);
+        writeContent(obj, span);
+        p.appendChild(span);
+
+        if (!lyricsToWrite[index + 1]) appendChild(".content", p);
       });
       break;
     }
     case "LINE_SYNCED": {
-      _.each(lyricsToWrite, (obj) => {
+      _.each(lyricsToWrite, (obj, index) => {
         const element = document.createElement("p");
-        element.classList.add("lyrics", `index-${obj.index}`);
-        writeContent(obj.index, obj.text, element);
+
+        element.classList.add("lyrics", `index-${index}`);
+        writeContent(obj, element);
         appendChild(".content", element);
       });
       break;
@@ -116,63 +125,67 @@ const writeLyrics = async (callUpdate) => {
     case "NOT_SYNCED": {
       _.each(lyricsToWrite, (obj) => {
         const element = document.createElement("p");
+
         element.classList.add("lyrics", "highlight");
-        writeContent(1, obj.text, element);
+        writeContent(obj, element);
         appendChild(".content", element);
       });
       break;
     }
   }
 
-  if (lyrics.translated?.length) {
+  const element = document.createElement("p");
+
+  element.classList.add("source");
+  element.textContent = lyrics.source;
+  appendChild(".content", element);
+
+  if (lyrics.translated.length) {
     translateBtn.classList.remove("disabled");
+
     if (localStorage.getItem("translate") === "true") writeTranslates();
   }
 
-  if (callUpdate) update();
+  update();
 };
-const update = async () => {
+const update = () => {
   clearTimeouts();
 
   if (!spotify.name) {
-    return _.each($All(".lyrics"), (i) => i.remove());
+    $(".content").innerHTML = "";
+    return;
   }
+
   if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
 
-  clearHighlights();
+  if (playing) clearHighlights();
 
-  const now = (await spotify.progress()) / 1000;
-  const flatted = _.filter(
-    _.flattenDeep(lyrics.data),
-    (obj) => obj.text !== " "
-  );
-  const currIndex = await currentIndex();
-  const nextLyrics = _.filter(flatted, (obj) => obj.time > now);
+  const now = spotify.position / 1000;
+  const currIndex = currentIndex();
+  const nextLyrics = _.filter(lyrics.data, (obj) => obj.time > now);
   const currentLine = $(`.index-${currIndex}`);
 
-  if (!currentLine) return;
-
-  if (lyrics.type === "TEXT_SYNCED") {
-    const playedWords = _.chain(lyrics.data)
-      .find((arr) => _.some(arr, (obj) => obj.index === currIndex))
-      .filter((obj) => obj.index < currIndex)
-      .value();
-
-    _.each(playedWords, ({ index }) => {
-      const word = $(`.index-${index}`);
-      word?.classList.add("highlight");
-    });
-  }
-
   currentLine.classList.add("highlight");
+  
+  if (currIndex && lyrics.data[0].wait) $(".index-0")?.remove();
+  if (lyrics.type === "TEXT_SYNCED") {
+    const words = currentLine.parentElement.children;
+    const played = _.slice(words, 0, _.indexOf(words, currentLine));
+    const firstWord = lyrics.data[getElementIndex(words[0])];
+
+    _.forEach(played, (element) => element.classList.add("highlight"));
+
+    if (firstWord.end > now) currentLine.parentElement.classList.add("active");
+  }
   scrollIntoView(
     lyrics.type === "TEXT_SYNCED" ? currentLine.parentElement : currentLine,
     false
   );
 
   if (!playing) return;
-  if (!currIndex) {
-    const wait = flatted[1].time * 1000 - now * 1000 - 2000;
+
+  if (!currIndex && lyrics.data[0].wait) {
+    const wait = lyrics.data[1].time * 1000 - now * 1000 - 2000;
 
     _.each(["● ●", "●", false], (state, index) => {
       if (wait + index * 1000 > 0)
@@ -194,34 +207,37 @@ const update = async () => {
   }
 
   switch (lyrics.type) {
-    case "TEXT_SYNCED": {
-      currentLine.parentElement.classList.add("bold");
-
-      _.each(nextLyrics, (lyric) => {
-        timeouts.push(
-          setTimeout(() => {
-            if (lyric.newLine)
-              _.each($All("span"), (i) => i.classList.remove("highlight"));
-
-            const currentLine = $(`.index-${lyric.index}`);
-
-            _.each($All("p"), (i) => i.classList.remove("bold"));
-            currentLine.parentElement.classList.add("bold");
-            currentLine.classList.add("highlight");
-            if (lyric.newLine) scrollIntoView(currentLine.parentElement);
-          }, (lyric.time - now) * 1000)
-        );
-      });
-      break;
-    }
+    case "TEXT_SYNCED":
     case "LINE_SYNCED": {
-      _.each(nextLyrics, (lyric) => {
+      currentLine.parentElement.classList.add("active");
+
+      _.each(nextLyrics, (lyric, index) => {
+        index += currIndex + 1;
+
+        const newElement = lyric.new || lyrics.type === "LINE_SYNCED";
+
+        if (lyric.end)
+          timeouts.push(
+            setTimeout(
+              () =>
+                $All(".highlight").forEach((element) =>
+                  element.parentElement.classList.remove("active")
+                ),
+              (lyric.end - now) * 1000
+            )
+          );
+
         timeouts.push(
           setTimeout(() => {
-            const currentLine = $(`.index-${lyric.index}`);
-            clearHighlights();
+            if (newElement) clearHighlights();
+
+            const currentLine = $(`.index-${index}`);
+
+            _.each($All("p"), (i) => i.classList.remove("active"));
+            currentLine.parentElement.classList.add("active");
             currentLine.classList.add("highlight");
-            scrollIntoView(currentLine);
+
+            if (newElement) scrollIntoView(currentLine);
           }, (lyric.time - now) * 1000)
         );
       });
@@ -238,15 +254,17 @@ const handleData = async (data) => {
     spotify = {};
     playing = false;
 
+    document.title = "Lời bài hát";
     document.documentElement.style.setProperty("--progress-bar-width", "0%");
     $(".title").textContent = "Tên bài hát";
     $(".artists").textContent = "Tên nghệ sĩ";
 
-    if (!data.playing)
-      return setLyricsStatus(
-        navigator.onLine ? "Hiện không phát" : "Ngoại tuyến :("
-      );
+    return setLyricsStatus(
+      navigator.onLine ? "Một không gian tĩnh lặng :)" : "Ngoại tuyến :("
+    );
   }
+
+  document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
 
   if (data.type !== "track")
     switch (data.type) {
@@ -258,16 +276,12 @@ const handleData = async (data) => {
         return setLyricsStatus("(._.) Không rõ bạn đang phát gì");
     }
 
-  document.documentElement.style.setProperty(
-    "--progress-bar-width",
-    `${
-      (((await data.progress()) + Number(localStorage.getItem("count"))) /
-        data.duration) *
-      100
-    }%`
-  );
+  $(".progress-bar").style.width = `${
+    ((data.position + _.toNumber(localStorage.getItem("count"))) /
+      data.duration) *
+    100
+  }%`;
 
-  document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
   $(".title").innerHTML = data.innerHTMLname;
   $(".artists").innerHTML = data.innerHTMLartists;
 
@@ -277,22 +291,24 @@ const handleData = async (data) => {
     playing = data.playing;
 
     const translateBtn = $(".translate");
-    const options = new URLSearchParams({
-      name: data.name,
-      id: data.id,
-      album: data.album,
-      artist: data.artists,
-      duration: data.duration,
-    });
 
     changeColor(spotify);
     translateBtn.classList.add("disabled");
     setLyricsStatus("Đang tải...");
 
-    lyrics = await fetch(`/api/lyrics?${options}`)
-      .then((response) => response.json())
+    lyrics = await axios(`/api/lyrics`, {
+      params: {
+        name: data.name,
+        id: data.id,
+        album: data.album,
+        artist: data.artists,
+        duration: data.duration,
+      },
+    })
+      .then((response) => response.data)
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
-    return writeLyrics(true);
+
+    return writeLyrics();
   }
   spotify = data;
   playing = data.playing;
@@ -300,7 +316,7 @@ const handleData = async (data) => {
   if (
     spotify.name &&
     lyrics.type !== "NOT_SYNCED" &&
-    lyrics.data &&
+    lyrics.data?.[0].wait &&
     !currentIndex()
   )
     writeLyrics();

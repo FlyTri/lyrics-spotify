@@ -1,4 +1,5 @@
-import { createClient } from "redis";
+import { commandOptions, createClient } from "redis";
+import { compressSync, uncompressSync } from "snappy";
 
 export default class Redis {
   constructor() {
@@ -28,20 +29,23 @@ export default class Redis {
     if (!this.client.isReady) return;
 
     return this.client
-      .setEx(key, time, JSON.stringify(value))
+      .setEx(key, time, compressSync(JSON.stringify(value)))
       .catch(() => null);
   }
   async get(key) {
     if (!this.client.isReady) return;
 
-    return this.client
-      .get(key)
-      .then((f) => {
-        if (f) {
-          console.log(`get ${key} from `);
-          return JSON.parse(f);
-        }
-      })
+    const data = await this.client
+      .get(commandOptions({ returnBuffers: true }), key)
       .catch(() => null);
+
+    if (data) {
+      const uncompressed = JSON.parse(uncompressSync(data));
+
+      if (uncompressed.source)
+        return { ...uncompressed, source: `${uncompressed.source} (Cached)` };
+
+      return uncompressed;
+    }
   }
 }

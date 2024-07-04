@@ -1,12 +1,15 @@
 if (!localStorage.getItem("token")) window.location.href = "/login";
 
 window.document.addEventListener("DOMContentLoaded", async () => {
-  navigator.wakeLock?.request();
-  setTimeout(() => {
+  setTimeout(async () => {
     $(".loader-screen").remove();
 
-    if(window.Spotify) showMessage("Đã cài đặt tiện ích mở rộng")
+    await axios("http://127.0.0.1:8170/")
+      .then((response) => showMessage("Đã cài đặt Media Session Server"))
+      .catch(() => null);
   }, 500);
+
+  if (document.visibilityState === "visible") navigator.wakeLock?.request();
 
   const elements = {
     countDiv: $(".count"),
@@ -23,9 +26,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   const updateCountDiv = (count) => {
     elements.countDiv.textContent = `${count / 1000}s`;
   };
-  const toggleFullscreenIcons = (
-    isFullscreen = window.innerHeight === screen.height
-  ) => {
+  const toggleFullscreenIcons = (isFullscreen = document.fullscreenElement) => {
     $(".fullscreen-icon").hidden = isFullscreen;
     $(".compress-icon").hidden = !isFullscreen;
   };
@@ -38,7 +39,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   elements.themeBtn.addEventListener("click", changeColor);
 
   elements.fullscreenBtn.addEventListener("click", async () => {
-    if (window.innerHeight === screen.height) {
+    if (document.fullscreenElement) {
       await document.exitFullscreen();
     } else {
       await document.documentElement.requestFullscreen();
@@ -73,6 +74,24 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     update(true);
   });
 
+  // Seek to word/line
+  document
+    .querySelector(".content")
+    .addEventListener("click", async (event) => {
+      const index = getElementIndex(event.target);
+
+      if (index) {
+        const position = Number(index.replace("index-", ""));
+        const word = lyrics.data[position];
+
+        seekTo(word.time);
+        setTimeout(
+          () => getCurrentlyPlaying().then((data) => handleData(data)),
+          500
+        );
+      }
+    });
+
   // Logout
   elements.logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("token");
@@ -81,7 +100,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
 
   // Auto scroll and fullscreen handling
   document.addEventListener("visibilitychange", () => {
-    const element = $(".highlight");
+    const element = _.toArray(document.querySelectorAll(".highlight")).pop();
     if (document.visibilityState === "visible") {
       navigator.wakeLock?.request();
       if (element) scrollIntoView(element, false);
@@ -95,23 +114,11 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Main functionality
-  const handleDataWithUpdate = async(data) => {
-    handleData(data);
-    if (spotify.name) {
-      document.documentElement.style.setProperty(
-        "--progress-bar-width",
-        `${((await spotify.progress()) / spotify.duration) * 100}%`
-      );
-    } else {
-      document.documentElement.style.setProperty("--progress-bar-width", `0%`);
-    }
-  };
-
-  getCurrentlyPlaying().then(handleDataWithUpdate);
+  getCurrentlyPlaying().then(handleData);
   setInterval(async () => {
     if (!navigator.onLine) return;
     const data = await getCurrentlyPlaying();
-    if (data.timestamp !== spotify.timestamp) handleDataWithUpdate(data);
+    if (data.timestamp !== spotify.timestamp) handleData(data);
   }, 2500);
 
   window.addEventListener("online", () => {
@@ -123,14 +130,13 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     handleDataWithUpdate({ playing: false });
   });
 
-  setInterval(async() => {
+  setInterval(async () => {
     if (spotify.name) {
-      document.documentElement.style.setProperty(
-        "--progress-bar-width",
-        `${((await spotify.progress() + fromStorage) / spotify.duration) * 100}%`
-      );
+      $(".progress-bar").style.width = `${
+        ((spotify.position + fromStorage) / spotify.duration) * 100
+      }%`;
     } else {
-      document.documentElement.style.setProperty("--progress-bar-width", `0%`);
+      $(".progress-bar").style = null;
     }
   }, 500);
 });

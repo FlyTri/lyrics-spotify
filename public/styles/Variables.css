@@ -6,9 +6,7 @@
 
   --background-color: rgba(30, 30, 46);
   --progress-bar-color: #427e9d;
-  --highlight-color: var(--green);
-  --lyrics-color: #567456;
+  --highlight-color: 0, 255, 89;
+  --lyrics-color: #9399b2;
   --translated-color: #f5e0dc;
-
-  --progress-bar-width: 0;
 }

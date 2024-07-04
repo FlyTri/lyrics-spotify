@@ -41,31 +41,15 @@ const changeColor = () => {
     const colors = colorThief.getPalette(img);
     const validColors = _.filter(colors, isReadable);
 
-    console.log(
-      "COLORS",
-      "VALID",
-      "aqua",
-      _.map(
-        validColors,
-        (color) => `background: rgb(${color.join(", ")});`
-      ).join(" ")
-    );
-
     if (_.isEmpty(validColors)) return;
 
     const selectedColor = _.sample(validColors);
 
-    document.documentElement.style.setProperty("--lyrics-color", "#000");
-    document.documentElement.style.setProperty(
-      "--highlight-color",
-      "var(--text-color)"
-    );
-    document.documentElement.style.setProperty("--progress-bar-color", "#fff");
-    document.documentElement.style.setProperty(
-      "--background-color",
-      `rgb(${selectedColor.join(", ")})`
-    );
-    document.documentElement.style.setProperty(
+    setProperty("--lyrics-color", "rgb(0, 0, 0, 0.75)");
+    setProperty("--highlight-color", "255, 255, 255");
+    setProperty("--progress-bar-color", "#fff");
+    setProperty("--background-color", `rgb(${selectedColor.join(", ")})`);
+    setProperty(
       "--translated-color",
       `rgb(${_.map(selectedColor, (c) => c / 4).join(", ")})`
     );

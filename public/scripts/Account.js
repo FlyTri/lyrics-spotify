@@ -17,38 +17,38 @@ const getToken = async (authCode = false) => {
     requestBody.append("refresh_token", token.refresh_token);
   }
 
-  return fetch(`https://accounts.spotify.com/api/token`, {
-    method: "POST",
-    body: requestBody,
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: "Basic " + btoa(client_id + ":" + client_secret),
-    },
-  }).then(async (response) =>
-    response.json().then((data) => {
-      if (response.ok) {
-        data.expires_at = Date.now() + data.expires_in * 1000;
-        if (!authCode) data.refresh_token = requestBody.get("refresh_token");
-        delete data.expires_in;
-
-        localStorage.setItem("token", JSON.stringify(data));
-        token = data;
-
-        return true;
-      } else prompt(`Không thể lấy token. Lỗi:`, JSON.stringify(data));
+  return axios
+    .post(`https://accounts.spotify.com/api/token`, requestBody, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: "Basic " + btoa(client_id + ":" + client_secret),
+      },
     })
-  );
+    .then(async ({ data }) => {
+      data.expires_at = _.now() + data.expires_in * 1000;
+      if (!authCode) data.refresh_token = requestBody.get("refresh_token");
+      delete data.expires_in;
+
+      localStorage.setItem("token", JSON.stringify(data));
+      token = data;
+
+      return true;
+    })
+    .catch((error) =>
+      prompt(`Không thể lấy token. Lỗi:`, JSON.stringify(error.response.data))
+    );
 };
 const getCurrentlyPlaying = async () => {
-  if (Date.now() >= token.expires_at) await getToken();
+  if (_.now() >= token.expires_at) await getToken();
 
-  return fetch("https://api.spotify.com/v1/me/player/currently-playing", {
-    headers: { Authorization: `Bearer ${token.access_token}` },
-  })
+  return axios
+    .get("https://api.spotify.com/v1/me/player/currently-playing", {
+      headers: { Authorization: `Bearer ${token.access_token}` },
+    })
     .then(async (response) => {
       if (response.status === 204) return { playing: false };
 
-      const data = await response.json();
+      const { data } = response;
       const error = data.error;
 
       if (error) {
@@ -59,8 +59,21 @@ const getCurrentlyPlaying = async () => {
         return { playing: false };
       }
 
+      const mediaSession = await axios("http://127.0.0.1:8170/sessions")
+        .then((response) => response.data)
+        .catch(() => null);
+
+      const SpotifySession = mediaSession
+        ? _.find(
+            mediaSession.sessions,
+            (session) =>
+              session.source === "Spotify.exe" &&
+              session.title === data.item.name
+          )
+        : null;
+
       const item = data.item;
-      const date = Date.now();
+      const date = _.now();
       const defaultData = {
         playing: data.is_playing,
         timestamp: data.timestamp,
@@ -72,38 +85,40 @@ const getCurrentlyPlaying = async () => {
           _.map(item.artists, (artist) => artist.name),
           ", "
         );
-        const progress = async () => {
-          if (window.Spotify) {
-            const data = await window.Spotify.GetData();
-
-            if (data.title === item.name && data.artist === artists)
-              return (
-                data.position * 1000 + Number(localStorage.getItem("count"))
-              );
-          }
-
-          return (
-            data.progress_ms +
-            (data.is_playing ? Date.now() - date : 0) +
-            Number(localStorage.getItem("count"))
-          );
-        };
 
         return {
           ...defaultData,
           name: item.name,
           innerHTMLname: `<a href="https://open.spotify.com/track/${item.id}" target="_blank">${item.name}</a>`,
           artists,
-          innerHTMLartists: item.artists
+          innerHTMLartists: _.chain(item.artists)
             .map(
               ({ name, id }) =>
                 `<a href="https://open.spotify.com/artist/${id}" target="_blank">${name}</a>`
             )
             .join(", "),
-          image: item.album.images[0].url,
+          image: SpotifySession
+            ? SpotifySession.thumbnail
+            : item.album.images[0].url,
           album: item.album.name,
           id: item.id,
-          progress,
+          get position() {
+            if (SpotifySession)
+              return (
+                SpotifySession.timeline.position +
+                (data.is_playing
+                  ? Date.now() -
+                    SpotifySession.timeline.last_updated_time * 1000
+                  : 0) +
+                _.toNumber(localStorage.getItem("count"))
+              );
+
+            return (
+              data.progress_ms +
+              (data.is_playing ? _.now() - date : 0) +
+              _.toNumber(localStorage.getItem("count"))
+            );
+          },
           duration: item.duration_ms,
         };
       }
@@ -114,8 +129,9 @@ const getCurrentlyPlaying = async () => {
 
       return {
         playing: false,
-        timestamp: Date.now(),
+        timestamp: _.now(),
         type: "error",
       };
     });
 };
+const seekTo = (position) => {};

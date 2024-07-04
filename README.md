@@ -4,6 +4,10 @@
 
 ## Giới thiệu
 Xem lời bài hát ngay trên trình duyệt của bạn
+
+> [!IMPORTANT]
+> Nếu thời gian của lời bài hát không chính xác, cài đặt [Media Session Server](https://github.com/FlyTri/media-sessions-server)
+
 ## Client ID, Client Secret
 > [!WARNING]
 > Để tránh rủi ro bảo mật, bạn nên tạo app mới, không sử dụng các app đã tạo

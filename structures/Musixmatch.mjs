@@ -1,296 +1,189 @@
 import axios from "axios";
-import { isJapanese, toRomaji, tokenize } from "wanakana";
-import { pinyin } from "pinyin-pro";
-import aromanize from "aromanize";
+import fs from "fs";
+import _ from "lodash";
+import { NO_RESULT, INSTRUMENTAL, formatText } from "../utils.mjs";
+
+/**
+ * @typedef {Object} LyricsData
+ * @property {("TEXT_SYNCED" | "LINE_SYNCED" | "NOT_SYNCED" | "INSTRUMENTAL" | "NO_RESULT")} type
+ * @property {Array<{ index: number, time: number, text: string | undefined, space: boolean | undefined, new: boolean | undefined }>} data
+ * @property {Array<{ original: string, text: string }> | undefined} translated
+ * @property {string | undefined} source
+ */
+
+const { tokens } = JSON.parse(fs.readFileSync("MusixmatchTokens.json"));
+const instance = axios.create({
+  baseURL: "https://apic-desktop.musixmatch.com/ws/1.1",
+  headers: {
+    authority: "apic-desktop.musixmatch.com",
+    cookie: "x-mxm-token-guid=",
+  },
+  params: {
+    format: "json",
+    app_id: "web-desktop-app-v1.0",
+    subtitle_format: "mxm",
+  },
+});
+
+instance.interceptors.request.use(
+  (config) => {
+    config.params = {
+      ...config.params,
+      usertoken: _.sample(tokens),
+    };
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+instance.interceptors.response.use(
+  (response) => response.data,
+  (error) => Promise.resolve(null)
+);
 
 export default class Musixmatch {
   /**
-   *
-   * @param {import("./Redis.mjs").default} redis
-   */
-  constructor(redis) {
-    this.get = axios.create({
-      baseURL: "https://apic-desktop.musixmatch.com/ws/1.1",
-      headers: {
-        authority: "apic-desktop.musixmatch.com",
-        cookie: "x-mxm-token-guid=",
-      },
-    }).get;
-
-    this.redis = redis;
-    this.token = null;
-    this.#getNewAccessToken();
-  }
-  /**
-   *
-   * @returns {Promise<boolean>}
-   */
-  async #getNewAccessToken() {
-    return this.get("/token.get", {
-      params: {
-        app_id: "web-desktop-app-v1.0",
-      },
-    })
-      .then((response) => {
-        switch (response.data.message.header.status_code) {
-          case 200: {
-            console.log("Successfully refreshed Musixmatch token");
-            this.token = response.data.message.body.user_token;
-
-            return true;
-          }
-          case 401: {
-            console.log("Too many attempts on the server side");
-
-            return false;
-          }
-          default: {
-            console.log(
-              `Failed to refresh Musixmatch token with status code ${response.data.message.header.status_code}`
-            );
-
-            return false;
-          }
-        }
-      })
-      .catch(() => {
-        console.log("Failed to refresh Musixmatch token");
-
-        return false;
-      });
-  }
-  /**
-   *
-   * @param {string} text
-   * @returns {string}
-   */
-  #format(text) {
-    if (!text) return "";
-    if (/^\s+$/.test(text)) return " ";
-
-    const words = tokenize(text);
-    const Chinese = /\p{Script=Han}/u;
-    const Korean = /\p{Script=Hangul}/u;
-    const replacements = [
-      { from: "（", to: "(" },
-      { from: "）", to: ")" },
-      { from: "【", to: "[" },
-      { from: "】", to: "]" },
-      { from: "。", to: ". " },
-      { from: "；", to: "; " },
-      { from: "：", to: ": " },
-      { from: "？", to: "? " },
-      { from: "！", to: "! " },
-      { from: "、", to: ", " },
-      { from: "，", to: ", " },
-      { from: "‘", to: "'" },
-      { from: "’", to: "'" },
-      { from: "′", to: "'" },
-      { from: "＇", to: "'" },
-      { from: "“", to: '"' },
-      { from: "”", to: '"' },
-      { from: "〜", to: "~" },
-      { from: "·", to: "•" },
-      { from: "・", to: "•" },
-    ];
-
-    words.forEach((word, index) => {
-      if (Chinese.test(word)) word = pinyin(word);
-      else if (isJapanese(word)) word = toRomaji(word);
-      else if (Korean.test(word)) word = aromanize.romanize(word);
-
-      words[index] = word;
-    });
-
-    replacements.forEach((pair) => {
-      const regex = new RegExp(pair.from, "g");
-      text = text.replaceAll(regex, pair.to);
-    });
-
-    return words.join("");
-  }
-
-  /**
-   *
+   * @private
    * @param {import("axios").AxiosResponse} response
-   * @returns
+   * @returns {Promise<LyricsData | { message: string }>}
    */
-  async #handleAPIResponse(response) {
-    const { status_code, hint } = response.data.message.header;
+  async #handleAPIResponse(data) {
+    const { status_code, hint } = data.message.header;
 
-    if (status_code !== 200) {
+    if (status_code !== 200)
       return {
         message:
           hint === "captcha"
-            ? "Hiện có quá nhiều yêu cầu. Hãy thử lại sau"
-            : "Không thể tìm lời bài hát",
+            ? "Máy chủ mệt rồi 😭"
+            : "Không thể tìm lời bài hát :(",
       };
-    }
 
-    const body = response.data.message.body.macro_calls;
+    const body = data.message.body.macro_calls;
+    const { track } = body["matcher.track.get"].message.body;
+
+    if (!track) return NO_RESULT;
+
+    if (track.instrumental) return INSTRUMENTAL;
+
     const lyrics = body["track.lyrics.get"].message.body?.lyrics;
     const lyricsData = lyrics?.lyrics_body;
 
-    if (!lyricsData) return { message: "Không có kết quả" };
+    if (!lyricsData) return NO_RESULT;
 
-    const { track } = body["matcher.track.get"].message.body;
-    const translate = () =>
-      this.translate(track.track_id, lyrics.lyrics_language);
+    const richsync = body["track.richsync.get"].message.body?.richsync;
+    const richsyncData = richsync?.richsync_body;
+    const { subtitle_list } = body["track.subtitles.get"].message.body;
+    const translated = await this.translate(
+      track.track_id,
+      lyrics.lyrics_language
+    );
 
-    if (track.has_richsync) {
-      const data = await this.getTextSynced(track);
+    if (track.has_richsync && richsyncData) {
+      const data = _.chain(JSON.parse(richsyncData))
+        .flatMap((obj) =>
+          _.flatMap(obj.l, (data, i) => {
+            if (data.c !== " ") {
+              const formattedText = formatText(data.c);
+              const nextCharIsSpace = _.get(obj.l, [i + 1, "c"]) === " ";
 
-      if (data)
-        return {
-          type: "TEXT_SYNCED",
-          data,
-          translated: await translate(),
-        };
+              return {
+                time: obj.ts + data.o,
+                end: i === 0 ? obj.te : undefined,
+                text: formattedText + (nextCharIsSpace ? " " : ""),
+                new: i === 0 ? true : undefined,
+              };
+            }
+          })
+        )
+        .filter(_.isObject)
+        .value();
+
+      if (data[0].time) data.unshift({ time: 0 });
+
+      return {
+        type: "TEXT_SYNCED",
+        data,
+        translated,
+        source: "Cung cấp bởi Musixmatch",
+      };
     }
 
-    const { subtitle_list } = body["track.subtitles.get"].message.body;
-
     if (track.has_subtitles && subtitle_list) {
-      const data = JSON.parse(subtitle_list[0].subtitle.subtitle_body).map(
-        ({ text, time }, i) => ({
-          text: this.#format(text),
-          index: i + 1,
+      const data = _.map(
+        JSON.parse(subtitle_list[0].subtitle.subtitle_body),
+        ({ text, time }) => ({
+          text: formatText(text),
           time: time.total,
         })
       );
-      if (data[0].time) data.unshift({ index: 0, time: 0 });
+
+      if (data[0].time) data.unshift({ time: 0 });
 
       return {
         type: "LINE_SYNCED",
         data,
-        translated: await translate(),
+        translated,
+        source: "Cung cấp bởi Musixmatch",
       };
     }
 
     return {
       type: "NOT_SYNCED",
-      data: lyricsData
-        .split("\n")
-        .map((text) => ({ text: this.#format(text) || "" })),
-      translated: await translate(),
+      data: _.map(_.split(lyricsData, "\n"), (text) => ({
+        text: formatText(text) || "",
+      })),
+      translated,
+      source: "Cung cấp bởi Musixmatch",
     };
   }
+
   /**
-   *
    * @param {string} name
    * @param {string} album
    * @param {string} artist
    * @param {string} id
    * @param {number} duration
-   * @returns {Promise<string|object>}
+   * @returns {Promise<LyricsData | { message: string }>}
    */
   async getLyrics(name, album, artist, id, duration) {
-    if (!this.token) await this.#getNewAccessToken();
-    if (!this.token) return { message: "Chưa thể tìm lời bài hát vào lúc này" };
-
-    let data;
-
-    const call = () =>
-      this.get("/macro.subtitles.get", {
-        params: {
-          format: "json",
-          namespace: "lyrics_richsynched",
-          app_id: "web-desktop-app-v1.0",
-          subtitle_format: "mxm",
-          q_album: album,
-          q_artist: artist.split(";")[0],
-          q_artists: artist.split(";")[0],
-          q_track: name,
-          track_spotify_id: "spotify:track:" + id,
-          q_duration: Math.round(duration / 1000),
-          f_subtitle_length: Math.round(duration / 1000),
-          usertoken: this.token,
-        },
-      });
-
-    await call().then(async (response) => {
-      if (response.data.message.header.status_code === 401) {
-        await this.#getNewAccessToken();
-
-        const newResponse = await call();
-
-        data = await this.#handleAPIResponse(newResponse);
-      } else {
-        data = await this.#handleAPIResponse(response);
-      }
-    });
-    // .catch(() => {
-    //   data = { message: "Không thể tìm lời bài hát" };
-    // });
-
-    return data;
-  }
-  /**
-   *
-   * @param {object} param0 Track object
-   * @returns
-   */
-  async getTextSynced({ commontrack_id, track_length }) {
-    const textSynced = await this.get("/track.richsync.get", {
+    const data = await instance("/macro.subtitles.get", {
       params: {
-        format: "json",
-        app_id: "web-desktop-app-v1.0",
-        subtitle_format: "mxm",
-        f_subtitle_length: track_length,
-        q_duration: track_length,
-        commontrack_id,
-        usertoken: this.token,
+        q_album: album,
+        q_artist: _.head(artist.split(";")),
+        q_artists: _.head(artist.split(";")),
+        q_track: name,
+        track_spotify_id: "spotify:track:" + id,
+        q_duration: Math.round(duration / 1000),
+        f_subtitle_length: Math.round(duration / 1000),
+        namespace: "lyrics_richsynched",
+        optional_calls: "track.richsync",
       },
-    })
-      .then((response) =>
-        JSON.parse(response.data.message.body.richsync.richsync_body)
-      )
-      .catch(() => null);
+    });
 
-    if (!textSynced) return null;
+    if (data) {
+      const lyricsData = await this.#handleAPIResponse(data);
 
-    let count = 0;
-    const data = textSynced.map((obj) =>
-      obj.l.map((data, i) =>
-        JSON.parse(
-          JSON.stringify({
-            text: this.#format(data.c),
-            time: obj.ts + data.o,
-            index: count++ + 1,
-            newLine: i === 0 ? true : undefined,
-          })
-        )
-      )
-    );
-    if (data[0][0].time) data.unshift([{ index: 0, time: 0 }]);
+      return lyricsData;
+    }
 
-    return data;
+    return { message: "Không thể tìm lời bài hát" };
   }
   /**
-   *
    * @param {number} id Musixmatch track id
    * @param {string} language
-   * @returns
+   * @returns {Promise<Array<{ original: string, text: string }> | null>}
    */
   async translate(id, language) {
-    return this.get("/crowd.track.translations.get", {
+    const data = await instance("/crowd.track.translations.get", {
       params: {
         selected_language: language === "vi" ? "en" : "vi",
         comment_format: "text",
-        format: "json",
-        app_id: "web-desktop-app-v1.0",
         track_id: id,
-        usertoken: this.token,
       },
-    })
-      .then((response) =>
-        response.data.message.body.translations_list?.map(
-          ({ translation }) => ({
-            original: translation.matched_line,
-            text: translation.description,
-          })
-        )
-      )
-      .catch(() => null);
+    });
+
+    return _.map(data.message.body.translations_list, ({ translation }) => ({
+      original: translation.matched_line,
+      text: translation.description,
+    }));
   }
 }

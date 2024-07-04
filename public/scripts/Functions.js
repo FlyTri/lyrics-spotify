@@ -1,25 +1,24 @@
 let timeout = null;
 
 /**
- *
  * @param {string} query
  * @returns {Element | null}
  */
 const $ = (query) => document.querySelector(query);
 /**
- * 
- * @param {string} query 
+ * @param {string} query
  * @returns {NodeList}
  */
 const $All = (query) => document.querySelectorAll(query);
 
 /**
- *
  * @param {Element} element
  * @param {boolean} check
  * @returns
  */
 const scrollIntoView = (element, check = true) => {
+  if (element.classList.contains("highlight") && lyrics.type === "NOT_SYNCED")
+    return;
   if (!check)
     return element.scrollIntoView({ behavior: "smooth", block: "center" });
 
@@ -48,3 +47,17 @@ const showMessage = (msg) => {
     popup.classList.remove("animatePopup");
   }, 2500);
 };
+
+const getElementIndex = (element) => {
+  if (element) {
+    const index = _.toArray(element.classList).find((name) => name.startsWith("index"));
+
+    return index ? Number(index.replace("index-", "")) : null;
+  }
+};
+
+const getProperty = (value) =>
+  getComputedStyle(document.documentElement).getPropertyValue(value);
+
+const setProperty = (...options) =>
+  document.documentElement.style.setProperty(...options);

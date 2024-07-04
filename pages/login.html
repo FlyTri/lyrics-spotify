@@ -1,12 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi-VN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login Form</title>
+    <title>Đăng nhập</title>
+
     <link rel="stylesheet" href="styles/Variables.css" />
     <link rel="stylesheet" href="styles/Main.css" />
 
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"
+      integrity="sha512-JSCFHhKDilTRRXe9ak/FJ28dcpOJxzQaCd3Xg8MyF6XFjODhy/YMCM8HW0TFDckNHWUewW+kfvhin43hKtJxAw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
     <script src="scripts/Functions.js"></script>
 
     <style>
@@ -71,7 +78,7 @@
         font-size: 12px;
         margin-bottom: 5px;
         color: #b5bac1;
-        font-weight: bold;
+        font-weight: active;
       }
 
       input {
@@ -134,19 +141,22 @@
       let savedSecret = localStorage.getItem("client_secret") || "";
 
       const check = (clientId, clientSecret) =>
-        fetch(
-          "https://accounts.spotify.com/api/token?grant_type=client_credentials",
-          {
-            method: "POST",
-            headers: {
-              Authorization: "Basic " + btoa(clientId + ":" + clientSecret),
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            signal: controller.signal,
-          }
-        ).then((response) => {
-          if (response.status === 200) return true;
-        });
+        axios
+          .post(
+            "https://accounts.spotify.com/api/token?grant_type=client_credentials",
+            {},
+            {
+              headers: {
+                Authorization: "Basic " + btoa(clientId + ":" + clientSecret),
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              signal: controller.signal,
+            }
+          )
+          .then((response) => {
+            if (response.status === 200) return true;
+          })
+          .catch(() => false);
       const checkInput = async () => {
         if (controller) controller.abort();
 
