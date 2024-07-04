@@ -211,3 +211,13 @@ span.highlight {
 .count {
   font-size: 20px;
 }
+
+@media screen and (max-width: 600px) {
+  .content {
+    font-size: 30px;
+  }
+
+  .content p {
+    text-align: left;
+  }
+}
