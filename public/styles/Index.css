@@ -13,10 +13,6 @@ p.translated {
   text-shadow: 0 0 15px rgba(var(--highlight-color), 0.8);
 }
 
-.active > .highlight {
-  transition: text-shadow 0.3s;
-}
-
 p.highlight,
 p.status {
   color: rgb(var(--highlight-color), 0.75) !important;
@@ -28,6 +24,7 @@ span.highlight {
 
 .source {
   color: var(--text-color);
+  text-align: center !important;
 }
 
 .loader-screen {
