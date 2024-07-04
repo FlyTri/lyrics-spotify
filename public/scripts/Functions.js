@@ -17,8 +17,15 @@ const $All = (query) => document.querySelectorAll(query);
  * @returns
  */
 const scrollIntoView = (element, check = true) => {
-  if (element.classList.contains("highlight") && lyrics.type === "NOT_SYNCED")
-    return;
+  if (element.classList.contains("highlight"))
+    switch (lyrics.type) {
+      case "TEXT_SYNCED":
+        element = element.parentElement;
+        break;
+      case "NOT_SYNCED":
+        return;
+    }
+
   if (!check)
     return element.scrollIntoView({ behavior: "smooth", block: "center" });
 
@@ -50,7 +57,9 @@ const showMessage = (msg) => {
 
 const getElementIndex = (element) => {
   if (element) {
-    const index = _.toArray(element.classList).find((name) => name.startsWith("index"));
+    const index = _.toArray(element.classList).find((name) =>
+      name.startsWith("index")
+    );
 
     return index ? Number(index.replace("index-", "")) : null;
   }

@@ -44,9 +44,11 @@ export default class QQMusic {
 
     if (!songs.length) return;
 
-    const { id } = songs.find((song) => song.title === name) || songs[0];
+    const song = songs.find(
+      (song) => _.upperCase(song.title) === _.upperCase(name)
+    );
 
-    return id;
+    return song?.id;
   }
   async getLyrics(name, artist) {
     const songID = await this.#getID(name, artist);
@@ -100,9 +102,17 @@ export default class QQMusic {
       };
     } else {
       const decrypted = Buffer.from(lyric, "base64").toString();
-      // TODO:
-      console.log(decrypted);
-      return NO_RESULT;
+      const splitted = decrypted.split("\n");
+      console.log(splitted);
+      if (!splitted[0].startsWith("["))
+        return {
+          type: "NOT_SYNCED",
+          data: _.map(splitted, (text) => ({
+            text: formatText(text) || "",
+          })),
+          translated: [],
+          source: "Cung cấp bởi QQ Music",
+        };
     }
   }
   parseSynced(decrypted) {
