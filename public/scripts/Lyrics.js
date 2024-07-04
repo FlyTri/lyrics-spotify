@@ -25,6 +25,7 @@ const setLyricsStatus = (text) => {
 
   element.classList.add("lyrics", "status");
   element.textContent = text;
+  element.style.textAlign = "center";
   $(".content").appendChild(element);
 };
 const writeContent = async (obj, element) => {
@@ -166,7 +167,7 @@ const update = () => {
   const currentLine = $(`.index-${currIndex}`);
 
   currentLine.classList.add("highlight");
-  
+
   if (currIndex && lyrics.data[0].wait) $(".index-0")?.remove();
   if (lyrics.type === "TEXT_SYNCED") {
     const words = currentLine.parentElement.children;
