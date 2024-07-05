@@ -36,8 +36,11 @@ body {
 }
 
 img {
-  width: 1em;
-  height: 1em;
+  margin-left: auto;
+  margin-right: auto;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
 }
 
 a {
@@ -91,4 +94,21 @@ a:active {
 
 [hidden] {
   display: none !important;
+}
+
+.clicked {
+  animation: pop 0.3s;
+}
+
+@keyframes pop {
+  60% {
+    transform: scale(0.9);
+    background-color: var(--button-dim);
+  }
+  80% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

@@ -5,7 +5,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     $(".loader-screen").remove();
 
     await axios("http://127.0.0.1:8170/")
-      .then((response) => showMessage("Đã cài đặt Media Session Server"))
+      .then(() => showMessage("Đã cài đặt Media Session Server"))
       .catch(() => null);
   }, 500);
 
@@ -103,13 +103,13 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     const element = _.toArray(document.querySelectorAll(".highlight")).pop();
     if (document.visibilityState === "visible") {
       navigator.wakeLock?.request();
-      if (element) scrollIntoView(element, false);
+      if (element) scrollTo(element, false);
     }
   });
 
   window.addEventListener("resize", () => {
     const element = $(".highlight");
-    if (element) scrollIntoView(element, false);
+    if (element) scrollTo(element, false);
     toggleFullscreenIcons();
   });
 

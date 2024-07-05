@@ -69,11 +69,9 @@ export default class QQMusic {
 
     if (!data) return;
 
-    const music = data["music.musichallSong.PlayLyricInfo.GetPlayLyricInfo"];
-
-    if (!music) return;
-
-    const { qrc, lyric } = music.data;
+    const LyricInfo =
+      data["music.musichallSong.PlayLyricInfo.GetPlayLyricInfo"]?.data;
+    const { qrc, lyric } = LyricInfo || {};
 
     if (!lyric) return;
 
@@ -91,7 +89,7 @@ export default class QQMusic {
       return INSTRUMENTAL;
 
     if (qrc) {
-      const parsed = this.parseSynced(decrypted);
+      const parsed = this.parseSynced(decrypted, { name, artist });
 
       return {
         type: "TEXT_SYNCED",
@@ -102,7 +100,7 @@ export default class QQMusic {
     } else {
       const decrypted = Buffer.from(lyric, "base64").toString();
       const splitted = decrypted.split("\n");
-      console.log(splitted);
+
       if (!splitted[0].startsWith("["))
         return {
           type: "NOT_SYNCED",
@@ -114,7 +112,7 @@ export default class QQMusic {
         };
     }
   }
-  parseSynced(decrypted) {
+  parseSynced(decrypted, { name, artist }) {
     const lyric = /LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1].trim();
     const tag = {};
     let checkHeader = true;
@@ -127,7 +125,10 @@ export default class QQMusic {
 
           const words = _.toArray(content.matchAll(/(.*?)\((\d*),(\d*)\)/g));
 
-          if (checkHeader && this.#isHeader(tag, _.map(words, 1).join("")))
+          if (
+            checkHeader &&
+            this.#isHeader(tag, _.map(words, 1).join(""), { name, artist })
+          )
             return;
 
           checkHeader = false;
@@ -173,16 +174,19 @@ export default class QQMusic {
    * @param {string} content
    * @returns
    */
-  #isHeader({ ti, ar }, content) {
+  #isHeader({ ti, ar }, content, { name, artist }) {
     const infoRegex = /^.*:/;
-
-    ti = _.upperCase(ti);
-    ar = _.upperCase(ar);
-    content = _.upperCase(content);
+    ti = ti.toUpperCase();
+    ar = ar.toUpperCase();
+    content = _.replace(content, (/\(\d+,\d+\)/g, "")).toUpperCase();
+    name = name.toUpperCase();
+    artist = artist.toUpperCase();
 
     return (
       content.startsWith(ti + " - ") ||
       (content.startsWith(ti) && content.includes(ar)) ||
+      content.startsWith(name + " - ") ||
+      (content.startsWith(name) && content.includes(artist)) ||
       infoRegex.test(replaceSpecialCharacters(content))
     );
   }

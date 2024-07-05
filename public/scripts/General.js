@@ -16,7 +16,8 @@ const $All = (query) => document.querySelectorAll(query);
  * @param {boolean} check
  * @returns
  */
-const scrollIntoView = (element, check = true) => {
+const scrollTo = (element, check = true) => {
+  console.log("cakled");
   if (element.classList.contains("highlight"))
     switch (lyrics.type) {
       case "TEXT_SYNCED":
@@ -27,13 +28,13 @@ const scrollIntoView = (element, check = true) => {
     }
 
   if (!check)
-    return element.scrollIntoView({ behavior: "smooth", block: "center" });
+    return scrollIntoView(element, { time: 500, maxSynchronousAlignments: 1 });
 
   const { clientHeight } = document.body;
   const elementRectBottom = element.getBoundingClientRect().bottom;
 
   if (elementRectBottom >= -50 && elementRectBottom <= clientHeight)
-    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    scrollIntoView(element, { time: 500, maxSynchronousAlignments: 1 });
 };
 
 const appendChild = (query, element) =>
@@ -70,3 +71,14 @@ const getProperty = (value) =>
 
 const setProperty = (...options) =>
   document.documentElement.style.setProperty(...options);
+
+document.addEventListener("DOMContentLoaded", () => {
+  const buttons = $All('[class*="button"], button');
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => button.classList.add("clicked"));
+    button.addEventListener("animationend", () =>
+      button.classList.remove("clicked")
+    );
+  });
+});

@@ -165,6 +165,7 @@ span.highlight {
   background-color: var(--background-color);
   padding-top: 13px;
   padding-bottom: 10px;
+  user-select: none;
   z-index: 2;
 }
 
@@ -193,10 +194,6 @@ span.highlight {
   margin: 0 7px 0 7px;
 }
 
-.control-button:active {
-  background-color: var(--button-hover);
-}
-
 .disabled {
   pointer-events: none;
   opacity: 0.5;
@@ -214,9 +211,5 @@ span.highlight {
 @media screen and (max-width: 600px) {
   .content {
     font-size: 30px;
-  }
-
-  .content p {
-    text-align: left;
   }
 }

@@ -25,7 +25,6 @@ const setLyricsStatus = (text) => {
 
   element.classList.add("lyrics", "status");
   element.textContent = text;
-  element.style.textAlign = "center";
   $(".content").appendChild(element);
 };
 const writeContent = async (obj, element) => {
@@ -178,7 +177,7 @@ const update = () => {
 
     if (firstWord.end > now) currentLine.parentElement.classList.add("active");
   }
-  scrollIntoView(
+  scrollTo(
     lyrics.type === "TEXT_SYNCED" ? currentLine.parentElement : currentLine,
     false
   );
@@ -238,7 +237,7 @@ const update = () => {
             currentLine.parentElement.classList.add("active");
             currentLine.classList.add("highlight");
 
-            if (newElement) scrollIntoView(currentLine);
+            if (newElement) scrollTo(currentLine);
           }, (lyric.time - now) * 1000)
         );
       });
