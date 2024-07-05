@@ -1,7 +1,7 @@
 import axios from "axios";
 import fs from "fs";
 import _ from "lodash";
-import { NO_RESULT, INSTRUMENTAL, formatText } from "../utils.mjs";
+import { INSTRUMENTAL, formatText } from "../utils.mjs";
 
 /**
  * @typedef {Object} LyricsData
@@ -60,14 +60,14 @@ export default class Musixmatch {
     const body = data.message.body.macro_calls;
     const { track } = body["matcher.track.get"].message.body;
 
-    if (!track) return NO_RESULT;
+    if (!track) return;
 
     if (track.instrumental) return INSTRUMENTAL;
 
     const lyrics = body["track.lyrics.get"].message.body?.lyrics;
     const lyricsData = lyrics?.lyrics_body;
 
-    if (!lyricsData) return NO_RESULT;
+    if (!lyricsData) return;
 
     const richsync = body["track.richsync.get"].message.body?.richsync;
     const richsyncData = richsync?.richsync_body;
@@ -137,14 +137,11 @@ export default class Musixmatch {
   }
 
   /**
-   * @param {string} name
-   * @param {string} album
-   * @param {string} artist
-   * @param {string} id
-   * @param {number} duration
+   *
+   * @param {{name: string, album: string, artist: string, id: string, duration: number}} param0
    * @returns {Promise<LyricsData | { message: string }>}
    */
-  async getLyrics(name, album, artist, id, duration) {
+  async getLyrics({ name, album, artist, id, duration }) {
     const data = await instance("/macro.subtitles.get", {
       params: {
         q_album: album,

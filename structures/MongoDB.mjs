@@ -27,17 +27,23 @@ export default class MongoDB {
   }
   /**
    *
-   * @param {string} id
+   * @param {object} options
+   * @param {{musixmatch: import("./Musixmatch.mjs").default}} param1
+   * @returns
    */
-  async getLyrics(id) {
+  async getLyrics(options, sources) {
     if (!this.client.topology) return;
 
-    const data = await this.collection.findOne({ id }).catch(() => null);
+    const data = await this.collection
+      .findOne({ id: options.id })
+      .catch(() => null);
 
-    if (data)
-      return {
-        ...data.lyrics,
-        source: "Cung cấp bởi kho lưu trữ của Lyrics Spotify",
-      };
+    if (!data) return;
+    if (data.provider) return await sources[data.provider].getLyrics(options);
+
+    return {
+      ...data.lyrics,
+      source: "Cung cấp bởi kho lưu trữ của Lyrics Spotify",
+    };
   }
 }

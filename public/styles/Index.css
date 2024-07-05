@@ -3,7 +3,7 @@ body {
 }
 
 p.translated {
-  font-family: "SpotifyMix", arial;
+  font-family: "SpotifyMix", system-ui;
   font-size: 18px;
   color: var(--translated-color);
   transition: none;
@@ -20,11 +20,6 @@ p.status {
 
 span.highlight {
   color: rgb(var(--highlight-color), 0.75) !important;
-}
-
-.source {
-  color: var(--text-color);
-  text-align: center !important;
 }
 
 .loader-screen {
@@ -81,7 +76,7 @@ span.highlight {
 
 .title {
   font-size: 15px;
-  font-family: "SpotifyMix-Bold", arial;
+  font-family: "SpotifyMix-Bold", system-ui;
   white-space: nowrap;
   overflow: hidden;
   margin: 12px 30px 0 30px;
@@ -106,7 +101,7 @@ span.highlight {
 
 .content {
   height: 100%;
-  font-family: "SpotifyMix-Bold", arial;
+  font-family: "SpotifyMix-Bold", system-ui;
   font-size: 32px;
   color: var(--lyrics-color);
   margin: 0 0 0 10px;
@@ -155,9 +150,11 @@ span.highlight {
 }
 
 .source {
-  font-family: "SpotifyMix", arial;
+  font-family: "SpotifyMix", system-ui;
+  color: var(--text-color);
   font-size: 17px;
   margin: 80px 0 10px 0 !important;
+  text-align: center !important;
 }
 
 .bottom-container {

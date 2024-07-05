@@ -43,15 +43,18 @@ app
     let lyrics;
 
     if (!cached) {
-      if (!lyrics) lyrics = await mongodb.getLyrics(id);
+      if (!lyrics) lyrics = await mongodb.getLyrics(req.query, { musixmatch });
 
-      if (!lyrics) lyrics = await qq.getLyrics(name, artist);
-      if (lyrics === NO_RESULT)
-        lyrics = await musixmatch.getLyrics(name, album, artist, id, duration);
+      if (!lyrics)
+        lyrics =
+          (await qq.getLyrics(req.query)) ||
+          (await musixmatch.getLyrics(req.query));
 
       if (lyrics) redis.set(id, lyrics);
     }
 
-    res.setHeader("Content-Type", "application/json").send(cached || lyrics);
+    res
+      .setHeader("Content-Type", "application/json")
+      .send(cached || lyrics || NO_RESULT);
   })
   .listen(PORT, () => console.log(`Listening on port ${PORT}`));

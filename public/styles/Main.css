@@ -21,7 +21,7 @@ html {
 }
 
 body {
-  font-family: "SpotifyMix", arial;
+  font-family: "SpotifyMix", system-ui;
   -webkit-font-smoothing: antialiased;
   background-color: var(--background-color);
   color: var(--text-color);
@@ -56,7 +56,7 @@ a:active {
 
 .popup-msg {
   display: none;
-  font-family: "SpotifyMix", arial;
+  font-family: "SpotifyMix", system-ui;
   font-size: 16px;
   color: #181825;
   background-color: #cdd6f4;

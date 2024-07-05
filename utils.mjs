@@ -32,9 +32,9 @@ export function formatText(text) {
 
   return _.chain(words)
     .map((word) => {
-      if (Chinese.test(word)) return pinyin(word);
-      if (isJapanese(word)) return toRomaji(word);
-      if (Korean.test(word)) return aromanize.romanize(word);
+      if (isJapanese(word)) word = toRomaji(word);
+      if (Chinese.test(word)) word = pinyin(word);
+      if (Korean.test(word)) word = aromanize.romanize(word);
       return word;
     })
     .join("")

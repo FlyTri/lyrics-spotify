@@ -1,6 +1,5 @@
 import axios from "axios";
 import {
-  NO_RESULT,
   INSTRUMENTAL,
   DJ,
   formatText,
@@ -50,10 +49,10 @@ export default class QQMusic {
 
     return song?.id;
   }
-  async getLyrics(name, artist) {
+  async getLyrics({ name, artist }) {
     const songID = await this.#getID(name, artist);
 
-    if (!songID) return NO_RESULT;
+    if (!songID) return;
 
     const data = await instance.post("https://u.y.qq.com/cgi-bin/musicu.fcg", {
       "music.musichallSong.PlayLyricInfo.GetPlayLyricInfo": {
@@ -68,15 +67,15 @@ export default class QQMusic {
       },
     });
 
-    if (!data) return NO_RESULT;
+    if (!data) return;
 
     const music = data["music.musichallSong.PlayLyricInfo.GetPlayLyricInfo"];
 
-    if (!music) return NO_RESULT;
+    if (!music) return;
 
     const { qrc, lyric } = music.data;
 
-    if (!lyric) return NO_RESULT;
+    if (!lyric) return;
 
     const decrypted = qrc
       ? QRC.decrypt(Buffer.from(lyric, "hex"))
@@ -176,6 +175,10 @@ export default class QQMusic {
    */
   #isHeader({ ti, ar }, content) {
     const infoRegex = /^.*:/;
+
+    ti = _.upperCase(ti);
+    ar = _.upperCase(ar);
+    content = _.upperCase(content);
 
     return (
       content.startsWith(ti + " - ") ||
