@@ -1,12 +1,7 @@
 import axios from "axios";
-import {
-  INSTRUMENTAL,
-  DJ,
-  formatText,
-  replaceSpecialCharacters,
-} from "../utils.mjs";
-import { qrc as QRC } from "smart-lyric";
 import _ from "lodash";
+import { INSTRUMENTAL, DJ, formatText, omitUndefined } from "../utils.mjs";
+import { qrc as QRC } from "smart-lyric";
 
 const instance = axios.create({
   baseURL: "https://u.y.qq.com/cgi-bin",
@@ -44,7 +39,7 @@ export default class QQMusic {
     if (!songs.length) return;
 
     const song = songs.find(
-      (song) => _.upperCase(song.title) === _.upperCase(name)
+      (song) => song.title.toUpperCase() === name.toUpperCase()
     );
 
     return song?.id;
@@ -104,7 +99,7 @@ export default class QQMusic {
       if (!splitted[0].startsWith("["))
         return {
           type: "NOT_SYNCED",
-          data: _.map(splitted, (text) => ({
+          data: splitted.map((text) => ({
             text: formatText(text) || "",
           })),
           translated: [],
@@ -114,80 +109,53 @@ export default class QQMusic {
   }
   parseSynced(decrypted, { name, artist }) {
     const lyric = /LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1].trim();
+    const splitted = lyric.split(/\r?\n/);
     const tag = {};
+    let data = [];
+    let first = true;
     let checkHeader = true;
-    const data = _.chain(lyric)
-      .split(/\r?\n/)
-      .flatMap((line) => {
-        if (/^\[\s*(\d+)\s*,\s*(\d+)\s*\](.*)$/.test(line)) {
-          const [timetag] = line.match(/\[(\d*),(\d*)\]/);
-          const content = line.replace(timetag, "");
 
-          const words = _.toArray(content.matchAll(/(.*?)\((\d*),(\d*)\)/g));
+    splitted.forEach((line) => {
+      if (/^\[\s*(\d+)\s*,\s*(\d+)\s*\](.*)$/.test(line)) {
+        const [timetag] = line.match(/\[(\d*),(\d*)\]/);
+        const content = line.replace(timetag, "");
 
-          if (
-            checkHeader &&
-            this.#isHeader(tag, _.map(words, 1).join(""), { name, artist })
-          )
-            return;
+        if (checkHeader) {
+          if (first) return (first = false);
+          if (content.includes(":") || content.includes("：")) return;
 
-          checkHeader = false;
-
-          const [, , lws, lwd] = _.last(words);
-
-          return _.flatMap(words, ([, text, ws], i) => {
-            if ((!text && i) || text === " ") return;
-            const nextCharIsSpace = _.get(words, [i + 1, 1]) === " ";
-
-            return _.omitBy(
-              {
-                text: formatText(text) + (nextCharIsSpace ? " " : ""),
-                time: _.toNumber(ws) / 1000,
-                new: i === 0 || undefined,
-                end:
-                  i === 0
-                    ? (_.toNumber(lws) + _.toNumber(lwd)) / 1000
-                    : undefined,
-              },
-              _.isNil
-            );
-          });
-        } else {
-          const matches = line.match(/^\[([a-zA-Z#]\w*):(.*)\]$/);
-
-          if (matches) {
-            const [key, value] = [matches[1], matches[2]];
-
-            tag[key] = value.trim();
-          }
+            checkHeader = false;
         }
-      })
-      .filter(_.isObject)
-      .value();
+
+        const words = [...content.matchAll(/(.*?)\((\d*),(\d*)\)/g)];
+        const [, , lws, lwd] = words[words.length - 1];
+
+        words.forEach(([, text, ws], i) => {
+          if ((!text && i) || text === " ") return;
+          const nextCharIsSpace = words[i + 1]?.[1] === " ";
+
+          data.push(
+            omitUndefined({
+              text: formatText(text) + (nextCharIsSpace ? " " : ""),
+              time: +ws / 1000,
+              new: i === 0 || undefined,
+              end: i === 0 ? (+lws + +lwd) / 1000 : undefined,
+            })
+          );
+        });
+      } else {
+        const matches = line.match(/^\[([a-zA-Z#]\w*):(.*)\]$/);
+
+        if (matches) {
+          const [key, value] = [matches[1], matches[2]];
+
+          tag[key] = value.trim();
+        }
+      }
+    });
 
     if (data[0].time) data.unshift({ time: 0, wait: true });
+    console.log(tag);
     return { lyrics: data, tag };
-  }
-  /**
-   *
-   * @param {object} param0
-   * @param {string} content
-   * @returns
-   */
-  #isHeader({ ti, ar }, content, { name, artist }) {
-    const infoRegex = /^.*:/;
-    ti = ti.toUpperCase();
-    ar = ar.toUpperCase();
-    content = _.replace(content, (/\(\d+,\d+\)/g, "")).toUpperCase();
-    name = name.toUpperCase();
-    artist = artist.toUpperCase();
-
-    return (
-      content.startsWith(ti + " - ") ||
-      (content.startsWith(ti) && content.includes(ar)) ||
-      content.startsWith(name + " - ") ||
-      (content.startsWith(name) && content.includes(artist)) ||
-      infoRegex.test(replaceSpecialCharacters(content))
-    );
   }
 }

@@ -1,4 +1,3 @@
-import _ from "lodash";
 import { isJapanese, toRomaji, tokenize } from "wanakana";
 import { pinyin } from "pinyin-pro";
 import aromanize from "aromanize";
@@ -16,32 +15,13 @@ export const DJ = {
 };
 
 /**
- *
- * @param {string} text
- * @returns {string}
+ *@param {string} text
+ @returns {string}
  */
 export function formatText(text) {
   if (!text) return "";
   if (/^\s+$/.test(text)) return " ";
 
-  text = replaceSpecialCharacters(text);
-
-  const words = tokenize(text);
-  const Chinese = /\p{Script=Han}/u;
-  const Korean = /\p{Script=Hangul}/u;
-
-  return _.chain(words)
-    .map((word) => {
-      if (isJapanese(word)) word = toRomaji(word);
-      if (Chinese.test(word)) word = pinyin(word);
-      if (Korean.test(word)) word = aromanize.romanize(word);
-      return word;
-    })
-    .join("")
-    .value();
-}
-
-export function replaceSpecialCharacters(text) {
   const characters = [
     ["（", "("],
     ["）", ")"],
@@ -72,9 +52,24 @@ export function replaceSpecialCharacters(text) {
     ["９", "9"],
   ];
 
-  _.each(characters, ([from, to]) => {
+  characters.forEach(([from, to]) => {
     text = text.replaceAll(from, to);
   });
 
-  return text;
+  const words = tokenize(text);
+  const Chinese = /\p{Script=Han}/u;
+  const Korean = /\p{Script=Hangul}/u;
+
+  return words
+    .map((word) => {
+      if (isJapanese(word)) word = toRomaji(word);
+      if (Chinese.test(word)) word = pinyin(word);
+      if (Korean.test(word)) word = aromanize.romanize(word);
+      return word;
+    })
+    .join("");
+}
+
+export function omitUndefined(obj) {
+  return JSON.parse(JSON.stringify(obj));
 }

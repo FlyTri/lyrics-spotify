@@ -25,7 +25,7 @@ const getToken = async (authCode = false) => {
       },
     })
     .then(async ({ data }) => {
-      data.expires_at = _.now() + data.expires_in * 1000;
+      data.expires_at = Date.now() + data.expires_in * 1000;
       if (!authCode) data.refresh_token = requestBody.get("refresh_token");
       delete data.expires_in;
 
@@ -39,7 +39,7 @@ const getToken = async (authCode = false) => {
     );
 };
 const getCurrentlyPlaying = async () => {
-  if (_.now() >= token.expires_at) await getToken();
+  if (Date.now() >= token.expires_at) await getToken();
 
   return axios
     .get("https://api.spotify.com/v1/me/player/currently-playing", {
@@ -64,8 +64,7 @@ const getCurrentlyPlaying = async () => {
         .catch(() => null);
 
       const SpotifySession = mediaSession
-        ? _.find(
-            mediaSession.sessions,
+        ? mediaSession.sessions.find(
             (session) =>
               session.source === "Spotify.exe" &&
               session.title === data.item.name
@@ -73,7 +72,7 @@ const getCurrentlyPlaying = async () => {
         : null;
 
       const item = data.item;
-      const date = _.now();
+      const date = Date.now();
       const defaultData = {
         playing: data.is_playing,
         timestamp: data.timestamp,
@@ -81,17 +80,14 @@ const getCurrentlyPlaying = async () => {
       };
 
       if (data.currently_playing_type === "track") {
-        const artists = _.join(
-          _.map(item.artists, (artist) => artist.name),
-          ", "
-        );
+        const artists = item.artists.map((artist) => artist.name).join(", ");
 
         return {
           ...defaultData,
           name: item.name,
           innerHTMLname: `<a href="https://open.spotify.com/track/${item.id}" target="_blank">${item.name}</a>`,
           artists,
-          innerHTMLartists: _.chain(item.artists)
+          innerHTMLartists: item.artists
             .map(
               ({ name, id }) =>
                 `<a href="https://open.spotify.com/artist/${id}" target="_blank">${name}</a>`
@@ -110,13 +106,13 @@ const getCurrentlyPlaying = async () => {
                   ? Date.now() -
                     SpotifySession.timeline.last_updated_time * 1000
                   : 0) +
-                _.toNumber(localStorage.getItem("count"))
+                +localStorage.getItem("count")
               );
 
             return (
               data.progress_ms +
-              (data.is_playing ? _.now() - date : 0) +
-              _.toNumber(localStorage.getItem("count"))
+              (data.is_playing ? Date.now() - date : 0) +
+              +localStorage.getItem("count")
             );
           },
           duration: item.duration_ms,
@@ -129,7 +125,7 @@ const getCurrentlyPlaying = async () => {
 
       return {
         playing: false,
-        timestamp: _.now(),
+        timestamp: Date.now(),
         type: "error",
       };
     });

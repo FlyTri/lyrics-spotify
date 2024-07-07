@@ -33,12 +33,6 @@
       defer
     ></script>
     <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"
-      integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ=="
-      crossorigin="anonymous"
-      defer
-    ></script>
-    <script
       src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.4.0/color-thief.min.js"
       integrity="sha512-r2yd2GP87iHAsf2K+ARvu01VtR7Bs04la0geDLbFlB/38AruUbA5qfmtXwXx6FZBQGJRogiPtEqtfk/fnQfaYA=="
       crossorigin="anonymous"
@@ -53,7 +47,9 @@
 
   <body>
     <div class="loader-screen">
-      <span>● ● ●</span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
     </div>
     <div class="sticky-header">
       <div class="title">Tên bài hát</div>
@@ -61,11 +57,7 @@
     </div>
 
     <div class="content-container">
-      <div class="content">
-        <p class="lyrics highlight" style="text-align: center">
-          Lời bài hát sẽ xuất hiện ở đây 😍
-        </p>
-      </div>
+      <div class="content"></div>
     </div>
 
     <div class="popup-msg"></div>

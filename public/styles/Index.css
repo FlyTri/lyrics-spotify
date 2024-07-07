@@ -2,50 +2,39 @@ body {
   overflow: hidden;
 }
 
-p.translated {
-  font-family: "SpotifyMix", system-ui;
-  font-size: 18px;
-  color: var(--translated-color);
-  transition: none;
-}
-
-.active > .highlight {
-  text-shadow: 0 0 15px rgba(var(--highlight-color), 0.8);
-}
-
-p.highlight,
-p.status {
-  color: rgb(var(--highlight-color), 0.75) !important;
-}
-
-span.highlight {
-  color: rgb(var(--highlight-color), 0.75) !important;
+.dot {
+  display: inline-block;
+  width: 1rem;
+  height: 0;
+  border-radius: 50%;
+  margin: 5px;
 }
 
 .loader-screen {
   position: fixed;
   display: flex;
-  color: var(--green);
-  font-size: 40px;
   background-color: var(--discord-color);
   width: 100%;
   height: 100vh;
   z-index: 100;
-  user-select: none;
   justify-content: center;
-  text-align: center;
   align-items: center;
   animation: load 1.5s ease infinite;
+}
+
+.loader-screen > .dot {
+  background-color: var(--text-color);
+  width: 20px;
+  height: 20px;
 }
 
 @keyframes load {
   0%,
   100% {
-    text-shadow: 0px 0px 0px var(--green);
+    transform: scale(1);
   }
   50% {
     transform: scale(1.5, 1.5);
-    text-shadow: 0px 0px 5px var(--green);
   }
 }
 
@@ -107,14 +96,61 @@ span.highlight {
   margin: 0 0 0 10px;
 }
 
+p.translated {
+  font-family: "SpotifyMix", system-ui;
+  font-size: 18px;
+  color: var(--translated-color);
+  transition: none;
+}
+
+.active > .highlight {
+  text-shadow: 0 0 15px rgba(var(--highlight-color), 0.8);
+}
+
+p.highlight,
+span.highlight,
+p.status {
+  color: rgb(var(--highlight-color), 0.75) !important;
+}
+
+.highlight > .dot {
+  background-color: rgb(var(--highlight-color), 0.75) !important;
+}
+
+p.dot {
+  background-color: var(--lyrics-color);
+}
+
+span.active:has(span.dot.active) {
+  animation: zoom-out 3s ease infinite;
+}
+
+@keyframes zoom-out {
+  50% {
+    transform: scale(0.8);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.dot.active {
+  transition-timing-function: linear;
+  transition-duration: var(--dot-delay);
+  opacity: 0;
+}
+
 .lyrics,
 .lyrics span {
   padding: 8px 0 8px 0;
+}
+
+.lyrics:not(:has(.dot)) {
   cursor: pointer;
 }
 
-.lyrics * {
-  cursor: auto;
+.lyrics {
+  margin-bottom: 14px;
 }
 
 .lyrics:nth-child(1) {
@@ -138,10 +174,6 @@ span.highlight {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.7);
-}
-
-.lyrics {
-  margin-bottom: 14px;
 }
 
 .content p {

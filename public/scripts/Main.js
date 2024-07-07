@@ -22,7 +22,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   };
 
   // Initial setup
-  const fromStorage = _.toNumber(localStorage.getItem("count")) || 0;
+  const fromStorage = +localStorage.getItem("count") || 0;
   const updateCountDiv = (count) => {
     elements.countDiv.textContent = `${count / 1000}s`;
   };
@@ -54,9 +54,11 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   elements.downBtn.classList.toggle("disabled", fromStorage === -5000);
 
   const updateCount = (increment) => {
-    let count = _.toNumber(localStorage.getItem("count"));
+    const count = Math.min(
+      Math.max(+localStorage.getItem("count") + increment, -5000),
+      5000
+    );
 
-    count = _.clamp(count + increment, -5000, 5000);
     localStorage.setItem("count", count);
     updateCountDiv(count);
     update(true);
@@ -78,6 +80,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   document
     .querySelector(".content")
     .addEventListener("click", async (event) => {
+      return; //TODO:
       const index = getElementIndex(event.target);
 
       if (index) {
@@ -100,16 +103,19 @@ window.document.addEventListener("DOMContentLoaded", async () => {
 
   // Auto scroll and fullscreen handling
   document.addEventListener("visibilitychange", () => {
-    const element = _.toArray(document.querySelectorAll(".highlight")).pop();
+    const element = $(".highlight");
+
     if (document.visibilityState === "visible") {
       navigator.wakeLock?.request();
-      if (element) scrollTo(element, false);
+      if (element) scrollToCenter(element, false);
     }
   });
 
   window.addEventListener("resize", () => {
     const element = $(".highlight");
-    if (element) scrollTo(element, false);
+
+    if (element) scrollToCenter(element, false);
+
     toggleFullscreenIcons();
   });
 
@@ -117,7 +123,9 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   getCurrentlyPlaying().then(handleData);
   setInterval(async () => {
     if (!navigator.onLine) return;
+
     const data = await getCurrentlyPlaying();
+
     if (data.timestamp !== spotify.timestamp) handleData(data);
   }, 2500);
 
@@ -125,6 +133,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     showMessage("Đã kết nối Internet");
     handleDataWithUpdate({ playing: false });
   });
+
   window.addEventListener("offline", () => {
     showMessage("Đã ngắt kết nối Internet");
     handleDataWithUpdate({ playing: false });

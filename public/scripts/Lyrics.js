@@ -4,18 +4,18 @@ let spotify = {};
 let playing = false;
 
 const clearTimeouts = () => {
-  _.each(timeouts, clearTimeout);
+  timeouts.forEach(clearTimeout);
   timeouts = [];
 };
 const clearHighlights = () => {
-  _.each($All(".highlight"), (el) => {
-    el.className = el.className.replace("highlight", "");
+  $All(".highlight").forEach((element) => {
+    element.classList.remove("highlight");
   });
 };
 const currentIndex = () => {
   const progress = spotify.position / 1000;
 
-  return _.findLastIndex(lyrics.data, (obj) => obj.time <= progress);
+  return lyrics.data.findLastIndex((obj) => obj.time <= progress);
 };
 const setLyricsStatus = (text) => {
   clearTimeouts();
@@ -28,24 +28,8 @@ const setLyricsStatus = (text) => {
   $(".content").appendChild(element);
 };
 const writeContent = async (obj, element) => {
-  if (!currentIndex() && obj.wait) {
-    const first = lyrics.data[1].time * 1000;
-    const wait = first - spotify.position - 2000;
-
-    if (wait > 0) {
-      element.textContent = "● ● ●";
-      return;
-    }
-    if (wait + 1000 > 0) {
-      element.textContent = "● ●";
-      return;
-    }
-    if (wait + 2000 > 0) {
-      element.textContent = "●";
-      return;
-    }
-  } else if (obj.wait) {
-    element.textContent = "";
+  if (obj.wait) {
+    element.innerHTML = '<span class="dot"></span>'.repeat(3);
   } else {
     element.textContent = obj.text || "♫";
   }
@@ -54,13 +38,13 @@ const writeTranslates = () => {
   const lines = $All(".translated");
 
   if (lines.length) {
-    _.each(lines, (element) => element.remove());
+    lines.forEach((element) => element.remove());
     localStorage.setItem("translate", false);
   } else {
-    _.each($All(".lyrics"), (element) => {
-      const translated = _.find(lyrics.translated, {
-        original: element.textContent,
-      });
+    $All(".lyrics").forEach((element) => {
+      const translated = lyrics.translated.find(
+        (item) => item.original === element.textContent
+      );
 
       if (translated) {
         const p = document.createElement("p");
@@ -85,25 +69,21 @@ const writeLyrics = () => {
     return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
 
   const translateBtn = $(".translate");
-  const lyricsToWrite = _.clone(lyrics.data);
+  const lyricsToWrite = [...lyrics.data];
 
   switch (lyrics.type) {
     case "TEXT_SYNCED": {
       let p = document.createElement("p");
-
       p.classList.add("lyrics");
 
-      _.each(lyricsToWrite, (obj, index) => {
+      lyricsToWrite.forEach((obj, index) => {
         if (obj.new) {
           appendChild(".content", p);
-
           p = document.createElement("p");
-
           p.classList.add("lyrics");
         }
 
         const span = document.createElement("span");
-
         span.classList.add(`index-${index}`);
         writeContent(obj, span);
         p.appendChild(span);
@@ -113,9 +93,8 @@ const writeLyrics = () => {
       break;
     }
     case "LINE_SYNCED": {
-      _.each(lyricsToWrite, (obj, index) => {
+      lyricsToWrite.forEach((obj, index) => {
         const element = document.createElement("p");
-
         element.classList.add("lyrics", `index-${index}`);
         writeContent(obj, element);
         appendChild(".content", element);
@@ -123,9 +102,8 @@ const writeLyrics = () => {
       break;
     }
     case "NOT_SYNCED": {
-      _.each(lyricsToWrite, (obj) => {
+      lyricsToWrite.forEach((obj) => {
         const element = document.createElement("p");
-
         element.classList.add("lyrics", "highlight");
         writeContent(obj, element);
         appendChild(".content", element);
@@ -135,14 +113,12 @@ const writeLyrics = () => {
   }
 
   const element = document.createElement("p");
-
   element.classList.add("source");
   element.textContent = lyrics.source;
   appendChild(".content", element);
 
   if (lyrics.translated.length) {
     translateBtn.classList.remove("disabled");
-
     if (localStorage.getItem("translate") === "true") writeTranslates();
   }
 
@@ -151,33 +127,28 @@ const writeLyrics = () => {
 const update = () => {
   clearTimeouts();
 
-  if (!spotify.name) {
-    $(".content").innerHTML = "";
-    return;
-  }
-
+  if (!spotify.name) return ($(".content").innerHTML = "");
   if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
-
   if (playing) clearHighlights();
 
   const now = spotify.position / 1000;
   const currIndex = currentIndex();
-  const nextLyrics = _.filter(lyrics.data, (obj) => obj.time > now);
+  const nextLyrics = lyrics.data.filter((obj) => obj.time > now);
   const currentLine = $(`.index-${currIndex}`);
 
   currentLine.classList.add("highlight");
 
-  if (currIndex && lyrics.data[0].wait) $(".index-0")?.remove();
   if (lyrics.type === "TEXT_SYNCED") {
-    const words = currentLine.parentElement.children;
-    const played = _.slice(words, 0, _.indexOf(words, currentLine));
+    const words = [...currentLine.parentElement.children];
+    const played = words.slice(0, words.indexOf(currentLine));
     const firstWord = lyrics.data[getElementIndex(words[0])];
 
-    _.forEach(played, (element) => element.classList.add("highlight"));
+    played.forEach((element) => element.classList.add("highlight"));
 
     if (firstWord.end > now) currentLine.parentElement.classList.add("active");
   }
-  scrollTo(
+
+  scrollToCenter(
     lyrics.type === "TEXT_SYNCED" ? currentLine.parentElement : currentLine,
     false
   );
@@ -185,25 +156,19 @@ const update = () => {
   if (!playing) return;
 
   if (!currIndex && lyrics.data[0].wait) {
-    const wait = lyrics.data[1].time * 1000 - now * 1000 - 2000;
+    const delay = (lyrics.data[1].time - spotify.position / 1000) / 3;
+    const elements = [...$All("span.dot")];
 
-    _.each(["● ●", "●", false], (state, index) => {
-      if (wait + index * 1000 > 0)
-        timeouts.push(
-          setTimeout(() => {
-            if (!state) {
-              const line =
-                lyrics.type === "TEXT_SYNCED"
-                  ? currentLine.parentElement
-                  : currentLine;
+    setProperty("--dot-delay", `${delay}s`);
 
-              line.remove();
-              return;
-            }
-            currentLine.textContent = state;
-          }, wait + index * 1000)
-        );
-    });
+    [0, 1, 2].forEach((index) =>
+      timeouts.push(
+        setTimeout(
+          () => elements.pop().classList.add("active"),
+          delay * index * 1000
+        )
+      )
+    );
   }
 
   switch (lyrics.type) {
@@ -211,7 +176,7 @@ const update = () => {
     case "LINE_SYNCED": {
       currentLine.parentElement.classList.add("active");
 
-      _.each(nextLyrics, (lyric, index) => {
+      nextLyrics.forEach((lyric, index) => {
         index += currIndex + 1;
 
         const newElement = lyric.new || lyrics.type === "LINE_SYNCED";
@@ -220,7 +185,7 @@ const update = () => {
           timeouts.push(
             setTimeout(
               () =>
-                $All(".highlight").forEach((element) =>
+                Array.from($All(".highlight")).forEach((element) =>
                   element.parentElement.classList.remove("active")
                 ),
               (lyric.end - now) * 1000
@@ -233,11 +198,11 @@ const update = () => {
 
             const currentLine = $(`.index-${index}`);
 
-            _.each($All("p"), (i) => i.classList.remove("active"));
+            $All("p").forEach((i) => i.classList.remove("active"));
             currentLine.parentElement.classList.add("active");
             currentLine.classList.add("highlight");
 
-            if (newElement) scrollTo(currentLine);
+            if (newElement) scrollToCenter(currentLine);
           }, (lyric.time - now) * 1000)
         );
       });
@@ -277,9 +242,7 @@ const handleData = async (data) => {
     }
 
   $(".progress-bar").style.width = `${
-    ((data.position + _.toNumber(localStorage.getItem("count"))) /
-      data.duration) *
-    100
+    ((data.position + +localStorage.getItem("count")) / data.duration) * 100
   }%`;
 
   $(".title").innerHTML = data.innerHTMLname;

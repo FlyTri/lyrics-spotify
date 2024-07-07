@@ -47,7 +47,7 @@ app
 
       if (!lyrics)
         lyrics =
-          (await qq.getLyrics(req.query)) ||
+        //  (await qq.getLyrics(req.query)) ||
           (await musixmatch.getLyrics(req.query));
 
       if (lyrics) redis.set(id, lyrics);

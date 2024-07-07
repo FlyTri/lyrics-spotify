@@ -3,12 +3,7 @@ import fs from "fs";
 import _ from "lodash";
 import { INSTRUMENTAL, formatText } from "../utils.mjs";
 
-/**
- * @typedef {Object} LyricsData
- * @property {("TEXT_SYNCED" | "LINE_SYNCED" | "NOT_SYNCED" | "INSTRUMENTAL" | "NO_RESULT")} type
- * @property {Array<{ index: number, time: number, text: string | undefined, space: boolean | undefined, new: boolean | undefined }>} data
- * @property {Array<{ original: string, text: string }> | undefined} translated
- * @property {string | undefined} source
+/**@typedef {Object} LyricsData@property {("TEXT_SYNCED" | "LINE_SYNCED" | "NOT_SYNCED" | "INSTRUMENTAL" | "NO_RESULT")} type@property {Array<{ index: number, time: number, text: string | undefined, space: boolean | undefined, new: boolean | undefined }>} data@property {Array<{ original: string, text: string }> | undefined} translated@property {string | undefined} source
  */
 
 const { tokens } = JSON.parse(fs.readFileSync("MusixmatchTokens.json"));
@@ -29,8 +24,9 @@ instance.interceptors.request.use(
   (config) => {
     config.params = {
       ...config.params,
-      usertoken: _.sample(tokens),
+      usertoken: tokens[Math.floor(Math.random() * tokens.length)],
     };
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -78,9 +74,9 @@ export default class Musixmatch {
     );
 
     if (track.has_richsync && richsyncData) {
-      const data = _.chain(JSON.parse(richsyncData))
+      const data = JSON.parse(richsyncData)
         .flatMap((obj) =>
-          _.flatMap(obj.l, (data, i) => {
+          obj.l.flatMap((data, i) => {
             if (data.c !== " ") {
               const formattedText = formatText(data.c);
               const nextCharIsSpace = _.get(obj.l, [i + 1, "c"]) === " ";
@@ -94,10 +90,9 @@ export default class Musixmatch {
             }
           })
         )
-        .filter(_.isObject)
-        .value();
+        .filter(Boolean);
 
-      if (data[0].time) data.unshift({ time: 0 });
+      if (data[0].time) data.unshift({ time: 0, wait: true });
 
       return {
         type: "TEXT_SYNCED",
@@ -108,15 +103,14 @@ export default class Musixmatch {
     }
 
     if (track.has_subtitles && subtitle_list) {
-      const data = _.map(
-        JSON.parse(subtitle_list[0].subtitle.subtitle_body),
+      const data = JSON.parse(subtitle_list[0].subtitle.subtitle_body).map(
         ({ text, time }) => ({
           text: formatText(text),
           time: time.total,
         })
       );
 
-      if (data[0].time) data.unshift({ time: 0 });
+      if (data[0].time) data.unshift({ time: 0, wait: true });
 
       return {
         type: "LINE_SYNCED",
@@ -128,7 +122,7 @@ export default class Musixmatch {
 
     return {
       type: "NOT_SYNCED",
-      data: _.map(_.split(lyricsData, "\n"), (text) => ({
+      data: lyricsData.split("\n").map((text) => ({
         text: formatText(text) || "",
       })),
       translated,
@@ -145,8 +139,7 @@ export default class Musixmatch {
     const data = await instance("/macro.subtitles.get", {
       params: {
         q_album: album,
-        q_artist: _.head(artist.split(";")),
-        q_artists: _.head(artist.split(";")),
+        q_artists: artist,
         q_track: name,
         track_spotify_id: "spotify:track:" + id,
         q_duration: Math.round(duration / 1000),
@@ -178,7 +171,7 @@ export default class Musixmatch {
       },
     });
 
-    return _.map(data.message.body.translations_list, ({ translation }) => ({
+    return data.message.body.translations_list.map(({ translation }) => ({
       original: translation.matched_line,
       text: translation.description,
     }));

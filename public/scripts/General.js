@@ -1,23 +1,30 @@
 let timeout = null;
 
 /**
- * @param {string} query
- * @returns {Element | null}
+ @param {string} query
+ @returns {Element | null}
  */
 const $ = (query) => document.querySelector(query);
 /**
- * @param {string} query
- * @returns {NodeList}
+ @param {string} query
+ @returns {NodeList}
  */
 const $All = (query) => document.querySelectorAll(query);
 
 /**
- * @param {Element} element
- * @param {boolean} check
- * @returns
+ @param {array} array
+ @returns {*}
  */
-const scrollTo = (element, check = true) => {
-  console.log("cakled");
+function random(array) {
+  const index = Math.floor(Math.random() * array.length);
+
+  return array[index];
+}
+
+/**
+ @param {Element} element@param {boolean} check
+ */
+const scrollToCenter = (element, check = true) => {
   if (element.classList.contains("highlight"))
     switch (lyrics.type) {
       case "TEXT_SYNCED":
@@ -37,8 +44,7 @@ const scrollTo = (element, check = true) => {
     scrollIntoView(element, { time: 500, maxSynchronousAlignments: 1 });
 };
 
-const appendChild = (query, element) =>
-  document.querySelector(query).appendChild(element);
+const appendChild = (query, element) => $(query).appendChild(element);
 
 const showMessage = (msg) => {
   const popup = $(".popup-msg");
@@ -58,16 +64,19 @@ const showMessage = (msg) => {
 
 const getElementIndex = (element) => {
   if (element) {
-    const index = _.toArray(element.classList).find((name) =>
+    const index = [...element.classList].find((name) =>
       name.startsWith("index")
     );
 
-    return index ? Number(index.replace("index-", "")) : null;
+    return index ? +index.replace("index-", "") : null;
   }
 };
 
-const getProperty = (value) =>
-  getComputedStyle(document.documentElement).getPropertyValue(value);
+/**
+ @param {string} name 
+ */
+const getProperty = (name) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name);
 
 const setProperty = (...options) =>
   document.documentElement.style.setProperty(...options);
