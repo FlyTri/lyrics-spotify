@@ -155,7 +155,7 @@ export default class QQMusic {
     });
 
     if (data[0].time) data.unshift({ time: 0, wait: true });
-    console.log(tag);
+
     return { lyrics: data, tag };
   }
 }
