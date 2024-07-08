@@ -30,8 +30,6 @@ const setLyricsStatus = (text) => {
 const writeContent = async (obj, element) => {
   if (obj.wait) {
     element.innerHTML = '<span class="dot"></span>'.repeat(3);
-  } else if (!obj.new) {
-    element.textContent = obj.text;
   } else {
     element.textContent = obj.text || "♫";
   }
@@ -129,7 +127,11 @@ const writeLyrics = () => {
 const update = () => {
   clearTimeouts();
 
-  if (!spotify.name) return ($(".content").innerHTML = "");
+  if (!spotify.name) {
+    $(".content").innerHTML = "";
+    
+    return;
+  }
   if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
   if (playing) clearHighlights();
 

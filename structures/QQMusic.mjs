@@ -1,5 +1,4 @@
 import axios from "axios";
-import _ from "lodash";
 import { INSTRUMENTAL, DJ, formatText, omitUndefined } from "../utils.mjs";
 import { qrc as QRC } from "smart-lyric";
 
@@ -35,11 +34,16 @@ export default class QQMusic {
     if (!data) return;
 
     const songs = data.req.data.body.song.list;
+    const sortedArtists = String(artist.toUpperCase().split(", ").sort());
 
     if (!songs.length) return;
 
     const song = songs.find(
-      (song) => song.title.toUpperCase() === name.toUpperCase()
+      (song) =>
+        song.name.toUpperCase() === name.toUpperCase() &&
+        String(
+          song.singer.map((singer) => singer.name.toUpperCase()).sort()
+        ) === sortedArtists
     );
 
     return song?.id;
@@ -84,7 +88,7 @@ export default class QQMusic {
       return INSTRUMENTAL;
 
     if (qrc) {
-      const parsed = this.parseSynced(decrypted, { name, artist });
+      const parsed = this.parseSynced(decrypted);
 
       return {
         type: "TEXT_SYNCED",
@@ -107,7 +111,7 @@ export default class QQMusic {
         };
     }
   }
-  parseSynced(decrypted, { name, artist }) {
+  parseSynced(decrypted) {
     const lyric = /LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1].trim();
     const splitted = lyric.split(/\r?\n/);
     const tag = {};
@@ -117,26 +121,30 @@ export default class QQMusic {
 
     splitted.forEach((line) => {
       if (/^\[\s*(\d+)\s*,\s*(\d+)\s*\](.*)$/.test(line)) {
-        const [timetag] = line.match(/\[(\d*),(\d*)\]/);
+        const [timetag] = /\[(\d*),(\d*)\]/.exec(line);
         const content = line.replace(timetag, "");
 
         if (checkHeader) {
-          if (first) return (first = false);
+          if (first) {
+            first = false;
+
+            return;
+          }
           if (content.includes(":") || content.includes("：")) return;
 
-            checkHeader = false;
+          checkHeader = false;
         }
 
         const words = [...content.matchAll(/(.*?)\((\d*),(\d*)\)/g)];
         const [, , lws, lwd] = words[words.length - 1];
 
         words.forEach(([, text, ws], i) => {
-          if ((!text && i) || text === " ") return;
-          const nextCharIsSpace = words[i + 1]?.[1] === " ";
+          if ((!text && i !== 0) || !text.trim()) return;
+          const space = words[i + 1]?.[1] === " " ? " " : "";
 
           data.push(
             omitUndefined({
-              text: formatText(text) + (nextCharIsSpace ? " " : ""),
+              text: formatText(text) + space,
               time: +ws / 1000,
               new: i === 0 || undefined,
               end: i === 0 ? (+lws + +lwd) / 1000 : undefined,
@@ -144,7 +152,7 @@ export default class QQMusic {
           );
         });
       } else {
-        const matches = line.match(/^\[([a-zA-Z#]\w*):(.*)\]$/);
+        const matches = /^\[([a-zA-Z#]\w*):(.*)\]$/.exec(line);
 
         if (matches) {
           const [key, value] = [matches[1], matches[2]];

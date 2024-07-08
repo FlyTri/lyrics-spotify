@@ -1,10 +1,6 @@
 import axios from "axios";
 import fs from "fs";
-import _ from "lodash";
 import { INSTRUMENTAL, formatText } from "../utils.mjs";
-
-/**@typedef {Object} LyricsData@property {("TEXT_SYNCED" | "LINE_SYNCED" | "NOT_SYNCED" | "INSTRUMENTAL" | "NO_RESULT")} type@property {Array<{ index: number, time: number, text: string | undefined, space: boolean | undefined, new: boolean | undefined }>} data@property {Array<{ original: string, text: string }> | undefined} translated@property {string | undefined} source
- */
 
 const { tokens } = JSON.parse(fs.readFileSync("MusixmatchTokens.json"));
 const instance = axios.create({
@@ -49,7 +45,7 @@ export default class Musixmatch {
       return {
         message:
           hint === "captcha"
-            ? "Máy chủ mệt rồi 😭"
+            ? "Yêu cầu captcha từ nguồn cung cấp"
             : "Không thể tìm lời bài hát :(",
       };
 
@@ -74,23 +70,23 @@ export default class Musixmatch {
     );
 
     if (track.has_richsync && richsyncData) {
-      const data = JSON.parse(richsyncData)
-        .flatMap((obj) =>
-          obj.l.flatMap((data, i) => {
-            if (data.c !== " ") {
-              const formattedText = formatText(data.c);
-              const nextCharIsSpace = _.get(obj.l, [i + 1, "c"]) === " ";
+      const data = [];
 
-              return {
-                time: obj.ts + data.o,
-                end: i === 0 ? obj.te : undefined,
-                text: formattedText + (nextCharIsSpace ? " " : ""),
-                new: i === 0 ? true : undefined,
-              };
-            }
-          })
-        )
-        .filter(Boolean);
+      JSON.parse(richsyncData).forEach((obj) =>
+        obj.l.forEach((line, i) => {
+          if (!line.c.trim()) return;
+
+          const formattedText = formatText(line.c);
+          const space = obj.l[i + 1]?.c === " " ? " " : "";
+
+          data.push({
+            time: obj.ts + data.o,
+            end: i === 0 ? obj.te : undefined,
+            text: formattedText + space,
+            new: i === 0 ? true : undefined,
+          });
+        })
+      );
 
       if (data[0].time) data.unshift({ time: 0, wait: true });
 
