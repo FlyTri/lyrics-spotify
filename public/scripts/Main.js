@@ -140,7 +140,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   });
 
   setInterval(async () => {
-    if (spotify.name) {
+    if (spotify.id) {
       $(".progress-bar").style.width = `${
         ((spotify.position + fromStorage) / spotify.duration) * 100
       }%`;

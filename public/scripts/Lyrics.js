@@ -127,7 +127,7 @@ const writeLyrics = () => {
 const update = () => {
   clearTimeouts();
 
-  if (!spotify.name) {
+  if (!spotify.id) {
     $(".content").innerHTML = "";
     
     return;
@@ -259,7 +259,7 @@ const handleData = async (data) => {
 
     const translateBtn = $(".translate");
 
-    changeColor(spotify);
+    changeColor();
     translateBtn.classList.add("disabled");
     setLyricsStatus("Đang tải...");
 
@@ -281,7 +281,7 @@ const handleData = async (data) => {
   playing = data.playing;
 
   if (
-    spotify.name &&
+    spotify.id &&
     lyrics.type !== "NOT_SYNCED" &&
     lyrics.data?.[0].wait &&
     !currentIndex()
