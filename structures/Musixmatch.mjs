@@ -80,7 +80,7 @@ export default class Musixmatch {
           const space = obj.l[i + 1]?.c === " " ? " " : "";
 
           data.push({
-            time: (obj.ts + data.o) * 1000,
+            time: (obj.ts + line.o) * 1000,
             end: i === 0 ? obj.te * 1000 : undefined,
             text: formattedText + space,
             new: i === 0 ? true : undefined,
