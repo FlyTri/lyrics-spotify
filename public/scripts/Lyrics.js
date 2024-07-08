@@ -12,11 +12,8 @@ const clearHighlights = () => {
     element.classList.remove("highlight");
   });
 };
-const currentIndex = () => {
-  const progress = spotify.position / 1000;
-
-  return lyrics.data.findLastIndex((obj) => obj.time <= progress);
-};
+const currentIndex = () =>
+  lyrics.data.findLastIndex((obj) => obj.time <= spotify.position);
 const setLyricsStatus = (text) => {
   clearTimeouts();
   $(".content").innerHTML = "";
@@ -129,13 +126,13 @@ const update = () => {
 
   if (!spotify.id) {
     $(".content").innerHTML = "";
-    
+
     return;
   }
   if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
   if (playing) clearHighlights();
 
-  const now = spotify.position / 1000;
+  const now = spotify.position;
   const currIndex = currentIndex();
   const nextLyrics = lyrics.data.filter((obj) => obj.time > now);
   const currentLine = $(`.index-${currIndex}`);
@@ -160,17 +157,14 @@ const update = () => {
   if (!playing) return;
 
   if (!currIndex && lyrics.data[0].wait) {
-    const delay = (lyrics.data[1].time - spotify.position / 1000) / 3;
+    const delay = (lyrics.data[1].time - spotify.position) / 3;
     const elements = [...$All("span.dot")];
 
-    setProperty("--dot-delay", `${delay}s`);
+    setProperty("--dot-delay", `${delay}ms`);
 
     [0, 1, 2].forEach((index) =>
       timeouts.push(
-        setTimeout(
-          () => elements.pop().classList.add("active"),
-          delay * index * 1000
-        )
+        setTimeout(() => elements.pop().classList.add("active"), delay * index)
       )
     );
   }
@@ -192,7 +186,7 @@ const update = () => {
                 Array.from($All(".highlight")).forEach((element) =>
                   element.parentElement.classList.remove("active")
                 ),
-              (lyric.end - now) * 1000
+              (lyric.end - now)
             )
           );
 
@@ -207,7 +201,7 @@ const update = () => {
             currentLine.classList.add("highlight");
 
             if (newElement) scrollToCenter(currentLine);
-          }, (lyric.time - now) * 1000)
+          }, (lyric.time - now) )
         );
       });
       break;
@@ -224,12 +218,12 @@ const handleData = async (data) => {
     playing = false;
 
     document.title = "Lời bài hát";
-    document.documentElement.style.setProperty("--progress-bar-width", "0%");
+    setProperty("--progress-bar-width", "0%");
     $(".title").textContent = "Tên bài hát";
     $(".artists").textContent = "Tên nghệ sĩ";
 
     return setLyricsStatus(
-      navigator.onLine ? "Một không gian tĩnh lặng :)" : "Ngoại tuyến :("
+      navigator.onLine ? "Một không gian tĩnh lặng 🤫" : "Ngoại tuyến :("
     );
   }
 

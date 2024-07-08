@@ -80,8 +80,8 @@ export default class Musixmatch {
           const space = obj.l[i + 1]?.c === " " ? " " : "";
 
           data.push({
-            time: obj.ts + data.o,
-            end: i === 0 ? obj.te : undefined,
+            time: (obj.ts + data.o) * 1000,
+            end: i === 0 ? obj.te * 1000 : undefined,
             text: formattedText + space,
             new: i === 0 ? true : undefined,
           });
@@ -102,7 +102,7 @@ export default class Musixmatch {
       const data = JSON.parse(subtitle_list[0].subtitle.subtitle_body).map(
         ({ text, time }) => ({
           text: formatText(text),
-          time: time.total,
+          time: time.total * 1000,
         })
       );
 

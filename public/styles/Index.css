@@ -19,7 +19,7 @@ body {
   z-index: 100;
   justify-content: center;
   align-items: center;
-  animation: load 1.5s ease infinite;
+  animation: load 1.5s infinite;
 }
 
 .loader-screen > .dot {
@@ -121,8 +121,9 @@ p.dot {
   background-color: var(--lyrics-color);
 }
 
-span.active:has(span.dot.active) {
-  animation: zoom-out 3s ease infinite;
+span.highlight:has(span.dot.active) {
+  display: inline-block;
+  animation: zoom-out 5s infinite;
 }
 
 @keyframes zoom-out {
@@ -135,9 +136,8 @@ span.active:has(span.dot.active) {
 }
 
 .dot.active {
-  transition-timing-function: linear;
-  transition-duration: var(--dot-delay);
-  opacity: 0;
+  transition: opacity var(--dot-delay) linear;
+  opacity: 0.2;
 }
 
 .lyrics,

@@ -137,17 +137,25 @@ export default class QQMusic {
 
         const words = [...content.matchAll(/(.*?)\((\d*),(\d*)\)/g)];
         const [, , lws, lwd] = words[words.length - 1];
+        const end = +lws + +lwd;
 
         words.forEach(([, text, ws], i) => {
           if ((!text && i !== 0) || !text.trim()) return;
-          const space = words[i + 1]?.[1] === " " ? " " : "";
+
+          const nextWord = words[i + 1] || [];
+          const [, nt, ns, nd] = nextWord;
+          const space = nt === " " ? " " : "";
+
+          // End of line
+          if (!nextWord) {
+          }
 
           data.push(
             omitUndefined({
               text: formatText(text) + space,
-              time: +ws / 1000,
+              time: +ws,
               new: i === 0 || undefined,
-              end: i === 0 ? (+lws + +lwd) / 1000 : undefined,
+              end: i === 0 ? end : undefined,
             })
           );
         });
