@@ -61,7 +61,6 @@ a:active {
   display: none;
   font-family: "SpotifyMix", system-ui;
   font-size: 16px;
-  color: #181825;
   background-color: #cdd6f4;
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
   padding: 12px;
@@ -74,6 +73,11 @@ a:active {
   position: absolute;
   justify-content: center;
   align-items: center;
+}
+
+.popup-msg,
+.popup-msg * {
+  color: #181825;
 }
 
 .animatePopup {

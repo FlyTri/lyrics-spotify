@@ -50,13 +50,13 @@ const appendChild = (query, element) => $(query).appendChild(element);
 /**
  * @param {string} msg
  */
-const showMessage = (msg, level = "info") => {
+const showMessage = (msg, level = "info", html = false) => {
   const popup = $(".popup-msg");
 
   popup.classList.remove("animatePopup");
   clearTimeout(timeout);
 
-  popup.textContent = msg;
+  popup[html ? "innerHTML" : "textContent"] = msg;
   popup.style.backgroundColor = getProperty(`--level-${level}`);
 
   popup.classList.add("animatePopup");

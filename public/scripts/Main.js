@@ -4,9 +4,14 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   setTimeout(async () => {
     $(".loader-screen").remove();
 
-    await axios("http://127.0.0.1:8170/")
-      .then(() => showMessage("Đã cài đặt Media Session Server"))
-      .catch(() => null);
+    if (navigator.userAgent.includes("Windows NT 1"))
+      axios("http://127.0.0.1:8170/", { timeout: 500 }).catch(() =>
+        showMessage(
+          '<a href="https://github.com/FlyTri/media-session-server" target="_blank">Mẹo: Cài đặt Media Session Server giúp đồng bộ thời gian chính xác hơn</a>',
+          "info",
+          true
+        )
+      );
   }, 500);
 
   if (document.visibilityState === "visible") navigator.wakeLock?.request();
