@@ -1,4 +1,9 @@
 let timeout = null;
+const scrollOptions = {
+  time: 500,
+  ease: (n) => n,
+  maxSynchronousAlignments: 1,
+};
 
 /**
  @param {string} query
@@ -22,7 +27,8 @@ function random(array) {
 }
 
 /**
- @param {Element} element@param {boolean} check
+ @param {Element} element
+ @param {boolean} check
  */
 const scrollToCenter = (element, check = true) => {
   if (element.classList.contains("highlight"))
@@ -34,11 +40,9 @@ const scrollToCenter = (element, check = true) => {
         return;
     }
 
-  if (!check)
-    return scrollIntoView(element, { time: 500, maxSynchronousAlignments: 1 });
-
+  if (!check) return scrollIntoView(element, scrollOptions);
   if (!document.getSelection().toString())
-    scrollIntoView(element, { time: 500, maxSynchronousAlignments: 1 });
+    scrollIntoView(element, scrollOptions);
 };
 
 const appendChild = (query, element) => $(query).appendChild(element);
