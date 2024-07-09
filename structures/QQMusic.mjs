@@ -1,5 +1,11 @@
 import axios from "axios";
-import { INSTRUMENTAL, DJ, formatText, omitUndefined } from "../utils.mjs";
+import {
+  INSTRUMENTAL,
+  DJ,
+  formatText,
+  omitUndefined,
+  trim,
+} from "../utils.mjs";
 import { qrc as QRC } from "smart-lyric";
 
 const instance = axios.create({
@@ -98,7 +104,7 @@ export default class QQMusic {
       };
     } else {
       const decrypted = Buffer.from(lyric, "base64").toString();
-      const splitted = decrypted.split("\n");
+      const splitted = trim(decrypted).split("\n");
 
       if (!splitted[0].startsWith("["))
         return {
@@ -113,7 +119,9 @@ export default class QQMusic {
   }
   parseSynced(decrypted) {
     const lyric = /LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1].trim();
-    const splitted = lyric.split(/\r?\n/);
+    const splitted = trim(lyric)
+      .replace(/\(\d+,\d+\)\(\d+,\d+\)/g, "")
+      .split(/\r?\n/);
     const tag = {};
     let data = [];
     let first = true;
@@ -140,15 +148,17 @@ export default class QQMusic {
         const end = +lws + +lwd;
 
         words.forEach(([, text, ws], i) => {
-          if ((!text && i !== 0) || !text.trim()) return;
+          if (!text) return;
 
-          const nextWord = words[i + 1] || [];
-          const [, nt, ns, nd] = nextWord;
-          const space = nt === " " ? " " : "";
+          const space = words[i + 1]?.[1] === " " ? " " : "";
+          const before = data.findLast((obj) => obj.new);
 
-          // End of line
-          if (!nextWord) {
-          }
+          if (i === 0 && before && ws - before.end > 5000)
+            data.push({
+              text: "",
+              time: before.end,
+              new: true,
+            });
 
           data.push(
             omitUndefined({

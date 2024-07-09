@@ -20,7 +20,6 @@ export const DJ = {
  */
 export function formatText(text) {
   if (!text) return "";
-  if (/^\s+$/.test(text)) return " ";
 
   const characters = [
     ["（", "("],
@@ -62,9 +61,9 @@ export function formatText(text) {
 
   return words
     .map((word) => {
-      if (isJapanese(word)) word = toRomaji(word);
-      if (Chinese.test(word)) word = pinyin(word);
-      if (Korean.test(word)) word = aromanize.romanize(word);
+      if (isJapanese(word)) return toRomaji(word);
+      if (Chinese.test(word)) return pinyin(word);
+      if (Korean.test(word)) return aromanize.romanize(word);
       return word;
     })
     .join("");
@@ -72,4 +71,12 @@ export function formatText(text) {
 
 export function omitUndefined(obj) {
   return JSON.parse(JSON.stringify(obj));
+}
+
+/**
+ * @param {string} string
+ * @returns {string}
+ */
+export function trim(string) {
+  return string.replace(/  +/g, " ").trim();
 }

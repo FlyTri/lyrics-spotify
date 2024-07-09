@@ -1,6 +1,6 @@
 import axios from "axios";
 import fs from "fs";
-import { INSTRUMENTAL, formatText } from "../utils.mjs";
+import { INSTRUMENTAL, formatText, trim } from "../utils.mjs";
 
 const { tokens } = JSON.parse(fs.readFileSync("MusixmatchTokens.json"));
 const instance = axios.create({
@@ -72,17 +72,25 @@ export default class Musixmatch {
     if (track.has_richsync && richsyncData) {
       const data = [];
 
-      JSON.parse(richsyncData).forEach((obj) =>
+      JSON.parse(trim(richsyncData)).forEach((obj) =>
         obj.l.forEach((line, i) => {
-          if (!line.c.trim()) return;
+          if (!line.c) return;
 
-          const formattedText = formatText(line.c);
+          const start = (obj.ts + line.o) * 1000;
           const space = obj.l[i + 1]?.c === " " ? " " : "";
+          const before = data.findLast((obj) => obj.new);
+
+          if (i === 0 && before && start - before.end > 5000)
+            data.push({
+              text: "",
+              time: before.end,
+              new: true,
+            });
 
           data.push({
-            time: (obj.ts + line.o) * 1000,
+            time: start,
             end: i === 0 ? obj.te * 1000 : undefined,
-            text: formattedText + space,
+            text: formatText(line.c) + space,
             new: i === 0 ? true : undefined,
           });
         })
@@ -99,12 +107,12 @@ export default class Musixmatch {
     }
 
     if (track.has_subtitles && subtitle_list) {
-      const data = JSON.parse(subtitle_list[0].subtitle.subtitle_body).map(
-        ({ text, time }) => ({
-          text: formatText(text),
-          time: time.total * 1000,
-        })
-      );
+      const data = JSON.parse(
+        trim(subtitle_list[0].subtitle.subtitle_body)
+      ).map(({ text, time }) => ({
+        text: formatText(text),
+        time: time.total * 1000,
+      }));
 
       if (data[0].time) data.unshift({ time: 0, wait: true });
 
@@ -118,9 +126,11 @@ export default class Musixmatch {
 
     return {
       type: "NOT_SYNCED",
-      data: lyricsData.split("\n").map((text) => ({
-        text: formatText(text) || "",
-      })),
+      data: trim(lyricsData)
+        .split("\n")
+        .map((text) => ({
+          text: formatText(text) || "",
+        })),
       translated,
       source: "Cung cấp bởi Musixmatch",
     };
@@ -168,7 +178,7 @@ export default class Musixmatch {
     });
 
     return data.message.body.translations_list.map(({ translation }) => ({
-      original: translation.matched_line,
+      original: formatText(translation.matched_line),
       text: translation.description,
     }));
   }

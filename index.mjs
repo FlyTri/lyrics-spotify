@@ -47,7 +47,7 @@ app
 
       if (!lyrics)
         lyrics =
-          (await qq.getLyrics(req.query)) ||
+       //   (await qq.getLyrics(req.query)) ||
           (await musixmatch.getLyrics(req.query));
 
       if (lyrics) redis.set(id, lyrics);
@@ -58,3 +58,6 @@ app
       .send(cached || lyrics || NO_RESULT);
   })
   .listen(PORT, () => console.log(`Listening on port ${PORT}`));
+
+process.on("unhandledRejection", console.log);
+process.on("uncaughtException", console.log);

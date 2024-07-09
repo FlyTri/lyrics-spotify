@@ -40,7 +40,7 @@ const writeTranslates = () => {
   } else {
     $All(".lyrics").forEach((element) => {
       const translated = lyrics.translated.find(
-        (item) => item.original === element.textContent
+        (item) => item.original === element.textContent.replaceAll("  ", " ")
       );
 
       if (translated) {
@@ -186,7 +186,7 @@ const update = () => {
                 Array.from($All(".highlight")).forEach((element) =>
                   element.parentElement.classList.remove("active")
                 ),
-              (lyric.end - now)
+              lyric.end - now
             )
           );
 
@@ -201,7 +201,7 @@ const update = () => {
             currentLine.classList.add("highlight");
 
             if (newElement) scrollToCenter(currentLine);
-          }, (lyric.time - now) )
+          }, lyric.time - now)
         );
       });
       break;
