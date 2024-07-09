@@ -37,10 +37,7 @@ const scrollToCenter = (element, check = true) => {
   if (!check)
     return scrollIntoView(element, { time: 500, maxSynchronousAlignments: 1 });
 
-  const { clientHeight } = document.body;
-  const elementRectBottom = element.getBoundingClientRect().bottom;
-
-  if (elementRectBottom >= -50 && elementRectBottom <= clientHeight)
+  if (!document.getSelection().toString())
     scrollIntoView(element, { time: 500, maxSynchronousAlignments: 1 });
 };
 
@@ -51,7 +48,6 @@ const showMessage = (msg) => {
 
   popup.classList.remove("animatePopup");
   clearTimeout(timeout);
-  void popup.offsetWidth; // NOSONAR
 
   popup.textContent = msg;
 

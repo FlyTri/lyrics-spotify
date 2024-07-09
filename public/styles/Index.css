@@ -147,6 +147,7 @@ span.highlight:has(span.dot.active) {
 
 .lyrics:not(:has(.dot)) {
   cursor: pointer;
+  user-select: text;
 }
 
 .lyrics {
@@ -197,7 +198,6 @@ span.highlight:has(span.dot.active) {
   background-color: var(--background-color);
   padding-top: 13px;
   padding-bottom: 10px;
-  user-select: none;
   z-index: 2;
 }
 
