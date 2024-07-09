@@ -9,4 +9,9 @@
   --highlight-color: 0, 255, 89;
   --lyrics-color: #9399b2;
   --translated-color: #f5e0dc;
+
+  --level-success: #a6e3a1;
+  --level-error: #f38ba8;
+  --level-warning: #fab387;
+  --level-info: #89b4fa;
 }

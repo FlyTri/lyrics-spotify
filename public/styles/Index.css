@@ -101,7 +101,6 @@ p.translated {
   font-family: "SpotifyMix", system-ui;
   font-size: 18px;
   color: var(--translated-color);
-  transition: none;
 }
 
 .active > .highlight {
@@ -146,7 +145,7 @@ span.highlight:has(span.dot.active) {
   padding: 8px 0 8px 0;
 }
 
-.lyrics:not(:has(.dot)) {
+.lyrics:not(:has(.dot, .source)) {
   cursor: pointer;
   user-select: text;
 }

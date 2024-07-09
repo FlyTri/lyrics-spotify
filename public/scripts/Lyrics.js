@@ -212,7 +212,8 @@ const handleData = async (data) => {
   clearTimeouts();
   clearHighlights();
 
-  if (!data.name) {
+  if (data.local) return setLyricsStatus("Đang phát file cục bộ");
+  if (!data.type) {
     document.documentElement.style = null;
     spotify = {};
     playing = false;
@@ -222,9 +223,7 @@ const handleData = async (data) => {
     $(".title").textContent = "Tên bài hát";
     $(".artists").textContent = "Tên nghệ sĩ";
 
-    return setLyricsStatus(
-      navigator.onLine ? "Một không gian tĩnh lặng 🤫" : "Ngoại tuyến :("
-    );
+    return setLyricsStatus("Một không gian tĩnh lặng 🤫");
   }
 
   document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
@@ -232,9 +231,9 @@ const handleData = async (data) => {
   if (data.type !== "track")
     switch (data.type) {
       case "episode":
-        return setLyricsStatus("Đang phát podcast");
+        return setLyricsStatus("Đang phát podcast 🎙️");
       case "ad":
-        return setLyricsStatus("Đang phát quảng cáo");
+        return setLyricsStatus("Đang phát quảng cáo 📢");
       case "unknown":
         return setLyricsStatus("(._.) Không rõ bạn đang phát gì");
     }

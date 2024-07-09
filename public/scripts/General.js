@@ -47,13 +47,17 @@ const scrollToCenter = (element, check = true) => {
 
 const appendChild = (query, element) => $(query).appendChild(element);
 
-const showMessage = (msg) => {
+/**
+ * @param {string} msg
+ */
+const showMessage = (msg, level = "info") => {
   const popup = $(".popup-msg");
 
   popup.classList.remove("animatePopup");
   clearTimeout(timeout);
 
   popup.textContent = msg;
+  popup.style.backgroundColor = getProperty(`--level-${level}`);
 
   popup.classList.add("animatePopup");
 

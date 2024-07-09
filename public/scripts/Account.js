@@ -53,7 +53,8 @@ const getCurrentlyPlaying = async () => {
 
       if (error) {
         showMessage(
-          `Lỗi: ${error.status} | ${error.message}. Hãy thử đăng nhập lại`
+          `Lỗi: ${error.status} | ${error.message}. Hãy thử đăng nhập lại`,
+          "error"
         );
 
         return { playing: false };
@@ -77,9 +78,10 @@ const getCurrentlyPlaying = async () => {
         playing: data.is_playing,
         timestamp: data.timestamp,
         type: data.currently_playing_type,
+        local: data.item?.is_local || false,
       };
 
-      if (data.currently_playing_type === "track") {
+      if (defaultData.type === "track") {
         const artists = item.artists.map((artist) => artist.name).join(", ");
 
         return {
@@ -121,7 +123,7 @@ const getCurrentlyPlaying = async () => {
       return defaultData;
     })
     .catch(() => {
-      showMessage("Không thể cập nhật trình phát nhạc");
+      showMessage("Không thể cập nhật trình phát nhạc", "error");
 
       return {
         playing: false,
