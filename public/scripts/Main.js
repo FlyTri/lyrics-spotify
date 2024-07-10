@@ -7,9 +7,8 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     if (navigator.userAgent.includes("Windows NT 1"))
       axios("http://127.0.0.1:8170/", { timeout: 500 }).catch(() =>
         showMessage(
-          '<a href="https://github.com/FlyTri/media-session-server" target="_blank">Mẹo: Cài đặt Media Session Server giúp đồng bộ thời gian chính xác hơn</a>',
-          "info",
-          true
+          "Mẹo: Cài đặt Media Session Server giúp đồng bộ thời gian chính xác hơn",
+          "https://github.com/FlyTri/media-session-server"
         )
       );
   }, 500);
@@ -101,6 +100,11 @@ window.document.addEventListener("DOMContentLoaded", async () => {
 
     const data = await getCurrentlyPlaying();
 
+    if (data.timestamp !== spotify.timestamp)
+      console.log(
+        data.position,
+        spotify.position + (data.timestamp - spotify.timestamp)
+      );
     if (data.position === spotify.position && data.id === spotify.id) return;
     if (data.timestamp === spotify.timestamp) return;
 
@@ -113,7 +117,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   });
 
   window.addEventListener("offline", () => {
-    showMessage("Đã ngắt kết nối Internet", "warning");
+    showMessage("Đã ngắt kết nối Internet", null, "warning");
     handleDataWithUpdate({ playing: false });
   });
 

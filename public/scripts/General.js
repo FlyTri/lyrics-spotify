@@ -49,14 +49,17 @@ const appendChild = (query, element) => $(query).appendChild(element);
 
 /**
  * @param {string} msg
+ * @param {string | null | undefined} link
+ * @param {"success" | "error" | "warning" | "info"} level
  */
-const showMessage = (msg, level = "info", html = false) => {
+const showMessage = (msg, link, level = "info") => {
   const popup = $(".popup-msg");
 
   popup.classList.remove("animatePopup");
   clearTimeout(timeout);
 
-  popup[html ? "innerHTML" : "textContent"] = msg;
+  if (link) popup.innerHTML = `<a href="${link}" target="_blank">${msg}</a>`;
+  else popup.textContent = msg;
   popup.style.backgroundColor = getProperty(`--level-${level}`);
 
   popup.classList.add("animatePopup");

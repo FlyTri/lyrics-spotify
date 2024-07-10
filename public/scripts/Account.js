@@ -54,6 +54,7 @@ const getCurrentlyPlaying = async () => {
       if (error) {
         showMessage(
           `Lỗi: ${error.status} | ${error.message}. Hãy thử đăng nhập lại`,
+          null,
           "error"
         );
 
