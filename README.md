@@ -23,6 +23,7 @@ Thực hiện các bước sau:
 [url]/callback
 
 // [url] là địa chỉ truy cập vào trang web, bao gồm http/https...
+// Ví dụ: https://example.com/callback
 ```
 - Tiếp, đánh dấu vào ô **Web API** và điều khoản dịch vụ ở bên dưới
 - Chọn nút **Save** và chờ
