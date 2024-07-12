@@ -30,12 +30,11 @@ body {
 }
 
 @keyframes load {
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.5, 1.5);
+    transform: scale(1.5);
   }
 }
 
@@ -65,21 +64,21 @@ body {
   transition: width 0.5s linear;
 }
 
+.title, .artists {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .title {
   font-size: 15px;
   font-family: "SpotifyMix-Bold", system-ui;
-  white-space: nowrap;
-  overflow: hidden;
   margin: 12px 30px 0 30px;
-  text-overflow: ellipsis;
 }
 
 .artists {
   font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
   margin: 3px 85px 12px 85px;
-  text-overflow: ellipsis;
 }
 
 .content-container {
@@ -108,15 +107,13 @@ p.translated {
   text-shadow: 0 0 15px rgba(var(--highlight-color), 0.8);
 }
 
-p.highlight,
-span.highlight,
-p.status {
-  color: rgb(var(--highlight-color), 0.75) !important;
+p.highlight, span.highlight, p.status {
+  color: rgba(var(--highlight-color), 0.75) !important;
 }
 
 .highlight > .dot {
   opacity: 0.2;
-  background-color: rgb(var(--highlight-color), 0.75) !important;
+  background-color: rgba(var(--highlight-color), 0.75) !important;
 }
 
 span:has(span.dot) {
@@ -125,7 +122,7 @@ span:has(span.dot) {
   align-items: center;
 }
 
-.lyrics.highlight:has(span.dot) {
+:is(p.highlight, span.highlight):has(span.dot) {
   animation: zoom-out 5s infinite;
 }
 
@@ -148,9 +145,8 @@ span:has(span.dot) {
   }
 }
 
-.lyrics,
-.lyrics span {
-  padding: 7px 0 7px 0;
+.lyrics, .lyrics span {
+  padding: 7px 0;
 }
 
 .lyrics:not(:has(.dot, .source)) {
@@ -204,8 +200,7 @@ span:has(span.dot) {
   height: 30px;
   bottom: 0;
   background-color: var(--background-color);
-  padding-top: 13px;
-  padding-bottom: 10px;
+  padding: 13px 0 10px 0;
   z-index: 2;
 }
 
@@ -216,8 +211,7 @@ span:has(span.dot) {
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.3);
   justify-content: center;
-  padding-top: inherit;
-  padding-bottom: inherit;
+  padding: inherit;
   z-index: 3;
 }
 
@@ -231,7 +225,7 @@ span:has(span.dot) {
   height: 30px;
   border-radius: 50%;
   cursor: pointer;
-  margin: 0 7px 0 7px;
+  margin: 0 7px;
 }
 
 .disabled {
