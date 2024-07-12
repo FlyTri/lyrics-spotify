@@ -34,17 +34,16 @@ export default class MongoDB {
   async getLyrics(options, sources) {
     if (!this.client.topology) return;
 
-    const data = await this.collection
+    const db = await this.collection
       .findOne({ id: options.id })
       .catch(() => null);
 
-    if (!data) return;
-    if (data.provider)
-      return await sources[data.provider].getLyrics(options, data.songId);
+    if (!db) return;
+    if (db.provider)
+      return await sources[db.provider].getLyrics(options, db.songId);
+    if (db.lyrics.data)
+      data.source = "Cung cấp bởi kho lưu trữ của Lyrics Spotify";
 
-    return {
-      ...data.lyrics,
-      source: "Cung cấp bởi kho lưu trữ của Lyrics Spotify",
-    };
+    return db.lyrics;
   }
 }
