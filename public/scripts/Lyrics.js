@@ -54,7 +54,7 @@ const writeContent = (obj, element) => {
         timeouts.push(
           setTimeout(
             () => span.classList.add("active"),
-            delay * index - animationDelay
+            delay * index - (animationDelay + delay * position)
           )
         );
       } else span.style.animationPlayState = null;
