@@ -28,7 +28,7 @@ export default class MongoDB {
   /**
    *
    * @param {object} options
-   * @param {{musixmatch: import("./Musixmatch.mjs").default}} param1
+   * @param {{musixmatch: import("./Musixmatch.mjs").default, qq: import("./QQMusic.mjs").default}} sources
    * @returns
    */
   async getLyrics(options, sources) {
@@ -39,7 +39,8 @@ export default class MongoDB {
       .catch(() => null);
 
     if (!data) return;
-    if (data.provider) return await sources[data.provider].getLyrics(options);
+    if (data.provider)
+      return await sources[data.provider].getLyrics(options, data.songId);
 
     return {
       ...data.lyrics,

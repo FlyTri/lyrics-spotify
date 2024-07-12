@@ -41,11 +41,19 @@ const scrollToCenter = (element, check = true) => {
     }
 
   if (!check) return scrollIntoView(element, scrollOptions);
-  if (!document.getSelection().toString())
+
+  const { clientHeight } = document.body;
+  const { bottom, top } = element.getBoundingClientRect();
+
+  if (
+    bottom >= -50 &&
+    top - clientHeight <= 50 &&
+    !document.getSelection().toString()
+  )
     scrollIntoView(element, scrollOptions);
 };
 
-const appendChild = (query, element) => $(query).appendChild(element);
+const append = (query, element) => $(query).append(element);
 
 /**
  * @param {string} msg

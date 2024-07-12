@@ -22,11 +22,45 @@ const setLyricsStatus = (text) => {
 
   element.classList.add("lyrics", "status");
   element.textContent = text;
-  $(".content").appendChild(element);
+  $(".content").append(element);
 };
-const writeContent = async (obj, element) => {
+const writeContent = (obj, element) => {
   if (obj.wait) {
-    element.innerHTML = '<span class="dot"></span>'.repeat(3);
+    const wait = lyrics.data[lyrics.data.indexOf(obj) + 1].time - obj.time;
+    const delay = wait / 3;
+    const offset = spotify.position - obj.time;
+    const time = [delay, delay * 2, delay * 3];
+    const position = time.findIndex((n) => offset <= n);
+    const animationDelay = offset - delay * position;
+
+    setProperty("--dot-delay", `${delay}ms`);
+    element.innerHTML = "";
+    [0, 1, 2].forEach((index) => {
+      const span = document.createElement("span");
+
+      span.removeAttribute("style");
+      span.removeAttribute("ended");
+      span.classList.remove("active");
+      span.classList.add("dot");
+
+      if (index < position) {
+        span.classList.add("active");
+        span.setAttribute("ended", "");
+      } else if (index === position) {
+        span.classList.add("active");
+        span.style.animationDelay = `-${animationDelay}ms`;
+        if (!playing) span.style.animationPlayState = "paused";
+      } else if (index > position && playing) {
+        timeouts.push(
+          setTimeout(
+            () => span.classList.add("active"),
+            delay * index - animationDelay
+          )
+        );
+      } else span.style.animationPlayState = null;
+
+      element.append(span);
+    });
   } else {
     element.textContent = obj.text || "♫";
   }
@@ -48,7 +82,7 @@ const writeTranslates = () => {
 
         p.classList.add("translated");
         p.textContent = translated.text;
-        element.appendChild(p);
+        element.append(p);
       }
     });
   }
@@ -75,7 +109,7 @@ const writeLyrics = () => {
 
       lyricsToWrite.forEach((obj, index) => {
         if (obj.new) {
-          appendChild(".content", p);
+          append(".content", p);
           p = document.createElement("p");
           p.classList.add("lyrics");
         }
@@ -83,9 +117,9 @@ const writeLyrics = () => {
         const span = document.createElement("span");
         span.classList.add(`index-${index}`);
         writeContent(obj, span);
-        p.appendChild(span);
+        p.append(span);
 
-        if (!lyricsToWrite[index + 1]) appendChild(".content", p);
+        if (!lyricsToWrite[index + 1]) append(".content", p);
       });
       break;
     }
@@ -94,7 +128,7 @@ const writeLyrics = () => {
         const element = document.createElement("p");
         element.classList.add("lyrics", `index-${index}`);
         writeContent(obj, element);
-        appendChild(".content", element);
+        append(".content", element);
       });
       break;
     }
@@ -103,7 +137,7 @@ const writeLyrics = () => {
         const element = document.createElement("p");
         element.classList.add("lyrics", "highlight");
         writeContent(obj, element);
-        appendChild(".content", element);
+        append(".content", element);
       });
       break;
     }
@@ -112,7 +146,7 @@ const writeLyrics = () => {
   const element = document.createElement("p");
   element.classList.add("source");
   element.textContent = lyrics.source;
-  appendChild(".content", element);
+  append(".content", element);
 
   if (lyrics.translated.length) {
     translateBtn.classList.remove("disabled");
@@ -120,6 +154,15 @@ const writeLyrics = () => {
   }
 
   update();
+};
+
+/**
+ *
+ * @param {HTMLElement} currentLine
+ * @param {*} index
+ */
+const updateInterlude = (currentLine, index) => {
+  writeContent(lyrics.data[index], currentLine);
 };
 const update = () => {
   clearTimeouts();
@@ -146,7 +189,8 @@ const update = () => {
 
     played.forEach((element) => element.classList.add("highlight"));
 
-    if (firstWord.end > now) currentLine.parentElement.classList.add("active");
+    if (firstWord.lineEnd > now)
+      currentLine.parentElement.classList.add("active");
   }
 
   scrollToCenter(
@@ -154,20 +198,12 @@ const update = () => {
     false
   );
 
+  const currentInterlude = $(".highlight .dot")?.parentElement;
+
+  if (currentInterlude)
+    updateInterlude(currentInterlude, getElementIndex(currentInterlude));
+
   if (!playing) return;
-
-  if (!currIndex && lyrics.data[0].wait) {
-    const delay = (lyrics.data[1].time - spotify.position) / 3;
-    const elements = [...$All("span.dot")];
-
-    setProperty("--dot-delay", `${delay}ms`);
-
-    [0, 1, 2].forEach((index) =>
-      timeouts.push(
-        setTimeout(() => elements.pop().classList.add("active"), delay * index)
-      )
-    );
-  }
 
   switch (lyrics.type) {
     case "TEXT_SYNCED":
@@ -178,15 +214,13 @@ const update = () => {
         index += currIndex + 1;
 
         const newElement = lyric.new || lyrics.type === "LINE_SYNCED";
+        const currentLine = $(`.index-${index}`);
 
-        if (lyric.end)
+        if (lyric.lineEnd)
           timeouts.push(
             setTimeout(
-              () =>
-                Array.from($All(".highlight")).forEach((element) =>
-                  element.parentElement.classList.remove("active")
-                ),
-              lyric.end - now
+              () => currentLine.parentElement.classList.remove("active"),
+              lyric.lineEnd - now
             )
           );
 
@@ -194,12 +228,10 @@ const update = () => {
           setTimeout(() => {
             if (newElement) clearHighlights();
 
-            const currentLine = $(`.index-${index}`);
-
-            $All("p").forEach((i) => i.classList.remove("active"));
             currentLine.parentElement.classList.add("active");
             currentLine.classList.add("highlight");
 
+            if (lyric.wait) updateInterlude(currentLine, index);
             if (newElement) scrollToCenter(currentLine);
           }, lyric.time - now)
         );
@@ -211,6 +243,11 @@ const update = () => {
 const handleData = async (data) => {
   clearTimeouts();
   clearHighlights();
+  $All(".dot").forEach((element) => {
+    element.classList.remove("active");
+    element.removeAttribute("style");
+    element.removeAttribute("ended");
+  });
 
   if (data.local) return setLyricsStatus("Đang phát file cục bộ");
   if (!data.type) {
@@ -272,14 +309,6 @@ const handleData = async (data) => {
   }
   spotify = data;
   playing = data.playing;
-
-  if (
-    spotify.id &&
-    lyrics.type !== "NOT_SYNCED" &&
-    lyrics.data?.[0].wait &&
-    !currentIndex()
-  )
-    writeLyrics();
 
   update();
 };

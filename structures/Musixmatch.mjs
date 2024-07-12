@@ -80,18 +80,18 @@ export default class Musixmatch {
           const space = obj.l[i + 1]?.c === " " ? " " : "";
           const before = data.findLast((obj) => obj.new);
 
-          if (i === 0 && before && start - before.end > 5000)
+          if (i === 0 && before && start - before.lineEnd > 5000)
             data.push({
-              text: "",
-              time: before.end,
+              time: before.lineEnd,
+              wait: true,
               new: true,
             });
 
           data.push({
-            time: start,
-            end: i === 0 ? obj.te * 1000 : undefined,
             text: formatText(line.c) + space,
+            time: start,
             new: i === 0 ? true : undefined,
+            lineEnd: i === 0 ? obj.te * 1000 : undefined,
           });
         })
       );

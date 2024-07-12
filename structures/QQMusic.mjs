@@ -47,15 +47,19 @@ export default class QQMusic {
     const song = songs.find(
       (song) =>
         song.name.toUpperCase() === name.toUpperCase() &&
+        song.title.toUpperCase() === name.toUpperCase() &&
         String(
           song.singer.map((singer) => singer.name.toUpperCase()).sort()
+        ) === sortedArtists &&
+        String(
+          song.singer.map((singer) => singer.title.toUpperCase()).sort()
         ) === sortedArtists
     );
 
     return song?.id;
   }
-  async getLyrics({ name, artist }) {
-    const songID = await this.#getID(name, artist);
+  async getLyrics({ name, artist }, id) {
+    const songID = id || (await this.#getID(name, artist));
 
     if (!songID) return;
 
@@ -74,23 +78,20 @@ export default class QQMusic {
 
     if (!data) return;
 
-    const LyricInfo =
-      data["music.musichallSong.PlayLyricInfo.GetPlayLyricInfo"]?.data;
-    const { qrc, lyric } = LyricInfo || {};
+    const { qrc, lyric } =
+      data["music.musichallSong.PlayLyricInfo.GetPlayLyricInfo"]?.data || {};
 
     if (!lyric) return;
 
     const decrypted = qrc
       ? QRC.decrypt(Buffer.from(lyric, "hex"))
       : Buffer.from(lyric, "base64").toString();
+    const single = /[\n\r]/.test(decrypted)
+      ? ""
+      : decrypted.replace(/\(\d+,\d+\)\(\d+,\d+\)/g, "");
 
-    if (
-      "此歌曲为DJ歌请您欣赏"
-        .split("")
-        .every((character) => decrypted.includes(character))
-    )
-      return DJ;
-    if (decrypted.includes("此歌曲为没有填词的纯音乐，请您欣赏"))
+    if (single.includes("此歌曲为DJ歌请您欣赏")) return DJ;
+    if (single.includes("此歌曲为没有填词的纯音乐，请您欣赏"))
       return INSTRUMENTAL;
 
     if (qrc) {
@@ -100,7 +101,7 @@ export default class QQMusic {
         type: "TEXT_SYNCED",
         data: parsed.lyrics,
         translated: [],
-        source: "Cung cấp bởi QQ Music",
+        source: `${id ? "Cung cấp" : "Tìm kiếm tự động"} bởi QQ Music`,
       };
     } else {
       const decrypted = Buffer.from(lyric, "base64").toString();
@@ -113,7 +114,7 @@ export default class QQMusic {
             text: formatText(text) || "",
           })),
           translated: [],
-          source: "Cung cấp bởi QQ Music",
+          source: `${id ? "Cung cấp" : "Tìm kiếm tự động"} bởi QQ Music`,
         };
     }
   }
@@ -129,7 +130,7 @@ export default class QQMusic {
 
     splitted.forEach((line) => {
       if (/^\[\s*(\d+)\s*,\s*(\d+)\s*\](.*)$/.test(line)) {
-        const [timetag] = /\[(\d*),(\d*)\]/.exec(line);
+        const [timetag, lineStart, lineDuration] = /\[(\d*),(\d*)\]/.exec(line);
         const content = line.replace(timetag, "");
 
         if (checkHeader) {
@@ -144,8 +145,6 @@ export default class QQMusic {
         }
 
         const words = [...content.matchAll(/(.*?)\((\d*),(\d*)\)/g)];
-        const [, , lws, lwd] = words[words.length - 1];
-        const end = +lws + +lwd;
 
         words.forEach(([, text, ws], i) => {
           if (!text) return;
@@ -153,10 +152,10 @@ export default class QQMusic {
           const space = words[i + 1]?.[1] === " " ? " " : "";
           const before = data.findLast((obj) => obj.new);
 
-          if (i === 0 && before && ws - before.end > 5000)
+          if (i === 0 && before && ws - before.lineEnd > 5000)
             data.push({
-              text: "",
-              time: before.end,
+              time: before.lineEnd,
+              wait: true,
               new: true,
             });
 
@@ -165,7 +164,7 @@ export default class QQMusic {
               text: formatText(text) + space,
               time: +ws,
               new: i === 0 || undefined,
-              end: i === 0 ? end : undefined,
+              lineEnd: i === 0 ? +lineStart + +lineDuration : undefined,
             })
           );
         });

@@ -25,7 +25,6 @@ body {
   -webkit-font-smoothing: antialiased;
   background-color: var(--background-color);
   color: var(--text-color);
-  -webkit-tap-highlight-color: transparent;
   height: 100%;
   margin: 0;
   scroll-behavior: smooth;
@@ -34,6 +33,7 @@ body {
 
 * {
   transition: all 0.2s linear;
+  -webkit-tap-highlight-color: transparent;
 }
 
 img {
@@ -102,6 +102,11 @@ a:active {
 
 .clicked {
   animation: pop 0.3s;
+}
+
+[ended] {
+  animation-duration: 0s !important;
+  animation-play-state: paused !important;
 }
 
 @keyframes pop {

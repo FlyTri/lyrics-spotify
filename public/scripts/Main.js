@@ -100,16 +100,10 @@ window.document.addEventListener("DOMContentLoaded", async () => {
 
     const data = await getCurrentlyPlaying();
 
-    if (data.timestamp !== spotify.timestamp)
-      console.log(
-        data.position,
-        spotify.position + (data.timestamp - spotify.timestamp)
-      );
-    if (data.position === spotify.position && data.id === spotify.id) return;
     if (data.timestamp === spotify.timestamp) return;
 
     handleData(data);
-  }, 2500);
+  }, 1000);
 
   window.addEventListener("online", () => {
     showMessage("Đã kết nối Internet");

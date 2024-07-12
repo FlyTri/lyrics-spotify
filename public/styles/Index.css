@@ -5,9 +5,10 @@ body {
 .dot {
   display: inline-block;
   width: 1rem;
-  height: 0;
+  height: 1rem;
   border-radius: 50%;
   margin: 5px;
+  padding: 0 !important;
 }
 
 .loader-screen {
@@ -114,15 +115,17 @@ p.status {
 }
 
 .highlight > .dot {
+  opacity: 0.2;
   background-color: rgb(var(--highlight-color), 0.75) !important;
 }
 
-p.dot {
-  background-color: var(--lyrics-color);
+span:has(span.dot) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-span.highlight:has(span.dot.active) {
-  display: inline-block;
+.lyrics.highlight:has(span.dot) {
   animation: zoom-out 5s infinite;
 }
 
@@ -136,13 +139,18 @@ span.highlight:has(span.dot.active) {
 }
 
 .dot.active {
-  transition: opacity var(--dot-delay) linear;
-  opacity: 0.2;
+  animation: visible var(--dot-delay) linear forwards;
+}
+
+@keyframes visible {
+  to {
+    opacity: 1;
+  }
 }
 
 .lyrics,
 .lyrics span {
-  padding: 8px 0 8px 0;
+  padding: 7px 0 7px 0;
 }
 
 .lyrics:not(:has(.dot, .source)) {
@@ -155,7 +163,7 @@ span.highlight:has(span.dot.active) {
 }
 
 .lyrics:nth-child(1) {
-  margin-top: 30px;
+  margin-top: 10px;
 }
 
 ::-webkit-scrollbar {

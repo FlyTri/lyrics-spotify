@@ -9,6 +9,7 @@ import MusixmatchManager from "./structures/Musixmatch.mjs";
 import QQMusicManager from "./structures/QQMusic.mjs";
 import { NO_RESULT } from "./utils.mjs";
 
+axios.defaults.timeout = 15000;
 axios.defaults.headers.common["User-Agent"] =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36";
 
@@ -43,11 +44,12 @@ app
     let lyrics;
 
     if (!cached) {
-      if (!lyrics) lyrics = await mongodb.getLyrics(req.query, { musixmatch });
+      if (!lyrics)
+        lyrics = await mongodb.getLyrics(req.query, { musixmatch, qq });
 
       if (!lyrics)
         lyrics =
-          (await qq.getLyrics(req.query)) ||
+         // (await qq.getLyrics(req.query)) ||
           (await musixmatch.getLyrics(req.query));
 
       if (lyrics) redis.set(id, lyrics);

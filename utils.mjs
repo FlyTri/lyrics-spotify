@@ -61,9 +61,9 @@ export function formatText(text) {
 
   return words
     .map((word) => {
-      if (isJapanese(word)) return toRomaji(word);
       if (Chinese.test(word)) return pinyin(word);
       if (Korean.test(word)) return aromanize.romanize(word);
+      if (isJapanese(word)) return toRomaji(word);
       return word;
     })
     .join("");
@@ -78,5 +78,5 @@ export function omitUndefined(obj) {
  * @returns {string}
  */
 export function trim(string) {
-  return string.replace(/  +/g, " ").trim();
+  return string.replace(/ {2,}/g, " ").trim();
 }
