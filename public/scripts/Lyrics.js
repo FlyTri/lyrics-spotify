@@ -241,7 +241,7 @@ const update = () => {
 };
 const handleData = async (data) => {
   if (!data) return;
-  
+
   clearTimeouts();
   clearHighlights();
   $All(".dot").forEach((element) => {
