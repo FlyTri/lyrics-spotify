@@ -7,11 +7,10 @@ const clearTimeouts = () => {
   timeouts.forEach(clearTimeout);
   timeouts = [];
 };
-const clearHighlights = () => {
-  $All(".highlight").forEach((element) => {
-    element.classList.remove("highlight");
-  });
-};
+const clearHighlights = () =>
+  $All(".highlight").forEach((element) =>
+    element.classList.remove("highlight")
+  );
 const currentIndex = () =>
   lyrics.data.findLastIndex((obj) => obj.time <= spotify.position);
 const setLyricsStatus = (text) => {
@@ -250,7 +249,7 @@ const handleData = async (data) => {
   });
 
   if (data.local) return setLyricsStatus("Đang phát file cục bộ");
-  if (!data.type) {
+  if (!data.type || data.type !== "track") {
     document.documentElement.style = null;
     spotify = {};
     playing = false;
@@ -260,20 +259,20 @@ const handleData = async (data) => {
     $(".title").textContent = "Tên bài hát";
     $(".artists").textContent = "Tên nghệ sĩ";
 
+    if (data.type)
+      switch (data.type) {
+        case "episode":
+          return setLyricsStatus("Đang phát podcast 🎙️");
+        case "ad":
+          return setLyricsStatus("Đang phát quảng cáo 📢");
+        case "unknown":
+          return setLyricsStatus("(._.) Không rõ bạn đang phát gì");
+      }
+    
     return setLyricsStatus("Một không gian tĩnh lặng 🤫");
   }
 
   document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
-
-  if (data.type !== "track")
-    switch (data.type) {
-      case "episode":
-        return setLyricsStatus("Đang phát podcast 🎙️");
-      case "ad":
-        return setLyricsStatus("Đang phát quảng cáo 📢");
-      case "unknown":
-        return setLyricsStatus("(._.) Không rõ bạn đang phát gì");
-    }
 
   $(".progress-bar").style.width = `${
     ((data.position + +localStorage.getItem("count")) / data.duration) * 100
