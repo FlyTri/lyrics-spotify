@@ -98,11 +98,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   setInterval(async () => {
     if (!navigator.onLine) return;
 
-    const data = await getCurrentlyPlaying();
-
-    if (data.timestamp === spotify.timestamp) return;
-
-    handleData(data);
+    getCurrentlyPlaying().then(handleData);
   }, 1000);
 
   window.addEventListener("online", () => {

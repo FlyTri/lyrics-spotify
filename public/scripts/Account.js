@@ -6,8 +6,8 @@ const getToken = async (authCode = false) => {
   const requestBody = new URLSearchParams();
 
   if (authCode) {
-    const params = new URLSearchParams(window.location.href);
-    const code = params.get(`${window.location.origin}/callback?code`);
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
 
     requestBody.append("grant_type", "authorization_code");
     requestBody.append("code", code);
@@ -60,18 +60,7 @@ const getCurrentlyPlaying = async () => {
 
         return { playing: false };
       }
-
-      const mediaSession = await axios("http://127.0.0.1:8170/sessions")
-        .then((response) => response.data)
-        .catch(() => null);
-
-      const SpotifySession = mediaSession
-        ? mediaSession.sessions.find(
-            (session) =>
-              session.source === "Spotify.exe" &&
-              session.title === data.item?.name
-          )
-        : null;
+      if (data.timestamp === spotify.timestamp) return;
 
       const item = data.item;
       const date = Date.now();
@@ -84,6 +73,17 @@ const getCurrentlyPlaying = async () => {
 
       if (defaultData.type === "track") {
         const artists = item.artists.map((artist) => artist.name).join(", ");
+        const mediaSession = await axios("http://127.0.0.1:8170/sessions")
+          .then((response) => response.data)
+          .catch(() => null);
+
+        const SpotifySession = mediaSession
+          ? mediaSession.sessions.find(
+              (session) =>
+                session.source === "Spotify.exe" &&
+                session.title === data.item?.name
+            )
+          : null;
 
         return {
           ...defaultData,

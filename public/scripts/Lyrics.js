@@ -240,6 +240,8 @@ const update = () => {
   }
 };
 const handleData = async (data) => {
+  if (!data) return;
+  
   clearTimeouts();
   clearHighlights();
   $All(".dot").forEach((element) => {
@@ -268,7 +270,7 @@ const handleData = async (data) => {
         case "unknown":
           return setLyricsStatus("(._.) Không rõ bạn đang phát gì");
       }
-    
+
     return setLyricsStatus("Một không gian tĩnh lặng 🤫");
   }
 
@@ -292,15 +294,14 @@ const handleData = async (data) => {
     translateBtn.classList.add("disabled");
     setLyricsStatus("Đang tải...");
 
-    lyrics = await axios(`/api/lyrics`, {
-      params: {
+    lyrics = await axios
+      .post(`/api/lyrics`, {
         name: data.name,
         id: data.id,
         album: data.album,
         artist: data.artists,
         duration: data.duration,
-      },
-    })
+      })
       .then((response) => response.data)
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
 
