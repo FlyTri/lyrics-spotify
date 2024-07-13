@@ -94,31 +94,27 @@ export default class QQMusic {
     if (single.includes("此歌曲为没有填词的纯音乐，请您欣赏"))
       return INSTRUMENTAL;
 
-    if (qrc) {
-      const parsed = this.parseSynced(decrypted);
+    const { lyrics } = qrc
+      ? this.#parseSynced(decrypted)
+      : this.#parseNotSynced(decrypted);
 
-      return {
-        type: "TEXT_SYNCED",
-        data: parsed.lyrics,
-        translated: [],
-        source: `${id ? "Cung cấp" : "Tìm kiếm tự động"} bởi QQ Music`,
-      };
-    } else {
-      const decrypted = Buffer.from(lyric, "base64").toString();
-      const splitted = trim(decrypted).split("\n");
-
-      if (!splitted[0].startsWith("["))
-        return {
-          type: "NOT_SYNCED",
-          data: splitted.map((text) => ({
-            text: formatText(text) || "",
-          })),
-          translated: [],
-          source: `${id ? "Cung cấp" : "Tìm kiếm tự động"} bởi QQ Music`,
-        };
-    }
+    return {
+      type: qrc ? "TEXT_SYNCED" : "NOT_SYNCED",
+      data: lyrics,
+      translated: [],
+      source: `${id ? "Cung cấp" : "Tìm kiếm tự động"} bởi QQ Music`,
+    };
   }
-  parseSynced(decrypted) {
+
+  #parseNotSynced(decrypt) {
+    const splitted = trim(decrypt).split("\n");
+    const parsed = splitted.map((text) => ({
+      text: formatText(text) || "",
+    }));
+
+    return { lyrics: parsed, translated: [] };
+  }
+  #parseSynced(decrypted) {
     const lyric = /LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1].trim();
     const splitted = trim(lyric)
       .replace(/\(\d+,\d+\)\(\d+,\d+\)/g, "")
@@ -152,7 +148,7 @@ export default class QQMusic {
           const space = words[i + 1]?.[1] === " " ? " " : "";
           const before = data.findLast((obj) => obj.new);
 
-          if (i === 0 && before && ws - before.lineEnd > 5000)
+          if (i === 0 && before && ws - before.lineEnd >= 3000)
             data.push({
               time: before.lineEnd,
               wait: true,

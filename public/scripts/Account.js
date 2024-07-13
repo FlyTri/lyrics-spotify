@@ -69,7 +69,7 @@ const getCurrentlyPlaying = async () => {
         ? mediaSession.sessions.find(
             (session) =>
               session.source === "Spotify.exe" &&
-              session.title === data.item.name
+              session.title === data.item?.name
           )
         : null;
 
@@ -123,7 +123,8 @@ const getCurrentlyPlaying = async () => {
       }
       return defaultData;
     })
-    .catch(() => {
+    .catch((error) => {
+      console.log(error);
       showMessage("Không thể cập nhật trình phát nhạc", "error");
 
       return {
