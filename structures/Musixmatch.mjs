@@ -69,7 +69,7 @@ export default class Musixmatch {
       lyrics.lyrics_language
     );
 
-    if (track.has_richsync && richsyncData) {
+    if (richsyncData) {
       const data = [];
 
       JSON.parse(trim(richsyncData)).forEach((obj) =>
@@ -80,7 +80,7 @@ export default class Musixmatch {
           const space = obj.l[i + 1]?.c === " " ? " " : "";
           const before = data.findLast((obj) => obj.new);
 
-          if (i === 0 && before && start - before.lineEnd > 5000)
+          if (i === 0 && before && start - before.lineEnd >= 3000)
             data.push({
               time: before.lineEnd,
               wait: true,
@@ -106,15 +106,23 @@ export default class Musixmatch {
       };
     }
 
-    if (track.has_subtitles && subtitle_list) {
-      const data = JSON.parse(
-        trim(subtitle_list[0].subtitle.subtitle_body)
-      ).map(({ text, time }) => ({
-        text: formatText(text),
-        time: time.total * 1000,
-      }));
+    if (subtitle_list) {
+      const data = [];
+
+      JSON.parse(trim(subtitle_list[0].subtitle.subtitle_body)).map(
+        ({ text, time }) => {
+          const formatted = formatText(text);
+
+          data.push({
+            text: formatted || undefined,
+            time: time.total * 1000,
+            wait: formatted ? undefined : true,
+          });
+        }
+      );
 
       if (data[0].time) data.unshift({ time: 0, wait: true });
+      if (data[data.length - 1].wait) data.pop();
 
       return {
         type: "LINE_SYNCED",
