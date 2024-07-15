@@ -3,6 +3,7 @@ import {
   INSTRUMENTAL,
   DJ,
   formatText,
+  formatTime,
   omitUndefined,
   trim,
 } from "../utils.mjs";
@@ -83,7 +84,7 @@ export default class QQMusic {
 
     if (!lyric) return;
 
-    const decrypted = qrc
+    let decrypted = qrc
       ? QRC.decrypt(Buffer.from(lyric, "hex"))
       : Buffer.from(lyric, "base64").toString();
     const single = /[\n\r]/.test(decrypted)
@@ -94,32 +95,38 @@ export default class QQMusic {
     if (single.includes("此歌曲为没有填词的纯音乐，请您欣赏"))
       return INSTRUMENTAL;
 
-    const { lyrics } = qrc
-      ? this.#parseSynced(decrypted)
-      : this.#parseNotSynced(decrypted);
+    let parsed;
+    if (qrc) parsed = this.#parseTextSynced(decrypted);
+    else {
+      decrypted = trim(decrypted);
+
+      if (decrypted[0] === "[") parsed = this.#parseLineSynced(decrypted);
+      else parsed = this.#parseNotSynced(decrypted);
+    }
+
+    const { type, lyrics } = parsed;
 
     return {
-      type: qrc ? "TEXT_SYNCED" : "NOT_SYNCED",
+      type,
       data: lyrics,
       translated: [],
-      source: `${id ? "Cung cấp" : "Tìm kiếm tự động"} bởi QQ Music`,
+      source: "Cung cấp bởi QQ Music",
     };
   }
 
   #parseNotSynced(decrypt) {
-    const splitted = trim(decrypt).split("\n");
+    const splitted = decrypt.split(/\r?\n/);
     const parsed = splitted.map((text) => ({
       text: formatText(text) || "",
     }));
 
-    return { lyrics: parsed, translated: [] };
+    return { type: "NOT_SYNCED", lyrics: parsed };
   }
-  #parseSynced(decrypted) {
+  #parseTextSynced(decrypted) {
     const lyric = /LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1].trim();
     const splitted = trim(lyric)
       .replace(/\(\d+,\d+\)\(\d+,\d+\)/g, "")
       .split(/\r?\n/);
-    const tag = {};
     let data = [];
     let first = true;
     let checkHeader = true;
@@ -164,19 +171,33 @@ export default class QQMusic {
             })
           );
         });
-      } else {
-        const matches = /^\[([a-zA-Z#]\w*):(.*)\]$/.exec(line);
-
-        if (matches) {
-          const [key, value] = [matches[1], matches[2]];
-
-          tag[key] = value.trim();
-        }
       }
     });
 
     if (data[0].time) data.unshift({ time: 0, wait: true });
 
-    return { lyrics: data, tag };
+    return { type: "TEXT_SYNCED", lyrics: data };
+  }
+  #parseLineSynced(decrypted) {
+    const splitted = decrypted.split(/\r?\n/);
+    const data = [];
+
+    splitted.forEach((line) => {
+      const match = /^\[(\d+:\d+\.\d+)\](.*)$/.exec(line);
+
+      if (!match) return;
+
+      const [, time, content] = match;
+
+      data.push({
+        text: formatText(content),
+        time: formatTime(time.slice(1, -1)),
+      });
+    });
+
+    return {
+      type: "LINE_SYNCED",
+      lyrics: data,
+    };
   }
 }
