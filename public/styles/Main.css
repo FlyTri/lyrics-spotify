@@ -44,6 +44,7 @@ body {
 
 .emoji {
   font-family: "NotoColorEmoji", system-ui;
+  font-size: 1rem;
 }
 
 img {
