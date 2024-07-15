@@ -39,8 +39,17 @@ export default class MongoDB {
       .catch(() => null);
 
     if (!db) return;
-    if (db.provider)
-      return await sources[db.provider].getLyrics(options, db.songId);
+    if (db.provider) {
+      const data = await sources[db.provider].getLyrics(options, db.songId);
+
+      if (data) {
+        data.source += ", được chọn lọc bởi Lyrics Spotify";
+
+        return data;
+      }
+
+      return;
+    }
     if (db.lyrics.data)
       db.lyrics.source = "Cung cấp bởi kho lưu trữ của Lyrics Spotify";
 
