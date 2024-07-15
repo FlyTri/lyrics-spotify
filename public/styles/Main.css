@@ -16,6 +16,12 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "NotoColorEmoji";
+  src: url("/fonts/NotoColorEmoji.ttf") format("truetype");
+  font-display: swap;
+}
+
 html {
   height: 100%;
 }
@@ -34,6 +40,10 @@ body {
 * {
   transition: all 0.2s linear;
   -webkit-tap-highlight-color: transparent;
+}
+
+.emoji {
+  font-family: "NotoColorEmoji", system-ui;
 }
 
 img {
@@ -104,11 +114,6 @@ a:active {
   animation: pop 0.3s;
 }
 
-[ended] {
-  animation-duration: 0s !important;
-  animation-play-state: paused !important;
-}
-
 @keyframes pop {
   60% {
     transform: scale(0.9);
@@ -120,4 +125,9 @@ a:active {
   100% {
     transform: scale(1);
   }
+}
+
+[ended] {
+  animation-duration: 0s !important;
+  animation-play-state: paused !important;
 }

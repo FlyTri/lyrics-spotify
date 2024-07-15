@@ -7,10 +7,13 @@ const clearTimeouts = () => {
   timeouts.forEach(clearTimeout);
   timeouts = [];
 };
-const clearHighlights = () =>
+const clearHighlights = () => {
+  if (lyrics.type === "NOT_SYNCED") return;
+
   $All(".highlight").forEach((element) =>
     element.classList.remove("highlight")
   );
+};
 const currentIndex = () =>
   lyrics.data.findLastIndex((obj) => obj.time <= spotify.position);
 const setLyricsStatus = (text) => {
@@ -171,7 +174,7 @@ const update = () => {
 
     return;
   }
-  if (!lyrics.data || lyrics.type === "NOT_SYNCED") return;
+  if (lyrics.type === "NOT_SYNCED") return;
   if (playing) clearHighlights();
 
   const now = spotify.position;

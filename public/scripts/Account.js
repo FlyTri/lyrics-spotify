@@ -38,13 +38,15 @@ const getToken = async (authCode = false) => {
       prompt(`Không thể lấy token. Lỗi:`, JSON.stringify(error.response.data))
     );
 };
-const getCurrentlyPlaying = async () => {
+const request = async (path) => {
   if (Date.now() >= token.expires_at) await getToken();
 
-  return axios
-    .get("https://api.spotify.com/v1/me/player/currently-playing", {
-      headers: { Authorization: `Bearer ${token.access_token}` },
-    })
+  return axios.get(`https://api.spotify.com/v1/${path}`, {
+    headers: { Authorization: `Bearer ${token.access_token}` },
+  });
+};
+const getCurrentlyPlaying = async () =>
+  request("me/player/currently-playing")
     .then(async (response) => {
       if (response.status === 204) return { playing: false };
 
@@ -76,19 +78,45 @@ const getCurrentlyPlaying = async () => {
         const mediaSession = await axios("http://127.0.0.1:8170/sessions")
           .then((response) => response.data)
           .catch(() => null);
-
         const SpotifySession = mediaSession
           ? mediaSession.sessions.find(
-              (session) =>
-                session.source === "Spotify.exe" &&
-                session.title === data.item?.name
+              (session) => session.source === "Spotify.exe"
             )
           : null;
+        const valenceEmoji = await request(`audio-features/${item.id}`)
+          .then(({ data }) => {
+            const valence = data.valence;
+
+            if (valence >= 0.9) {
+              return "😆";
+            } else if (valence >= 0.75) {
+              return "😄";
+            } else if (valence >= 0.6) {
+              return "😊";
+            } else if (valence >= 0.5) {
+              return "🙂";
+            } else if (valence >= 0.4) {
+              return "😐";
+            } else if (valence >= 0.3) {
+              return "😕";
+            } else if (valence >= 0.2) {
+              return "😟";
+            } else if (valence >= 0.1) {
+              return "😢";
+            } else {
+              return "😭";
+            }
+          })
+          .catch(() => null);
 
         return {
           ...defaultData,
           name: item.name,
-          innerHTMLname: `<a href="https://open.spotify.com/track/${item.id}" target="_blank">${item.name}</a>`,
+          innerHTMLname: `<a href="https://open.spotify.com/track/${
+            item.id
+          }" target="_blank">${
+            valenceEmoji ? `<span class="emoji">${valenceEmoji}</span>` : ""
+          } ${item.name}</a>`,
           artists,
           innerHTMLartists: item.artists
             .map(
@@ -102,25 +130,25 @@ const getCurrentlyPlaying = async () => {
           album: item.album.name,
           id: item.id,
           get position() {
-            if (SpotifySession)
-              return (
-                SpotifySession.timeline.position +
-                (data.is_playing
-                  ? Date.now() -
-                    SpotifySession.timeline.last_updated_time * 1000
-                  : 0) +
-                +localStorage.getItem("count")
-              );
+            const currentTime = Date.now();
+            const count = +localStorage.getItem("count");
 
-            return (
-              data.progress_ms +
-              (data.is_playing ? Date.now() - date : 0) +
-              +localStorage.getItem("count")
-            );
+            if (SpotifySession) {
+              const { position, last_updated_time } = SpotifySession.timeline;
+              const elapsedTime = data.is_playing
+                ? currentTime - last_updated_time * 1000
+                : 0;
+              return position + elapsedTime + count;
+            }
+
+            const progressTime = data.progress_ms;
+            const elapsedTime = data.is_playing ? currentTime - date : 0;
+            return progressTime + elapsedTime + count;
           },
           duration: item.duration_ms,
         };
       }
+
       return defaultData;
     })
     .catch((error) => {
@@ -133,5 +161,4 @@ const getCurrentlyPlaying = async () => {
         type: "error",
       };
     });
-};
 const seekTo = (position) => {};
