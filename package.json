@@ -3,13 +3,13 @@
   "type": "module",
   "version": "1.0.0",
   "main": "index.mjs",
+  "license": "UNLICENSED",
   "scripts": {
     "start": "node ."
   },
   "dependencies": {
     "aromanize": "^0.1.5",
     "axios": "^1.6.8",
-    "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "mongodb": "^6.7.0",
