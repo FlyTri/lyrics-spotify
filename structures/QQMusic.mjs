@@ -32,7 +32,7 @@ export default class QQMusic {
         param: {
           num_per_page: 5,
           page_num: 1,
-          query: name + " - " + artist,
+          query: `${name} - ${artist}`,
           search_type: 0,
         },
       },
@@ -123,7 +123,7 @@ export default class QQMusic {
     return { type: "NOT_SYNCED", lyrics: parsed };
   }
   #parseTextSynced(decrypted) {
-    const lyric = /LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1].trim();
+    const lyric = /LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1];
     const splitted = trim(lyric)
       .replace(/\(\d+,\d+\)\(\d+,\d+\)/g, "")
       .split(/\r?\n/);

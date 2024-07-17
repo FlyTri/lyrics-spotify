@@ -185,6 +185,8 @@ export default class Musixmatch {
       },
     });
 
+    if (!data) return [];
+
     return data.message.body.translations_list.map(({ translation }) => ({
       original: formatText(translation.matched_line),
       text: translation.description,

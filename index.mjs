@@ -3,21 +3,21 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import axios from "axios";
+import { SocksProxyAgent } from "socks-proxy-agent";
 import RedisManager from "./structures/Redis.mjs";
 import MongoDBManager from "./structures/MongoDB.mjs";
-import MusixmatchManager from "./structures/Musixmatch.mjs";
-import QQMusicManager from "./structures/QQMusic.mjs";
+import SourceManager from "./structures/SourceManager.mjs";
 import { NO_RESULT } from "./utils.mjs";
 
-axios.defaults.timeout = 15000;
+axios.defaults.timeout = 5000;
 axios.defaults.headers.common["User-Agent"] =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36";
+const proxyAgent = new SocksProxyAgent("socks4://171.254.1.190:1080");
 
 const { PORT } = process.env;
 const redis = new RedisManager();
 const mongodb = new MongoDBManager();
-const musixmatch = new MusixmatchManager();
-const qq = new QQMusicManager();
+const { sources } = new SourceManager();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,13 +62,14 @@ app
     let lyrics;
 
     if (!cached) {
-      if (!lyrics)
-        lyrics = await mongodb.getLyrics(req.body, { musixmatch, qq });
+      if (!lyrics) lyrics = await mongodb.getLyrics(req.body, sources);
 
       if (!lyrics)
-        lyrics =
-          (await qq.getLyrics(req.body)) ||
-          (await musixmatch.getLyrics(req.body));
+        for (const source of Object.values(sources)) {
+          lyrics = await source.getLyrics(req.body);
+
+          if (lyrics) break;
+        }
 
       if (lyrics) redis.set(id, lyrics);
     }

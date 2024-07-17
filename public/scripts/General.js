@@ -94,7 +94,7 @@ const getProperty = (name) =>
   getComputedStyle(document.documentElement).getPropertyValue(name);
 
 const setProperty = (...options) =>
-  document.documentElement.style.setProperty(...options);
+  document.body.style.setProperty(...options);
 
 document.addEventListener("DOMContentLoaded", () => {
   const buttons = $All('[class*="button"], button');

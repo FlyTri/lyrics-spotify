@@ -1,5 +1,7 @@
 body {
   overflow: hidden;
+  background-size: 100% 100%;
+  backdrop-filter: blur(100px) saturate(2.5) brightness(0.5) contrast(0.9);
 }
 
 .dot {
@@ -30,7 +32,8 @@ body {
 }
 
 @keyframes load {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -58,13 +61,14 @@ body {
 
 .progress-bar {
   height: 3px;
-  background-color: var(--progress-bar-color);
+  background-color: rgba(255, 255, 255, 0.75);
   width: 0;
   border-radius: 3px;
   transition: width 0.5s linear;
 }
 
-.title, .artists {
+.title,
+.artists {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -92,7 +96,7 @@ body {
 .content {
   height: 100%;
   font-family: "SpotifyMix-Bold", system-ui;
-  font-size: 32px;
+  font-size: 35px;
   color: var(--lyrics-color);
   margin: 0 0 0 10px;
 }
@@ -107,7 +111,9 @@ p.translated {
   text-shadow: 0 0 15px rgba(var(--highlight-color), 0.8);
 }
 
-p.highlight, span.highlight, p.status {
+p.highlight,
+span.highlight,
+p.status {
   color: rgba(var(--highlight-color), 0.75) !important;
 }
 
@@ -145,7 +151,8 @@ span:has(span.dot) {
   }
 }
 
-.lyrics, .lyrics span {
+.lyrics,
+.lyrics span {
   padding: 7px 0;
 }
 
@@ -199,7 +206,7 @@ span:has(span.dot) {
   width: 100%;
   height: 30px;
   bottom: 0;
-  background-color: var(--background-color);
+  background-color: rgba(0, 0, 0, 0.25);
   padding: 13px 0 10px 0;
   z-index: 2;
 }

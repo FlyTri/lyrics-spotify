@@ -69,7 +69,9 @@ const writeContent = (obj, element) => {
 };
 const writeTranslates = () => {
   const lines = $All(".translated");
+  const highlight = $(".highlight");
 
+  if (highlight) scrollToCenter(highlight, false);
   if (lines.length) {
     lines.forEach((element) => element.remove());
     localStorage.setItem("translate", false);
@@ -102,14 +104,13 @@ const writeLyrics = () => {
     return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
 
   const translateBtn = $(".translate");
-  const lyricsToWrite = [...lyrics.data];
 
   switch (lyrics.type) {
     case "TEXT_SYNCED": {
       let p = document.createElement("p");
       p.classList.add("lyrics");
 
-      lyricsToWrite.forEach((obj, index) => {
+      lyrics.data.forEach((obj, index) => {
         if (obj.new) {
           append(".content", p);
           p = document.createElement("p");
@@ -121,12 +122,12 @@ const writeLyrics = () => {
         writeContent(obj, span);
         p.append(span);
 
-        if (!lyricsToWrite[index + 1]) append(".content", p);
+        if (!lyrics.data[index + 1]) append(".content", p);
       });
       break;
     }
     case "LINE_SYNCED": {
-      lyricsToWrite.forEach((obj, index) => {
+      lyrics.data.forEach((obj, index) => {
         const element = document.createElement("p");
         element.classList.add("lyrics", `index-${index}`);
         writeContent(obj, element);
@@ -135,7 +136,7 @@ const writeLyrics = () => {
       break;
     }
     case "NOT_SYNCED": {
-      lyricsToWrite.forEach((obj) => {
+      lyrics.data.forEach((obj) => {
         const element = document.createElement("p");
         element.classList.add("lyrics", "highlight");
         writeContent(obj, element);
@@ -174,7 +175,7 @@ const update = () => {
 
     return;
   }
-  if (lyrics.type === "NOT_SYNCED") return;
+  if (!lyrics || lyrics.type === "NOT_SYNCED") return;
   if (playing) clearHighlights();
 
   const now = spotify.position;
@@ -293,7 +294,7 @@ const handleData = async (data) => {
 
     const translateBtn = $(".translate");
 
-    changeColor();
+    changeColor(true);
     translateBtn.classList.add("disabled");
     setLyricsStatus("Đang tải...");
 

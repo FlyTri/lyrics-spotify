@@ -124,9 +124,7 @@ const getCurrentlyPlaying = async () =>
                 `<a href="https://open.spotify.com/artist/${id}" target="_blank">${name}</a>`
             )
             .join(", "),
-          image: SpotifySession
-            ? SpotifySession.thumbnail
-            : item.album.images[0].url,
+          image: SpotifySession?.thumbnail || item.album.images[0].url,
           album: item.album.name,
           id: item.id,
           get position() {

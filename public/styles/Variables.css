@@ -1,15 +1,16 @@
-:root {
+body {
   --green: #00ff59;
   --button-dim: #1aa34a;
   --discord-color: #2b2d31;
   --text-color: #c6d0f5;
 
-  --background-color: rgba(30, 30, 46);
-  --progress-bar-color: #427e9d;
-  --highlight-color: 0, 255, 89;
-  --lyrics-color: #9399b2;
+  --background-color: #4c4f69;
+  --highlight-color: 255, 255, 255;
+  --lyrics-color: rgba(255, 255, 255, 0.2);
   --translated-color: #f5e0dc;
+}
 
+.popup-msg {
   --level-success: #a6e3a1;
   --level-error: #f38ba8;
   --level-warning: #fab387;
