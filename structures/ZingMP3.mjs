@@ -1,15 +1,11 @@
 import axios from "axios";
-import { SocksProxyAgent } from "socks-proxy-agent";
 import crypto from "crypto";
 import { formatText, formatTime, omitUndefined, trim } from "../utils.mjs";
 
-const { PROXY, ZMP3_API_KEY, ZMP3_SECRET_KEY, ZMP3_VERSION } =
-  process.env;
+const { ZMP3_API_KEY, ZMP3_SECRET_KEY, ZMP3_VERSION } = process.env;
 
-const proxyAgent = PROXY ? new SocksProxyAgent(process.env.PROXY) : null;
 const instance = axios.create({
   baseURL: "https://zingmp3.vn/",
-  httpAgent: proxyAgent,
 });
 
 const createHash256 = (str) =>

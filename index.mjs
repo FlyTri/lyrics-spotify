@@ -3,7 +3,6 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import axios from "axios";
-import { SocksProxyAgent } from "socks-proxy-agent";
 import RedisManager from "./structures/Redis.mjs";
 import MongoDBManager from "./structures/MongoDB.mjs";
 import SourceManager from "./structures/SourceManager.mjs";
@@ -12,7 +11,6 @@ import { NO_RESULT } from "./utils.mjs";
 axios.defaults.timeout = 5000;
 axios.defaults.headers.common["User-Agent"] =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36";
-const proxyAgent = new SocksProxyAgent("socks4://171.254.1.190:1080");
 
 const { PORT } = process.env;
 const redis = new RedisManager();
