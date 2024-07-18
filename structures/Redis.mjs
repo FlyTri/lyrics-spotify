@@ -33,6 +33,7 @@ export default class Redis {
       .catch(() => null);
   }
   async get(key) {
+    return;
     if (!this.client.isReady) return;
 
     const data = await this.client

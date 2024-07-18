@@ -7,93 +7,109 @@ const LRC_LYRIC = /^((?:\[\d{2,}:\d{2}(?:\.\d{2,3})?\])+)(.*)$/;
 const QRC_LYRIC = /^\[(\d+),(\d+)\](.*)$/;
 const QRC_WORDS = /(.*?)\((\d*),(\d*)\)/g;
 
-export default class Parser {
-  /**
-   * @param {string} string
-   */
-  lrc(string) {
-    const lines = string.split(/\r?\n/);
-    const data = { metadata: [], lyrics: [] };
+/**
+ * @param {string} string
+ */
+export function lrc(string) {
+  const lines = string.split(/\r?\n/);
+  const data = { type: "LINE_SYNCED", metadata: [], lyrics: [] };
 
-    lines.forEach((line) => {
-      const metadata = METADATA.exec(line);
+  lines.forEach((line) => {
+    const metadata = METADATA.exec(line);
 
-      if (metadata)
-        return data.metadata.push({ key: metadata[0], value: metadata[1] });
+    if (metadata)
+      return data.metadata.push({ key: metadata[0], value: metadata[1] });
 
-      const lyric = LRC_LYRIC.exec(line);
+    const lyric = LRC_LYRIC.exec(line);
 
-      if (lyric) {
-        const times = lyric[1].slice(1, -1).split("][");
-        const text = formatText(trim(lyric[2]));
+    if (lyric) {
+      const times = lyric[1].slice(1, -1).split("][");
+      const text = formatText(trim(lyric[2]));
 
-        times.forEach((time) =>
-          data.lyrics.push({ text, time: formatTime(time) })
-        );
-      }
-    });
+      times.forEach((time) =>
+        data.lyrics.push({ text, time: formatTime(time) })
+      );
+    }
+  });
 
-    if (data.lyrics[0].time) data.lyrics.unshift({ time: 0, wait: true });
+  if (data.lyrics[0].time) data.lyrics.unshift({ time: 0, wait: true });
 
-    return data;
-  }
-  qrc(string) {
-    const lines = trim(string).split(/\r?\n/);
-    const data = { metadata: [], lyrics: [] };
-    let first = true;
-    let checkHeader = true;
+  return data;
+}
 
-    lines.forEach((line) => {
-      const metadata = METADATA.exec(line);
+/**
+ *
+ * @param {string} string
+ * @returns
+ */
+export function qrc(string) {
+  const lines = trim(string).split(/\r?\n/);
+  const data = { type: "TEXT_SYNCED", metadata: [], lyrics: [] };
+  let first = true;
+  let checkHeader = true;
 
-      if (metadata)
-        return data.metadata.push({ key: metadata[1], value: metadata[2] });
+  lines.forEach((line) => {
+    const metadata = METADATA.exec(line);
 
-      const lyric = QRC_LYRIC.exec(line);
+    if (metadata)
+      return data.metadata.push({ key: metadata[1], value: metadata[2] });
 
-      if (lyric) {
-        const [, start, duration, content] = lyric;
+    const lyric = QRC_LYRIC.exec(line);
 
-        if (checkHeader) {
-          if (first) {
-            first = false;
+    if (lyric) {
+      const [, start, duration, content] = lyric;
 
-            return;
-          }
-          if (content.includes(":") || content.includes("：")) return;
+      if (checkHeader) {
+        if (first) {
+          first = false;
 
-          checkHeader = false;
+          return;
         }
+        if (content.includes(":") || content.includes("：")) return;
 
-        const words = [...content.matchAll(QRC_WORDS)];
-
-        words.forEach(([, text, ws], i) => {
-          if (!text) return;
-
-          const space = words[i + 1]?.[1] === " " ? " " : "";
-          const before = data.lyrics.findLast((obj) => obj.new);
-
-          if (i === 0 && before && ws - before.lineEnd >= 3000)
-            data.lyrics.push({
-              time: before.lineEnd,
-              wait: true,
-              new: true,
-            });
-
-          data.lyrics.push(
-            omitUndefined({
-              text: formatText(text) + space,
-              time: +ws,
-              new: i === 0 || undefined,
-              lineEnd: i === 0 ? +start + +duration : undefined,
-            })
-          );
-        });
+        checkHeader = false;
       }
-    });
 
-    if (data.lyrics[0].time) data.lyrics.unshift({ time: 0, wait: true });
+      const words = [...content.matchAll(QRC_WORDS)];
 
-    return data;
-  }
+      words.forEach(([, text, ws], i) => {
+        if (!text) return;
+
+        const space = words[i + 1]?.[1] === " " ? " " : "";
+        const before = data.lyrics.findLast((obj) => obj.new);
+
+        if (i === 0 && before && ws - before.lineEnd >= 3000)
+          data.lyrics.push({
+            time: before.lineEnd,
+            wait: true,
+            new: true,
+          });
+
+        data.lyrics.push(
+          omitUndefined({
+            text: formatText(text) + space,
+            time: +ws,
+            new: i === 0 || undefined,
+            lineEnd: i === 0 ? +start + +duration : undefined,
+          })
+        );
+      });
+    }
+  });
+
+  if (data.lyrics[0].time) data.lyrics.unshift({ time: 0, wait: true });
+
+  return data;
+}
+
+/**
+ * @param {string} string
+ */
+export function plain(string) {
+  const splitted = string.split(/\r?\n/);
+  const parsed = splitted.map((text) => ({
+    text: formatText(text) || "",
+  }));
+
+  return { type: "NOT_SYNCED", metadata: [], lyrics: parsed };
 }

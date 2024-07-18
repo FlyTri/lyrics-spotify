@@ -1,7 +1,8 @@
 body {
   overflow: hidden;
+  background-repeat: no-repeat;
   background-size: 100% 100%;
-  backdrop-filter: blur(100px) saturate(2.5) brightness(0.5) contrast(0.9);
+  backdrop-filter: blur(100px) saturate(2.5) brightness(0.5) contrast(0.75);
 }
 
 .dot {

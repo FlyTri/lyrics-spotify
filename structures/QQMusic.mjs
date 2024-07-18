@@ -1,13 +1,7 @@
 import axios from "axios";
-import {
-  INSTRUMENTAL,
-  DJ,
-  formatText,
-  formatTime,
-  omitUndefined,
-  trim,
-} from "../utils.mjs";
+import { INSTRUMENTAL, DJ, formatText, formatTime, trim } from "../utils.mjs";
 import { qrc as QRC } from "smart-lyric";
+import { lrc as parseLRC, qrc as parseQRC, plain } from "./Parser.mjs";
 
 const instance = axios.create({
   baseURL: "https://u.y.qq.com/cgi-bin",
@@ -19,7 +13,7 @@ instance.interceptors.response.use(
 );
 
 export default class QQMusic {
-  async #getID(name, artist) {
+  async #getID(name, artists) {
     const data = await instance.post("https://u.y.qq.com/cgi-bin/musicu.fcg", {
       comm: {
         ct: "19",
@@ -32,7 +26,7 @@ export default class QQMusic {
         param: {
           num_per_page: 5,
           page_num: 1,
-          query: `${name} - ${artist}`,
+          query: `${name} - ${artists}`,
           search_type: 0,
         },
       },
@@ -41,7 +35,7 @@ export default class QQMusic {
     if (!data) return;
 
     const songs = data.req.data.body.song.list;
-    const sortedArtists = String(artist.toUpperCase().split(", ").sort());
+    const sortedArtists = String(artists.toUpperCase().split(", ").sort());
 
     if (!songs.length) return;
 
@@ -59,8 +53,8 @@ export default class QQMusic {
 
     return song?.id;
   }
-  async getLyrics({ name, artist }, id) {
-    const songID = id || (await this.#getID(name, artist));
+  async getLyrics({ name, artists }, id) {
+    const songID = id || (await this.#getID(name, artists));
 
     if (!songID) return;
 
@@ -96,12 +90,13 @@ export default class QQMusic {
       return INSTRUMENTAL;
 
     let parsed;
-    if (qrc) parsed = this.#parseTextSynced(decrypted);
+    if (qrc)
+      parsed = parseQRC(/LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1]);
     else {
       decrypted = trim(decrypted);
 
-      if (decrypted[0] === "[") parsed = this.#parseLineSynced(decrypted);
-      else parsed = this.#parseNotSynced(decrypted);
+      if (decrypted[0] === "[") parsed = parseLRC(decrypted);
+      else parsed = plain(decrypted);
     }
 
     const { type, lyrics } = parsed;
@@ -111,93 +106,6 @@ export default class QQMusic {
       data: lyrics,
       translated: [],
       source: "Cung cấp bởi QQ Music",
-    };
-  }
-
-  #parseNotSynced(decrypt) {
-    const splitted = decrypt.split(/\r?\n/);
-    const parsed = splitted.map((text) => ({
-      text: formatText(text) || "",
-    }));
-
-    return { type: "NOT_SYNCED", lyrics: parsed };
-  }
-  #parseTextSynced(decrypted) {
-    const lyric = /LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1];
-    const splitted = trim(lyric)
-      .replace(/\(\d+,\d+\)\(\d+,\d+\)/g, "")
-      .split(/\r?\n/);
-    let data = [];
-    let first = true;
-    let checkHeader = true;
-
-    splitted.forEach((line) => {
-      if (/^\[\s*(\d+)\s*,\s*(\d+)\s*\](.*)$/.test(line)) {
-        const [timetag, lineStart, lineDuration] = /\[(\d*),(\d*)\]/.exec(line);
-        const content = line.replace(timetag, "");
-
-        if (checkHeader) {
-          if (first) {
-            first = false;
-
-            return;
-          }
-          if (content.includes(":") || content.includes("：")) return;
-
-          checkHeader = false;
-        }
-
-        const words = [...content.matchAll(/(.*?)\((\d*),(\d*)\)/g)];
-
-        words.forEach(([, text, ws], i) => {
-          if (!text) return;
-
-          const space = words[i + 1]?.[1] === " " ? " " : "";
-          const before = data.findLast((obj) => obj.new);
-
-          if (i === 0 && before && ws - before.lineEnd >= 3000)
-            data.push({
-              time: before.lineEnd,
-              wait: true,
-              new: true,
-            });
-
-          data.push(
-            omitUndefined({
-              text: formatText(text) + space,
-              time: +ws,
-              new: i === 0 || undefined,
-              lineEnd: i === 0 ? +lineStart + +lineDuration : undefined,
-            })
-          );
-        });
-      }
-    });
-
-    if (data[0].time) data.unshift({ time: 0, wait: true });
-
-    return { type: "TEXT_SYNCED", lyrics: data };
-  }
-  #parseLineSynced(decrypted) {
-    const splitted = decrypted.split(/\r?\n/);
-    const data = [];
-
-    splitted.forEach((line) => {
-      const match = /^\[(\d+:\d+\.\d+)\](.*)$/.exec(line);
-
-      if (!match) return;
-
-      const [, time, content] = match;
-
-      data.push({
-        text: formatText(content),
-        time: formatTime(time.slice(1, -1)),
-      });
-    });
-
-    return {
-      type: "LINE_SYNCED",
-      lyrics: data,
     };
   }
 }

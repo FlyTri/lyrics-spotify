@@ -8,10 +8,13 @@
     "start": "node ."
   },
   "dependencies": {
+    "@sentry/node": "^8.18.0",
+    "@sentry/profiling-node": "^8.18.0",
     "aromanize": "^0.1.5",
     "axios": "^1.6.8",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
     "mongodb": "^6.7.0",
     "path": "^0.12.7",
     "pinyin-pro": "^3.22.2",

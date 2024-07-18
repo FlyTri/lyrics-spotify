@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="public/favicon.ico" alt="Logo"></img>
+    <img src="public/icon.svg" width="150" alt="Logo"></img>
     <a href="https://lyrics-spotify.onrender.com/"><h1>Lyrics Spotify</h1></a>
     <p>(Spotify Lyrics)</p>
 </div>
@@ -30,6 +30,9 @@ https://lyrics-spotify.onrender.com/callback
 - Tại đây, sẽ có ô [**Client ID**]
 - Chọn dòng chữ **View client secret** và đây là [**Client Secret**]
 ## Nguồn
+- Phông chữ:
+  + [Spotify](https://spotify.com/)
+  + [Apple](https://apple.com/)
 - Biểu tượng:
   + [FontAwesome](https://fontawesome.com/)
   + [Icons8](https://icons8.com/)

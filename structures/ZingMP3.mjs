@@ -1,5 +1,6 @@
 import axios from "axios";
 import crypto from "node:crypto";
+import { lrc as parseLRC } from "./Parser.mjs";
 import { formatText, formatTime, omitUndefined, trim } from "../utils.mjs";
 
 const { ZMP3_API_KEY, ZMP3_SECRET_KEY, ZMP3_VERSION } = process.env;
@@ -25,14 +26,14 @@ export default class ZingMP3 {
       })
       .catch(() => console.log("Failed to get ZingMP3 cookie"));
   }
-  async #getId({ name, artist, duration }) {
+  async #getId({ name, artists, duration }) {
     const date = Math.round(Date.now() / 1000);
     const path = "/api/v2/search";
 
     return instance
       .get(path, {
         params: {
-          q: `${name} - ${artist}`,
+          q: `${name} - ${artists}`,
           type: "song",
           page: 1,
           count: 5,
@@ -99,7 +100,7 @@ export default class ZingMP3 {
       if (lrc)
         return {
           type: "LINE_SYNCED",
-          data: this.#parseLineSynced(lrc),
+          data: parseLRC(lrc).lyrics,
           translated: [],
           source: "Cung cấp bởi ZingMP3",
         };
@@ -136,24 +137,5 @@ export default class ZingMP3 {
     if (lyrics[0].time) lyrics.unshift({ time: 0, wait: true });
 
     return lyrics;
-  }
-  #parseLineSynced(lrc) {
-    const splitted = lrc.split(/\r?\n/);
-    const data = [];
-
-    splitted.forEach((line) => {
-      const match = /^\[(\d+:\d+\.\d+)\](.*)$/.exec(line);
-
-      if (!match) return;
-
-      const [, time, content] = match;
-
-      data.push({
-        text: formatText(content),
-        time: formatTime(time.slice(1, -1)),
-      });
-    });
-
-    return data;
   }
 }

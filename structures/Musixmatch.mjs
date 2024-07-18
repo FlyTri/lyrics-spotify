@@ -1,5 +1,6 @@
 import axios from "axios";
 import fs from "fs";
+import { lrc as parseLRC } from "./Parser.mjs";
 import { INSTRUMENTAL, formatText, trim } from "../utils.mjs";
 
 const { tokens } = JSON.parse(fs.readFileSync("MusixmatchTokens.json"));
@@ -8,11 +9,12 @@ const instance = axios.create({
   headers: {
     authority: "apic-desktop.musixmatch.com",
     cookie: "x-mxm-token-guid=",
+    "User-Agent":
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Musixmatch/0.19.4 Chrome/58.0.3029.110 Electron/1.7.6 Safari/537.36",
   },
   params: {
     format: "json",
     app_id: "web-desktop-app-v1.0",
-    subtitle_format: "mxm",
   },
 });
 
@@ -107,19 +109,7 @@ export default class Musixmatch {
     }
 
     if (subtitle_list) {
-      const data = [];
-
-      JSON.parse(trim(subtitle_list[0].subtitle.subtitle_body)).map(
-        ({ text, time }) => {
-          const formatted = formatText(text);
-
-          data.push({
-            text: formatted || undefined,
-            time: time.total * 1000,
-            wait: formatted ? undefined : true,
-          });
-        }
-      );
+      const data = parseLRC(subtitle_list[0].subtitle.subtitle_body).lyrics;
 
       if (data[0].time) data.unshift({ time: 0, wait: true });
       if (data[data.length - 1].wait) data.pop();
@@ -149,16 +139,17 @@ export default class Musixmatch {
    * @param {{name: string, album: string, artist: string, id: string, duration: number}} param0
    * @returns {Promise<LyricsData | { message: string }>}
    */
-  async getLyrics({ name, album, artist, id, duration }) {
+  async getLyrics({ name, album, artists, id, duration }) {
     const data = await instance("/macro.subtitles.get", {
       params: {
         q_album: album,
-        q_artists: artist,
+        q_artists: artists,
         q_track: name,
-        track_spotify_id: "spotify:track:" + id,
+        track_spotify_id: id,
         q_duration: Math.round(duration / 1000),
         f_subtitle_length: Math.round(duration / 1000),
         namespace: "lyrics_richsynched",
+        subtitle_format: "lrc",
         optional_calls: "track.richsync",
       },
     });

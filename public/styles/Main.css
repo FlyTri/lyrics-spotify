@@ -17,6 +17,12 @@
 }
 
 @font-face {
+  font-family: "SFProText";
+  src: url("/fonts/SFProText-Regular.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
   font-family: "NotoColorEmoji";
   src: url("/fonts/NotoColorEmoji.ttf") format("truetype");
   font-display: swap;

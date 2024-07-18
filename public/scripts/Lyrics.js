@@ -175,7 +175,7 @@ const update = () => {
 
     return;
   }
-  if (!lyrics || lyrics.type === "NOT_SYNCED") return;
+  if (lyrics.type !== "TEXT_SYNCED" && lyrics.type !== "LINE_SYNCED") return;
   if (playing) clearHighlights();
 
   const now = spotify.position;
@@ -303,7 +303,7 @@ const handleData = async (data) => {
         name: data.name,
         id: data.id,
         album: data.album,
-        artist: data.artists,
+        artists: data.artists,
         duration: data.duration,
       })
       .then((response) => response.data)
