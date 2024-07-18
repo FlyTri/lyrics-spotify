@@ -8,6 +8,6 @@ export default class SourceManager {
     const musixmatch = new MusixmatchManager();
     const zingmp3 = new ZingMP3();
 
-    this.sources = { musixmatch, zingmp3 };
+    this.sources = { qq, musixmatch, zingmp3 };
   }
 }
