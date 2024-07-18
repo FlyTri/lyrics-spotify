@@ -22,17 +22,15 @@
   font-display: swap;
 }
 
-html {
-  height: 100%;
-}
-
 body {
   font-family: "SpotifyMix", system-ui;
   -webkit-font-smoothing: antialiased;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
   background-color: var(--background-color);
   color: var(--text-color);
-  height: 100%;
-  margin: 0;
   scroll-behavior: smooth;
   user-select: none;
 }

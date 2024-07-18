@@ -1,12 +1,14 @@
 <div align="center">
     <img src="public/favicon.ico" alt="Logo"></img>
+    <a href="https://lyrics-spotify.onrender.com/"><h1>Lyrics Spotify</h1></a>
+    <p>(Spotify Lyrics)</p>
 </div>
 
 ## Giới thiệu
-Xem lời bài hát ngay trên trình duyệt của bạn
+Xem lời bài hát ngay trên trình duyệt của bạn (nên dùng trình duyệt nhân Chromium để có trải nghiệm tốt nhất)
 
 > [!IMPORTANT]
-> Nếu thời gian của lời bài hát không chính xác, cài đặt [Media Session Server](https://github.com/FlyTri/media-sessions-server)
+> Nếu thời gian của lời bài hát không chính xác, cài đặt [Media Session Server](https://github.com/FlyTri/media-sessions-server) (Windows)
 
 ## Client ID, Client Secret
 > [!WARNING]
@@ -19,11 +21,8 @@ Thực hiện các bước sau:
    + App description
 - Tại ô **Redirect URIs**, nhập nội dung bên dưới và chọn nút **Add**
   
-```js
-[url]/callback
-
-// [url] là địa chỉ truy cập vào trang web, bao gồm http/https...
-// Ví dụ: https://example.com/callback
+```cpp
+https://lyrics-spotify.onrender.com/callback
 ```
 - Tiếp, đánh dấu vào ô **Web API** và điều khoản dịch vụ ở bên dưới
 - Chọn nút **Save** và chờ
@@ -36,7 +35,9 @@ Thực hiện các bước sau:
   + [Icons8](https://icons8.com/)
   + [Discord](https://discord.com/)
 - Lời bài hát:
+  + [QQ Music](https://y.qq.com/)
   + [Musixmatch](https://musixmatch.com/)
-- Một số thiết kế:
+  + [ZingMP3](https://zingmp3.vn/)
+- Design:
   + [Spotify](https://spotify.com/)
   + [Discord](https://discord.com/)

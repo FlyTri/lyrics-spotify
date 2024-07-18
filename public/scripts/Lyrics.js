@@ -74,7 +74,7 @@ const writeTranslates = () => {
   if (highlight) scrollToCenter(highlight, false);
   if (lines.length) {
     lines.forEach((element) => element.remove());
-    localStorage.setItem("translate", false);
+    localStorage.setItem("translate", "0");
   } else {
     $All(".lyrics").forEach((element) => {
       const translated = lyrics.translated.find(
@@ -89,9 +89,9 @@ const writeTranslates = () => {
         element.append(p);
       }
     });
-  }
 
-  localStorage.setItem("translate", true);
+    localStorage.setItem("translate", "1");
+  }
 };
 const writeLyrics = () => {
   $(".content").innerHTML = "";
@@ -153,7 +153,7 @@ const writeLyrics = () => {
 
   if (lyrics.translated.length) {
     translateBtn.classList.remove("disabled");
-    if (localStorage.getItem("translate") === "true") writeTranslates();
+    if (localStorage.getItem("translate") === "1") writeTranslates();
   }
 
   update();

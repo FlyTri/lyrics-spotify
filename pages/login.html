@@ -23,32 +23,26 @@
         font-display: swap;
       }
 
-      html {
-        height: 100%;
-      }
-
-      body,
-      .login-button {
-        font-family: "SpotifyMix", system-ui;
-      }
-
       body {
         display: flex;
         background-color: var(--background-color);
         justify-content: center;
         align-items: center;
-        min-height: 100%;
-        margin: 0;
       }
 
       .login-container {
-        position: absolute;
         background-color: var(--discord-color);
-        padding: 32px;
+        padding: 25px;
         border-radius: 3px;
         width: 400px;
         color: var(--text-color);
         box-sizing: border-box;
+        overflow-y: auto;
+        max-height: 100vh;
+      }
+
+      .login-button {
+        font-family: "SpotifyMix", system-ui;
       }
 
       img {
