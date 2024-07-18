@@ -1,8 +1,7 @@
-import "dotenv/config";
 import "./sentry.mjs";
 
-import * as Sentry from "@sentry/node";
 import express from "express";
+import * as Sentry from "@sentry/node";
 import { rateLimit } from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -25,7 +24,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 
-Sentry.setupExpressErrorHandler(app);
 app
   .use(
     rateLimit({
@@ -89,15 +87,20 @@ app
 
       res.send(cached || lyrics || NO_RESULT);
     } catch (error) {
-      console.log(error);
+      captureError(error);
 
       res.send({ message: "Đã xảy ra lỗi từ phía máy chủ 😔" });
     }
-  })
-  .listen(PORT, () => console.log(`Listening on port ${PORT}`));
+  });
 
-app.get("/debug-sentry", function mainHandler(req, res) {
-  throw new Error("My first Sentry error!");
-});
-// process.on("unhandledRejection", console.log);
-// process.on("uncaughtException", console.log);
+Sentry.setupExpressErrorHandler(app);
+
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+
+process.on("unhandledRejection", captureError);
+process.on("uncaughtException", captureError);
+
+function captureError(error) {
+  console.log(error);
+  Sentry.captureException(error);
+}
