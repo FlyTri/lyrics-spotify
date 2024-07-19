@@ -9,6 +9,7 @@ export default class MongoDB {
     });
 
     const date = Date.now();
+
     this.client.connect().then(() => {
       console.log(
         `Successfully connected to MongoDB database\n> Took ${
@@ -16,6 +17,7 @@ export default class MongoDB {
         }ms`
       );
     });
+
     this.client
       .on("error", (error) => {
         console.log(`MongoDB error: ${error.message}`);

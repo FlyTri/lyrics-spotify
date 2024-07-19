@@ -6,7 +6,7 @@ body {
 
   --background-color: #4c4f69;
   --highlight-color: 255, 255, 255;
-  --lyrics-color: rgba(255, 255, 255, 0.25);
+  --lyrics-color: rgba(255, 255, 255, 0.3);
   --translated-color: #f5e0dc;
 }
 

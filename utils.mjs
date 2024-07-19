@@ -64,7 +64,7 @@ export function formatText(text) {
       if (Chinese.test(word)) return pinyin(word);
       if (Korean.test(word)) return aromanize.romanize(word);
       if (isJapanese(word)) return toRomaji(word);
-      
+
       return word;
     })
     .join("");

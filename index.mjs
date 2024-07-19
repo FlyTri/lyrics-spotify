@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 import axios from "axios";
 import RedisManager from "./structures/Redis.mjs";
 import MongoDBManager from "./structures/MongoDB.mjs";
-import SourceManager from "./structures/SourceManager.mjs";
+import { sources } from "./structures/SourceManager.mjs";
 import { NO_RESULT } from "./utils.mjs";
 
 axios.defaults.timeout = 5000;
@@ -18,7 +18,6 @@ axios.defaults.headers.common["User-Agent"] =
 const { PORT } = process.env;
 const redis = new RedisManager();
 const mongodb = new MongoDBManager();
-const { sources } = new SourceManager();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,7 +31,9 @@ app
       message: { message: "Quá nhiều yêu cầu, vui lòng thử lại sau." },
     })
   )
-  .use(express.static(path.join(__dirname, "public")))
+  .use(express.static(path.join(__dirname, "public")));
+
+app
   .get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "pages", "index.html"));
   })
@@ -41,57 +42,73 @@ app
   })
   .get("/callback", (req, res) => {
     res.sendFile(path.join(__dirname, "pages", "callback.html"));
+  });
+
+app
+  .use(express.json({ limit: "1kb" }))
+  .use((error, req, res, next) => {
+    if (error.type === "entity.too.large") return res.sendStatus(413);
+
+    next();
   })
-  .use(express.json())
   .post("/api/lyrics", async (req, res) => {
     const { name, album, artists, id, duration } = req.body;
 
-    if (!name || !album || !artists || !id || !duration)
-      return res.sendStatus(400);
     if (
+      !name ||
+      !album ||
+      !artists ||
+      !id ||
+      !duration ||
       typeof name !== "string" ||
-      name.length < 1 ||
-      name.length > 500 ||
       typeof album !== "string" ||
-      album.length < 1 ||
-      album.length > 500 ||
       typeof artists !== "string" ||
-      artists.length < 1 ||
-      artists.length > 500 ||
       typeof id !== "string" ||
-      id.length !== 22 ||
       typeof duration !== "number" ||
-      duration < 1 ||
-      duration > 18000000
+      duration < 1
     )
       return res.sendStatus(400);
 
     res.setHeader("Content-Type", "application/json");
 
     try {
-      let cached = await redis.get(id);
-      let lyrics;
+      let lyrics = await redis.get(id);
 
-      if (!cached) {
-        if (!lyrics) lyrics = await mongodb.getLyrics(req.body, sources);
+      if (!lyrics) {
+        lyrics = await mongodb.getLyrics(req.body, sources);
 
-        if (!lyrics)
+        if (!lyrics) {
+          const lineSynced = [];
+          const notSynced = [];
+
           for (const source of Object.values(sources)) {
-            lyrics = await source.getLyrics(req.body);
+            const data = await source.getLyrics(req.body);
 
-            if (lyrics) break;
+            if (data) {
+              if (data.type === "TEXT_SYNCED") {
+                lyrics = data;
+
+                break;
+              }
+              if (data.type === "LINE_SYNCED") lineSynced.push(data);
+              if (data.type === "NOT_SYNCED") notSynced.push(data);
+            }
           }
+
+          if (!lyrics) lyrics = lineSynced[0] || notSynced[0];
+        }
 
         if (lyrics) redis.set(id, lyrics);
       }
 
-      res.send(cached || lyrics || NO_RESULT);
+      res.json(lyrics || NO_RESULT);
     } catch (error) {
       captureError(error);
 
       res.send({ message: "Đã xảy ra lỗi từ phía máy chủ 😔" });
     }
-  });
+  })
+  .all("*", (req, res) => res.sendStatus(404));
 
 Sentry.setupExpressErrorHandler(app);
 
@@ -101,6 +118,7 @@ process.on("unhandledRejection", captureError);
 process.on("uncaughtException", captureError);
 
 function captureError(error) {
-  console.log(error);
+  if (process.env.NODE_ENV !== "production") console.log(error);
+
   Sentry.captureException(error);
 }

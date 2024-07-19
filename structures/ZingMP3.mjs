@@ -1,7 +1,7 @@
 import axios from "axios";
 import crypto from "node:crypto";
 import { lrc as parseLRC } from "./Parser.mjs";
-import { formatText, formatTime, omitUndefined, trim } from "../utils.mjs";
+import { formatText, omitUndefined, trim } from "../utils.mjs";
 
 const { ZMP3_API_KEY, ZMP3_SECRET_KEY, ZMP3_VERSION } = process.env;
 

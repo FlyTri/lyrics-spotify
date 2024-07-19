@@ -27,7 +27,7 @@ const setLyricsStatus = (text) => {
   $(".content").append(element);
 };
 const writeContent = (obj, element) => {
-  if (obj.wait) {
+  if (obj.wait || !obj.text && typeof obj.time === "number") {
     const wait = lyrics.data[lyrics.data.indexOf(obj) + 1].time - obj.time;
     const delay = wait / 3;
     const offset = spotify.position - obj.time;
@@ -208,48 +208,42 @@ const update = () => {
 
   if (!playing) return;
 
-  switch (lyrics.type) {
-    case "TEXT_SYNCED":
-    case "LINE_SYNCED": {
-      currentLine.parentElement.classList.add("active");
+  currentLine.parentElement.classList.add("active");
 
-      nextLyrics.forEach((lyric, index) => {
-        index += currIndex + 1;
+  nextLyrics.forEach((lyric, index) => {
+    index += currIndex + 1;
 
-        const newElement = lyric.new || lyrics.type === "LINE_SYNCED";
-        const currentLine = $(`.index-${index}`);
+    const newElement = lyric.new || lyrics.type === "LINE_SYNCED";
+    const currentLine = $(`.index-${index}`);
 
-        if (lyric.lineEnd)
-          timeouts.push(
-            setTimeout(
-              () => currentLine.parentElement.classList.remove("active"),
-              lyric.lineEnd - now
-            )
-          );
+    if (lyric.lineEnd)
+      timeouts.push(
+        setTimeout(
+          () => currentLine.parentElement.classList.remove("active"),
+          lyric.lineEnd - now
+        )
+      );
 
-        timeouts.push(
-          setTimeout(() => {
-            if (newElement) clearHighlights();
+    timeouts.push(
+      setTimeout(() => {
+        if (newElement) clearHighlights();
 
-            currentLine.parentElement.classList.add("active");
-            currentLine.classList.add("highlight");
+        currentLine.parentElement.classList.add("active");
+        currentLine.classList.add("highlight");
 
-            if (lyric.wait) updateInterlude(currentLine, index);
-            if (newElement) scrollToCenter(currentLine);
-          }, lyric.time - now)
-        );
-      });
-      break;
-    }
-  }
+        if (lyric.wait) updateInterlude(currentLine, index);
+        if (newElement) scrollToCenter(currentLine);
+      }, lyric.time - now)
+    );
+  });
 };
 const handleData = async (data) => {
   if (!data) return;
 
   clearTimeouts();
   clearHighlights();
+  $All(".active").forEach((element) => element.classList.remove("active"));
   $All(".dot").forEach((element) => {
-    element.classList.remove("active");
     element.removeAttribute("style");
     element.removeAttribute("ended");
   });

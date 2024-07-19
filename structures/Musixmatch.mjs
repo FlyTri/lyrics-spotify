@@ -27,7 +27,7 @@ instance.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(null)
 );
 instance.interceptors.response.use(
   (response) => response.data,
@@ -168,9 +168,11 @@ export default class Musixmatch {
    * @returns {Promise<Array<{ original: string, text: string }> | null>}
    */
   async translate(id, language) {
+    if (language === "vi") return [];
+
     const data = await instance("/crowd.track.translations.get", {
       params: {
-        selected_language: language === "vi" ? "en" : "vi",
+        selected_language: "vi",
         comment_format: "text",
         track_id: id,
       },

@@ -33,6 +33,7 @@ export function lrc(string) {
   });
 
   if (data.lyrics[0].time) data.lyrics.unshift({ time: 0, wait: true });
+  if (!data.lyrics[data.lyrics.length - 1].text) data.lyrics.pop();
 
   return data;
 }
@@ -98,6 +99,7 @@ export function qrc(string) {
   });
 
   if (data.lyrics[0].time) data.lyrics.unshift({ time: 0, wait: true });
+  if (!data.lyrics[data.lyrics.length - 1].text) data.lyrics.pop();
 
   return data;
 }
@@ -110,6 +112,8 @@ export function plain(string) {
   const parsed = splitted.map((text) => ({
     text: formatText(text) || "",
   }));
+
+  if (!parsed[parsed.length - 1].text) parsed.pop();
 
   return { type: "NOT_SYNCED", metadata: [], lyrics: parsed };
 }
