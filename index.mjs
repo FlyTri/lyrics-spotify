@@ -69,8 +69,6 @@ app
     )
       return res.sendStatus(400);
 
-    res.setHeader("Content-Type", "application/json");
-
     try {
       let lyrics = await redis.get(id);
 
@@ -105,7 +103,7 @@ app
     } catch (error) {
       captureError(error);
 
-      res.send({ message: "Đã xảy ra lỗi từ phía máy chủ 😔" });
+      res.json({ message: "Đã xảy ra lỗi từ phía máy chủ 😔" });
     }
   })
   .all("*", (req, res) => res.sendStatus(404));
