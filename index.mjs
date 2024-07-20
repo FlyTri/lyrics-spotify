@@ -73,7 +73,7 @@ app
       let lyrics = await redis.get(id);
 
       if (!lyrics) {
-        lyrics = await mongodb.getLyrics(req.body, sources);
+        lyrics = false; // await mongodb.getLyrics(req.body, sources);
 
         if (!lyrics) {
           const lineSynced = [];

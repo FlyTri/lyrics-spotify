@@ -2,7 +2,7 @@ let client_id = localStorage.getItem("client_id") || "";
 let client_secret = localStorage.getItem("client_secret") || "";
 let token = JSON.parse(localStorage.getItem("token"));
 
-const getToken = async (authCode = false) => {
+async function getToken(authCode = false) {
   const requestBody = new URLSearchParams();
 
   if (authCode) {
@@ -37,16 +37,16 @@ const getToken = async (authCode = false) => {
     .catch((error) =>
       prompt(`Không thể lấy token. Lỗi:`, JSON.stringify(error.response.data))
     );
-};
-const request = async (path) => {
+}
+async function request(path) {
   if (Date.now() >= token.expires_at) await getToken();
 
   return axios.get(`https://api.spotify.com/v1/${path}`, {
     headers: { Authorization: `Bearer ${token.access_token}` },
   });
-};
-const getCurrentlyPlaying = async () =>
-  request("me/player/currently-playing")
+}
+async function getCurrentlyPlaying() {
+  return request("me/player/currently-playing")
     .then(async (response) => {
       if (response.status === 204) return { playing: false };
 
@@ -75,14 +75,7 @@ const getCurrentlyPlaying = async () =>
 
       if (defaultData.type === "track") {
         const artists = item.artists.map((artist) => artist.name).join(", ");
-        const mediaSession = await axios("http://127.0.0.1:8170/sessions")
-          .then((response) => response.data)
-          .catch(() => null);
-        const SpotifySession = mediaSession
-          ? mediaSession.sessions.find(
-              (session) => session.source === "Spotify.exe"
-            )
-          : null;
+        const SpotifySession = await getSpotifySession();
         const valenceEmoji = await request(`audio-features/${item.id}`)
           .then(({ data }) => {
             const valence = data.valence;
@@ -159,4 +152,4 @@ const getCurrentlyPlaying = async () =>
         type: "error",
       };
     });
-const seekTo = (position) => {};
+}

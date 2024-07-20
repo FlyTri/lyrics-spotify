@@ -19,8 +19,11 @@ export const DJ = {
  @returns {string}
  */
 export function formatText(text) {
+  console.log(text);
   if (!text) return "";
 
+  const ignore =
+    /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?° àáãạảăắằẳẵặâấầẩẫậèéẹẻẽêềếểễệđìíĩỉịòóõọỏôốồổỗộơớờởỡợùúũụủưứừửữựỳỵỷỹýÀÁÃẠẢĂẮẰẲẴẶÂẤẦẨẪẬÈÉẸẺẼÊỀẾỂỄỆĐÌÍĨỈỊÒÓÕỌỎÔỐỒỔỖỘƠỚỜỞỠỢÙÚŨỤỦƯỨỪỬỮỰỲỴỶỸÝ]*$/;
   const characters = [
     ["（", "("],
     ["）", ")"],
@@ -51,6 +54,8 @@ export function formatText(text) {
     ["９", "9"],
   ];
 
+  if (ignore.test(text)) return text;
+
   characters.forEach(([from, to]) => {
     text = text.replaceAll(from, to);
   });
@@ -61,8 +66,9 @@ export function formatText(text) {
 
   return words
     .map((word) => {
-      if (Chinese.test(word)) return pinyin(word);
-      if (Korean.test(word)) return aromanize.romanize(word);
+      if (ignore.test(word)) return word;
+      if (Chinese.test(word)) return pinyin(word, { separator: " " });
+      if (Korean.test(word)) return aromanize.hangulToLatin(word);
       if (isJapanese(word)) return toRomaji(word);
 
       return word;

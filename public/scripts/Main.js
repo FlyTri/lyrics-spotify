@@ -4,12 +4,10 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   setTimeout(async () => {
     $(".loader-screen").remove();
 
-    if (navigator.userAgent.includes("Windows NT 1"))
-      axios("http://127.0.0.1:8170/", { timeout: 500 }).catch(() =>
-        showMessage(
-          "Mẹo: Cài đặt Media Session Server giúp đồng bộ thời gian chính xác hơn",
-          "https://github.com/FlyTri/media-session-server"
-        )
+    if (navigator.userAgent.includes("Windows NT 1") && !(await checkMSS()))
+      showMessage(
+        "Mẹo: Cài đặt Media Session Server giúp đồng bộ thời gian chính xác hơn",
+        "https://github.com/FlyTri/media-session-server"
       );
   }, 500);
 
@@ -28,7 +26,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
 
   if (!localStorage.getItem("count")) localStorage.setItem("count", 0);
 
-  $(".theme").addEventListener("click", changeColor);
+  $(".theme").addEventListener("click", () => changeBackground());
 
   $(".fullscreen").addEventListener("click", async () => {
     if (document.fullscreenElement) {
@@ -66,10 +64,6 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     $(".c-down").classList.remove("disabled");
     update(true);
   });
-
-  document
-    .querySelector(".content")
-    .addEventListener("click", async (event) => {});
 
   $(".logout").addEventListener("click", () => {
     localStorage.removeItem("token");

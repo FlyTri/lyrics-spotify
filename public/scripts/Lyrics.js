@@ -288,7 +288,7 @@ const handleData = async (data) => {
 
     const translateBtn = $(".translate");
 
-    changeColor(true);
+    changeBackground(true);
     translateBtn.classList.add("disabled");
     setLyricsStatus("Đang tải...");
 
