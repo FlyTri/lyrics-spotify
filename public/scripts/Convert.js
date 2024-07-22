@@ -14,24 +14,43 @@ async function initKuromoji() {
   return new Promise((resolve, reject) => {
     const dicPath = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict";
     const originalOpen = XMLHttpRequest.prototype.open;
+    let count = 0;
 
     XMLHttpRequest.prototype.open = function (method, url, async) {
-      if (url.startsWith(dicPath)) {
-        url = url.replace("https:/", "https://");
+      if (url.startsWith(dicPath.replace("https://", "https:/"))) {
+        this.onreadystatechange = () => {
+          if (this.readyState === 4 && this.status === 200) {
+            document.querySelector(
+              ".loading-status"
+            ).textContent = `Building dictionary (${++count + 1}/12)`;
+          }
+        };
+
+        originalOpen.call(
+          this,
+          method,
+          url.replace("https:/", "https://"),
+          async
+        );
+      } else {
+        originalOpen.call(this, method, url, async);
       }
-      originalOpen.call(this, method, url, async);
     };
 
     kuromoji.builder({ dicPath }).build((error, tokenizer) => {
       if (error) {
-        console.error(error);
-        $(".loading-status").textContent = `Build failed: ${error}`;
-        return reject(error);
+        document.querySelector(
+          ".loading-status"
+        ).textContent = `Build failed: ${error}`;
+
+        resolve(false);
+      } else {
+        analyzer = tokenizer;
+
+        resolve(true);
       }
 
-      analyzer = tokenizer;
       XMLHttpRequest.prototype.open = originalOpen;
-      resolve(true);
     });
   });
 }
