@@ -11,7 +11,7 @@ const lang = { ja: "Tiếng Nhật", ko: "Tiếng Hàn", zh: "Tiếng Trung" };
 let analyzer;
 
 async function initKuromoji() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const dicPath = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict";
     const originalOpen = XMLHttpRequest.prototype.open;
     let count = 0;
@@ -93,7 +93,9 @@ async function convert() {
           p.textContent = kuroshiroConverter(tokens);
           break;
         case "zh":
-          p.textContent = pinyinPro.pinyin(element.textContent);
+          p.textContent = pinyinPro.pinyin(element.textContent, {
+            seperator: "-",
+          });
           break;
       }
 
