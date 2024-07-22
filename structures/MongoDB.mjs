@@ -43,7 +43,7 @@ export default class MongoDB {
   async getLyrics(options, sources) {
     if (!connections[0].readyState) return;
 
-    const db = await Lyrics.findOne({ id: options.id })
+    const db = await Lyrics.findOne({ id: String(options.id) })
       .exec()
       .catch(() => null);
 
