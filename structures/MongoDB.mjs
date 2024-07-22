@@ -1,7 +1,7 @@
 import { connect, connections, model, Schema } from "mongoose";
 
 const schema = new Schema({
-  id: { type: String, required: true },
+  id: { type: String, required: true, match: /^[A-Za-z0-9]{22}$/ },
   provider: {
     type: String,
     enum: ["qq", "musixmatch", "zingmp3"],
