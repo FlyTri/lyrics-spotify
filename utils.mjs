@@ -15,7 +15,7 @@ export const DJ = {
  @returns {string}
  */
 export function formatText(text) {
-  [
+  const characters = [
     ["（", "("],
     ["）", ")"],
     ["【", "["],

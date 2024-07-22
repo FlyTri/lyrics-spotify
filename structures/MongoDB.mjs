@@ -1,31 +1,38 @@
-import { MongoClient } from "mongodb";
+import { connect, connections, model, Schema } from "mongoose";
+
+const schema = new Schema({
+  id: { type: String, required: true },
+  provider: {
+    type: String,
+    enum: ["qq", "musixmatch", "zingmp3"],
+    required: true,
+  },
+  songId: { type: Number },
+});
+const Lyrics = model("Lyrics", schema);
 
 export default class MongoDB {
   constructor() {
-    this.client = new MongoClient(process.env.MONGODB_URI, {
-      compressors: "snappy",
-      retryReads: true,
-      retryWrites: false,
-    });
-
     const date = Date.now();
 
-    this.client.connect().then(() => {
+    this.client = connect(process.env.MONGODB_URI).then(() =>
       console.log(
         `Successfully connected to MongoDB database\n> Took ${
           Date.now() - date
         }ms`
-      );
-    });
+      )
+    );
 
-    this.client
+    connections[0]
       .on("error", (error) => {
         console.log(`MongoDB error: ${error.message}`);
       })
-      .on("close", () => {
+      .on("disconnected", () => {
         console.log("Disconnected from MongoDB database");
+      })
+      .on("reconnected", () => {
+        console.log("Successfully reconnected to MongoDB database");
       });
-    this.collection = this.client.db("lyrics-spotify").collection("Lyrics");
   }
   /**
    *
@@ -34,10 +41,10 @@ export default class MongoDB {
    * @returns
    */
   async getLyrics(options, sources) {
-    if (!this.client.topology) return;
+    if (!connections[0].readyState) return;
 
-    const db = await this.collection
-      .findOne({ id: options.id })
+    const db = await Lyrics.findOne({ id: options.id })
+      .exec()
       .catch(() => null);
 
     if (!db) return;
