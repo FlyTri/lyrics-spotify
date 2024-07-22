@@ -33,7 +33,11 @@ app.use(
 
 app
   .use((req, res, next) => {
-    if (req.url.startsWith("/fonts") || req.url.startsWith("/icons"))
+    if (
+      req.url.startsWith("/fonts") ||
+      req.url.startsWith("/icons") ||
+      req.url.startsWith("/data")
+    )
       res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
 
     next();

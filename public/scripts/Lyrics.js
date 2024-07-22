@@ -123,7 +123,7 @@ const writeLyrics = () => {
   element.textContent = lyrics.source;
   append(".content", element);
 
-  if (localStorage.getItem("convert") === "1") convert();
+  if (localStorage.getItem("convert") === "1" && needConvert()) convert();
 
   update();
 };
@@ -271,7 +271,7 @@ const handleData = async (data) => {
       .then((response) => response.data)
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
 
-    if (needConvert(lyrics.data)) $(".convert").classList.remove("disabled");
+    if (needConvert()) $(".convert").classList.remove("disabled");
 
     return writeLyrics();
   }

@@ -1,8 +1,10 @@
 if (!localStorage.getItem("token")) window.location.href = "/login";
 
 window.document.addEventListener("DOMContentLoaded", async () => {
-  $(".loading-status").textContent = "Loading dictionary";
-  await initKuroshiro();
+  $(".loading-status").textContent = "Building dictionary";
+  const loadKuroshiro = await initKuromoji();
+
+  if (!loadKuroshiro) return;
 
   $(".loader-screen").remove();
 

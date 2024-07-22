@@ -1,0 +1,1 @@
+HangulConverter=t=>KOREAN.test(t)?t.split("").reduce(((t,r)=>{const e=r.charCodeAt(0);if(e>=44032&&e<=55203){const r=Math.floor((e-44032)/588),o=(e-44032)%588,a=Math.floor(o/28),n=o%28;return t+" "+KROMAN.headj[r]+KROMAN.bodyj[a]+KROMAN.tailj[n]}return t+r}),""):t;
