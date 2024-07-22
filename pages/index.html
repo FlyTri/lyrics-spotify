@@ -16,9 +16,23 @@
     />
     <meta name="author" content="FlyTri" />
 
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/simplebar@6.2.7/dist/simplebar.min.css"
+      integrity="sha256-plFwFf/3EkfLQVO1lfLsgE+e95PitSEiMV9kjUEE+kg="
+      crossorigin="anonymous"
+    />
+
     <link rel="stylesheet" href="styles/Variables.css" />
     <link rel="stylesheet" href="styles/Main.css" />
     <link rel="stylesheet" href="styles/Index.css" />
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/simplebar@6.2.7/dist/simplebar.min.js"
+      integrity="sha256-jeLOVof90p8o+8jUx0ypL0c0qanCHFD7/VUIvX/WJAU="
+      crossorigin="anonymous"
+      defer
+    ></script>
 
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"
@@ -32,25 +46,51 @@
       crossorigin="anonymous"
       defer
     ></script>
+    <!-- ??? -->
     <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.4.0/color-thief.min.js"
-      integrity="sha512-r2yd2GP87iHAsf2K+ARvu01VtR7Bs04la0geDLbFlB/38AruUbA5qfmtXwXx6FZBQGJRogiPtEqtfk/fnQfaYA=="
+      src="https://cdn.jsdelivr.net/npm/kuroshiro@1.2.0/dist/kuroshiro.min.js"
+      integrity="sha256-4+YJNVRJsd209WJTQCqn/FRHQ98zRgKOVqEh8D0HF+Y="
       crossorigin="anonymous"
       defer
     ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/kuroshiro-analyzer-kuromoji@1.1.0/dist/kuroshiro-analyzer-kuromoji.min.js"
+      integrity="sha256-v4lO37aQilWY5ufo/4xwxe+Vpj0SNcJSc2taqDjL/tE="
+      crossorigin="anonymous"
+      defer
+    ></script>
+    <!-- ??? -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/wanakana.min.js"
+      integrity="sha256-eBl5MclycT+bEiCc+mq5TqLiDQBwbvMyf3739kt0v2M="
+      crossorigin="anonymous"
+      defer
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/pinyin-pro/3.23.1/index.js"
+      integrity="sha512-PbnWZOiPEnY+rhohKRFBaEATMeE3xa5hCmSKxF+R6yHrbiRC/zAg09X0mq89xRQ5gyNrra14QexoxnFAZr/Nmw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+      defer
+    ></script>
+
     <script src="scripts/MSS.js" defer></script>
     <script src="scripts/Main.js" defer></script>
     <script src="scripts/General.js" defer></script>
     <script src="scripts/Account.js" defer></script>
     <script src="scripts/Background.js" defer></script>
     <script src="scripts/Lyrics.js" defer></script>
+    <script src="scripts/Convert.js" defer></script>
   </head>
 
   <body>
     <div class="loader-screen">
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
+      <div class="dots">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+      <p class="loading-status">Loading</p>
     </div>
 
     <div class="sticky-header">
@@ -77,8 +117,8 @@
           <img class="fullscreen-icon" src="icons/fullscreen.svg" alt />
           <img class="compress-icon" src="icons/compress.svg" alt hidden />
         </div>
-        <div class="control-button translate disabled">
-          <img src="icons/translate.svg" alt />
+        <div class="control-button convert disabled">
+          <img src="icons/hiragana.svg" alt />
         </div>
         <div class="control-button c-down">
           <img src="icons/down.svg" alt />

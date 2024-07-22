@@ -50,6 +50,7 @@ function showMessage(msg, link, level = "info") {
   if (link) popup.innerHTML = `<a href="${link}" target="_blank">${msg}</a>`;
   else popup.textContent = msg;
   popup.style.backgroundColor = getProperty(`--level-${level}`);
+  void popup.offsetWidth;
 
   popup.classList.add("animatePopup");
 

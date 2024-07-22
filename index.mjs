@@ -23,14 +23,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 
+app.use(
+  rateLimit({
+    windowMs: 1000,
+    limit: 100,
+    message: { message: "Quá nhiều yêu cầu, vui lòng thử lại sau." },
+  })
+);
+
 app
-  .use(
-    rateLimit({
-      windowMs: 1000,
-      limit: 100,
-      message: { message: "Quá nhiều yêu cầu, vui lòng thử lại sau." },
-    })
-  )
+  .use((req, res, next) => {
+    if (req.url.startsWith("/fonts") || req.url.startsWith("/icons"))
+      res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+
+    next();
+  })
   .use(express.static(path.join(__dirname, "public")));
 
 app
@@ -73,11 +80,12 @@ app
       let lyrics = await redis.get(id);
 
       if (!lyrics) {
-        lyrics = false; // await mongodb.getLyrics(req.body, sources);
+        lyrics = await mongodb.getLyrics(req.body, sources);
 
         if (!lyrics) {
           const lineSynced = [];
           const notSynced = [];
+          const other = [];
 
           for (const source of Object.values(sources)) {
             const data = await source.getLyrics(req.body);
@@ -89,11 +97,12 @@ app
                 break;
               }
               if (data.type === "LINE_SYNCED") lineSynced.push(data);
-              if (data.type === "NOT_SYNCED") notSynced.push(data);
+              else if (data.type === "NOT_SYNCED") notSynced.push(data);
+              else other.push(data);
             }
           }
 
-          if (!lyrics) lyrics = lineSynced[0] || notSynced[0];
+          if (!lyrics) lyrics = lineSynced[0] || notSynced[0] || other[0];
         }
 
         if (lyrics) redis.set(id, lyrics);

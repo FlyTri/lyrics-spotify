@@ -1,7 +1,3 @@
-import { isJapanese, toRomaji, tokenize } from "wanakana";
-import { pinyin } from "pinyin-pro";
-import aromanize from "aromanize";
-
 export const NO_RESULT = {
   type: "NO_RESULT",
 };
@@ -19,11 +15,6 @@ export const DJ = {
  @returns {string}
  */
 export function formatText(text) {
-  console.log(text);
-  if (!text) return "";
-
-  const ignore =
-    /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?° àáãạảăắằẳẵặâấầẩẫậèéẹẻẽêềếểễệđìíĩỉịòóõọỏôốồổỗộơớờởỡợùúũụủưứừửữựỳỵỷỹýÀÁÃẠẢĂẮẰẲẴẶÂẤẦẨẪẬÈÉẸẺẼÊỀẾỂỄỆĐÌÍĨỈỊÒÓÕỌỎÔỐỒỔỖỘƠỚỜỞỠỢÙÚŨỤỦƯỨỪỬỮỰỲỴỶỸÝ]*$/;
   const characters = [
     ["（", "("],
     ["）", ")"],
@@ -42,6 +33,8 @@ export function formatText(text) {
     ["〜", "~"],
     ["·", "•"],
     ["・", "•"],
+    ["「", '"'],
+    ["」", '"'],
     ["０", "0"],
     ["１", "1"],
     ["２", "2"],
@@ -54,26 +47,11 @@ export function formatText(text) {
     ["９", "9"],
   ];
 
-  if (ignore.test(text)) return text;
-
   characters.forEach(([from, to]) => {
     text = text.replaceAll(from, to);
   });
 
-  const words = tokenize(text);
-  const Chinese = /\p{Script=Han}/u;
-  const Korean = /\p{Script=Hangul}/u;
-
-  return words
-    .map((word) => {
-      if (ignore.test(word)) return word;
-      if (Chinese.test(word)) return pinyin(word, { separator: " " });
-      if (Korean.test(word)) return aromanize.hangulToLatin(word);
-      if (isJapanese(word)) return toRomaji(word);
-
-      return word;
-    })
-    .join("");
+  return text;
 }
 
 export function formatTime(time) {

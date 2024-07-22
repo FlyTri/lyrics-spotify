@@ -11,7 +11,7 @@ const QRC_WORDS = /(.*?)\((\d*),(\d*)\)/g;
  * @param {string} string
  */
 export function lrc(string) {
-  const lines = string.split(/\r?\n/);
+  const lines = trim(string).split(/\r?\n/);
   const data = { type: "LINE_SYNCED", metadata: [], lyrics: [] };
 
   lines.forEach((line) => {
@@ -24,7 +24,7 @@ export function lrc(string) {
 
     if (lyric) {
       const times = lyric[1].slice(1, -1).split("][");
-      const text = formatText(trim(lyric[2]));
+      const text = formatText(lyric[2]).trim();
 
       times.forEach((time) =>
         data.lyrics.push({ text, time: formatTime(time) })
@@ -60,6 +60,7 @@ export function qrc(string) {
     if (lyric) {
       const [, start, duration, content] = lyric;
 
+      if (!content) return;
       if (checkHeader) {
         if (first) {
           first = false;

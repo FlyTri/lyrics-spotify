@@ -16,6 +16,7 @@ body {
 .loader-screen {
   position: fixed;
   display: flex;
+  flex-direction: column;
   background-color: var(--discord-color);
   width: 100%;
   height: 100%;
@@ -24,24 +25,30 @@ body {
   align-items: center;
 }
 
-.loader-screen > .dot {
-  background-color: var(--text-color);
-  width: 20px;
-  height: 20px;
-  animation: load 1.5s infinite;
+.dots {
+  animation: load 5s infinite;
 }
 
 @keyframes load {
-  0%,
-  100% {
-    width: 20px;
-    height: 20px;
-  }
   50% {
-    width: 25px;
-    height: 25px;
-    margin: 7.5px;
+    transform: scale(0.5);
   }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.dots > .dot {
+  background-color: var(--text-color);
+  width: 30px;
+  height: 30px;
+}
+
+.loading-status {
+  font-family: "SpotifyMix", system-ui;
+  font-size: 25px;
+  margin-top: 20px;
+  color: var(--text-color);
 }
 
 .sticky-header {
@@ -104,14 +111,20 @@ body {
   margin: 0 0 0 10px;
 }
 
-p.translated {
+p.roma {
   font-family: "SpotifyMix", system-ui;
-  font-size: 18px;
-  color: var(--translated-color);
+  font-size: 25px;
+  color: var(--roma-color);
+  text-shadow: none !important;
 }
 
 .active > .highlight {
   text-shadow: 0 0 15px rgba(var(--highlight-color), 0.8);
+}
+
+p.active:has(.highlight) > .roma,
+p.highlight > .roma {
+  color: rgba(var(--highlight-color), 0.75);
 }
 
 p.highlight,
@@ -255,5 +268,8 @@ span:has(span.dot) {
 @media screen and (max-width: 600px) {
   .content {
     font-size: 30px;
+  }
+  p.roma {
+    font-size: 20px;
   }
 }

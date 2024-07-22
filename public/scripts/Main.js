@@ -1,15 +1,16 @@
 if (!localStorage.getItem("token")) window.location.href = "/login";
 
 window.document.addEventListener("DOMContentLoaded", async () => {
-  setTimeout(async () => {
-    $(".loader-screen").remove();
+  $(".loading-status").textContent = "Loading dictionary";
+  await initKuroshiro();
 
-    if (navigator.userAgent.includes("Windows NT 1") && !(await checkMSS()))
-      showMessage(
-        "Mẹo: Cài đặt Media Session Server giúp đồng bộ thời gian chính xác hơn",
-        "https://github.com/FlyTri/media-session-server"
-      );
-  }, 500);
+  $(".loader-screen").remove();
+
+  if (navigator.userAgent.includes("Windows NT 1") && !(await checkMSS()))
+    showMessage(
+      "Mẹo: Cài đặt Media Session Server giúp đồng bộ thời gian chính xác hơn",
+      "https://github.com/FlyTri/media-session-server"
+    );
 
   if (document.visibilityState === "visible") navigator.wakeLock?.request();
 
@@ -22,7 +23,15 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     $(".compress-icon").hidden = !isFullscreen;
   };
 
-  $(".translate").addEventListener("click", writeTranslates);
+  if (!localStorage.getItem("convert")) localStorage.setItem("convert", 0);
+
+  $(".convert").addEventListener("click", () => {
+    localStorage.setItem(
+      "convert",
+      localStorage.getItem("convert") === "1" ? 0 : 1
+    );
+    convert();
+  });
 
   if (!localStorage.getItem("count")) localStorage.setItem("count", 0);
 

@@ -7,10 +7,10 @@ body {
   --background-color: #4c4f69;
   --highlight-color: 255, 255, 255;
   --lyrics-color: rgba(255, 255, 255, 0.3);
-  --translated-color: #f5e0dc;
+  --roma-color: rgba(255, 255, 255, 0.35);
 }
 
-.popup-msg {
+:root {
   --level-success: #a6e3a1;
   --level-error: #f38ba8;
   --level-warning: #fab387;

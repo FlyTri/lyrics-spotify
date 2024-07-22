@@ -87,7 +87,6 @@ export default class ZingMP3 {
       return {
         type: "TEXT_SYNCED",
         data: this.#parseTextSynced(sentences),
-        translated: [],
         source: "Cung cấp bởi ZingMP3",
       };
 
@@ -101,7 +100,6 @@ export default class ZingMP3 {
         return {
           type: "LINE_SYNCED",
           data: parseLRC(lrc).lyrics,
-          translated: [],
           source: "Cung cấp bởi ZingMP3",
         };
     }
@@ -113,6 +111,8 @@ export default class ZingMP3 {
       const lineEnd = sentence.words[sentence.words.length - 1].endTime;
 
       sentence.words.forEach(({ startTime, data }, i) => {
+        if (!data) return;
+        
         const space = sentence.words[i + 1] ? " " : "";
         const before = lyrics.findLast((obj) => obj.new);
 

@@ -27,7 +27,7 @@ const setLyricsStatus = (text) => {
   $(".content").append(element);
 };
 const writeContent = (obj, element) => {
-  if (obj.wait || !obj.text && typeof obj.time === "number") {
+  if (obj.wait || (!obj.text && typeof obj.time === "number")) {
     const wait = lyrics.data[lyrics.data.indexOf(obj) + 1].time - obj.time;
     const delay = wait / 3;
     const offset = spotify.position - obj.time;
@@ -67,32 +67,6 @@ const writeContent = (obj, element) => {
     element.textContent = obj.text || "♫";
   }
 };
-const writeTranslates = () => {
-  const lines = $All(".translated");
-  const highlight = $(".highlight");
-
-  if (highlight) scrollToCenter(highlight, false);
-  if (lines.length) {
-    lines.forEach((element) => element.remove());
-    localStorage.setItem("translate", "0");
-  } else {
-    $All(".lyrics").forEach((element) => {
-      const translated = lyrics.translated.find(
-        (item) => item.original === element.textContent.replaceAll("  ", " ")
-      );
-
-      if (translated) {
-        const p = document.createElement("p");
-
-        p.classList.add("translated");
-        p.textContent = translated.text;
-        element.append(p);
-      }
-    });
-
-    localStorage.setItem("translate", "1");
-  }
-};
 const writeLyrics = () => {
   $(".content").innerHTML = "";
 
@@ -102,8 +76,6 @@ const writeLyrics = () => {
   if (lyrics.type === "DJ") return setLyricsStatus("Quẩy lên nào! 🎧");
   if (lyrics.type === "NO_RESULT")
     return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
-
-  const translateBtn = $(".translate");
 
   switch (lyrics.type) {
     case "TEXT_SYNCED": {
@@ -151,10 +123,7 @@ const writeLyrics = () => {
   element.textContent = lyrics.source;
   append(".content", element);
 
-  if (lyrics.translated.length) {
-    translateBtn.classList.remove("disabled");
-    if (localStorage.getItem("translate") === "1") writeTranslates();
-  }
+  if (localStorage.getItem("convert") === "1") convert();
 
   update();
 };
@@ -231,7 +200,8 @@ const update = () => {
         currentLine.parentElement.classList.add("active");
         currentLine.classList.add("highlight");
 
-        if (lyric.wait) updateInterlude(currentLine, index);
+        if (lyric.wait || (!lyric.text && typeof lyric.time === "number"))
+          updateInterlude(currentLine, index);
         if (newElement) scrollToCenter(currentLine);
       }, lyric.time - now)
     );
@@ -286,10 +256,8 @@ const handleData = async (data) => {
     spotify = data;
     playing = data.playing;
 
-    const translateBtn = $(".translate");
-
     changeBackground(true);
-    translateBtn.classList.add("disabled");
+    $(".convert").classList.add("disabled");
     setLyricsStatus("Đang tải...");
 
     lyrics = await axios
@@ -302,6 +270,8 @@ const handleData = async (data) => {
       })
       .then((response) => response.data)
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
+
+    if (needConvert(lyrics.data)) $(".convert").classList.remove("disabled");
 
     return writeLyrics();
   }

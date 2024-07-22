@@ -1,5 +1,5 @@
 import axios from "axios";
-import { INSTRUMENTAL, DJ, formatText, formatTime, trim } from "../utils.mjs";
+import { INSTRUMENTAL, DJ } from "../utils.mjs";
 import { qrc as QRC } from "smart-lyric";
 import { lrc as parseLRC, qrc as parseQRC, plain } from "./Parser.mjs";
 
@@ -15,11 +15,6 @@ instance.interceptors.response.use(
 export default class QQMusic {
   async #getID(name, artists) {
     const data = await instance.post("https://u.y.qq.com/cgi-bin/musicu.fcg", {
-      comm: {
-        ct: "19",
-        cv: "1859",
-        uin: "0",
-      },
       req: {
         method: "DoSearchForQQMusicDesktop",
         module: "music.search.SearchCgiService",
@@ -92,19 +87,14 @@ export default class QQMusic {
     let parsed;
     if (qrc)
       parsed = parseQRC(/LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1]);
-    else {
-      decrypted = trim(decrypted);
-
-      if (decrypted[0] === "[") parsed = parseLRC(decrypted);
-      else parsed = plain(decrypted);
-    }
+    else if (decrypted.startsWith("[")) parsed = parseLRC(decrypted);
+    else parsed = plain(decrypted);
 
     const { type, lyrics } = parsed;
 
     return {
       type,
       data: lyrics,
-      translated: [],
       source: "Cung cấp bởi QQ Music",
     };
   }

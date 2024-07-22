@@ -27,7 +27,7 @@ instance.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(null)
+  (error) => Promise.resolve(null)
 );
 instance.interceptors.response.use(
   (response) => response.data,
@@ -66,17 +66,13 @@ export default class Musixmatch {
     const richsync = body["track.richsync.get"].message.body?.richsync;
     const richsyncData = richsync?.richsync_body;
     const { subtitle_list } = body["track.subtitles.get"].message.body;
-    const translated = await this.translate(
-      track.track_id,
-      lyrics.lyrics_language
-    );
 
     if (richsyncData) {
       const data = [];
 
       JSON.parse(trim(richsyncData)).forEach((obj) =>
         obj.l.forEach((line, i) => {
-          if (!line.c) return;
+          if (!line.c.trim()) return;
 
           const start = (obj.ts + line.o) * 1000;
           const space = obj.l[i + 1]?.c === " " ? " " : "";
@@ -103,7 +99,6 @@ export default class Musixmatch {
       return {
         type: "TEXT_SYNCED",
         data,
-        translated,
         source: "Cung cấp bởi Musixmatch",
       };
     }
@@ -117,7 +112,6 @@ export default class Musixmatch {
       return {
         type: "LINE_SYNCED",
         data,
-        translated,
         source: "Cung cấp bởi Musixmatch",
       };
     }
@@ -129,7 +123,6 @@ export default class Musixmatch {
         .map((text) => ({
           text: formatText(text) || "",
         })),
-      translated,
       source: "Cung cấp bởi Musixmatch",
     };
   }
@@ -161,28 +154,5 @@ export default class Musixmatch {
     }
 
     return { message: "Không thể tìm lời bài hát" };
-  }
-  /**
-   * @param {number} id Musixmatch track id
-   * @param {string} language
-   * @returns {Promise<Array<{ original: string, text: string }> | null>}
-   */
-  async translate(id, language) {
-    if (language === "vi") return [];
-
-    const data = await instance("/crowd.track.translations.get", {
-      params: {
-        selected_language: "vi",
-        comment_format: "text",
-        track_id: id,
-      },
-    });
-
-    if (!data) return [];
-
-    return data.message.body.translations_list.map(({ translation }) => ({
-      original: formatText(translation.matched_line),
-      text: translation.description,
-    }));
   }
 }
