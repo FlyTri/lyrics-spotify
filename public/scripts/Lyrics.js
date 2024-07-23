@@ -271,7 +271,8 @@ const handleData = async (data) => {
       .then((response) => response.data)
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
 
-    if (needConvert()) $(".convert").classList.remove("disabled");
+    if (lyrics.data && needConvert())
+      $(".convert").classList.remove("disabled");
 
     return writeLyrics();
   }

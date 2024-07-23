@@ -1,7 +1,8 @@
-import { connect, connections, model, Schema } from "mongoose";
+import { Schema, connect, connections, model } from "mongoose";
 
 const schema = new Schema({
-  id: { type: String, required: true, match: /^[A-Za-z0-9]{22}$/ },
+  id: { type: String, required: true },
+  lyrics: { type: Object },
   provider: {
     type: String,
     enum: ["qq", "musixmatch", "zingmp3"],
@@ -9,19 +10,25 @@ const schema = new Schema({
   },
   songId: { type: Number },
 });
-const Lyrics = model("Lyrics", schema);
 
 export default class MongoDB {
   constructor() {
     const date = Date.now();
 
-    this.client = connect(process.env.MONGODB_URI).then(() =>
+    connect(process.env.MONGODB_URI, {
+      dbName: "lyrics-spotify",
+      compressors: "snappy",
+      retryReads: true,
+      socketTimeoutMS: 0,
+      connectTimeoutMS: 0,
+      waitQueueTimeoutMS: 0,
+    }).then(() => {
       console.log(
         `Successfully connected to MongoDB database\n> Took ${
           Date.now() - date
         }ms`
-      )
-    );
+      );
+    });
 
     connections[0]
       .on("error", (error) => {
@@ -41,10 +48,12 @@ export default class MongoDB {
    * @returns
    */
   async getLyrics(options, sources) {
-    if (!connections[0].readyState) return;
+    if (connections[0].readyState !== 1) return;
 
-    const db = await Lyrics.findOne({ id: String(options.id) })
-      .exec()
+    const db = await model("Lyrics", schema, "Lyrics")
+      .findOne({
+        id: options.id,
+      })
       .catch(() => null);
 
     if (!db) return;
