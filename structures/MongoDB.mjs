@@ -52,7 +52,7 @@ export default class MongoDB {
 
     const db = await model("Lyrics", schema, "Lyrics")
       .findOne({
-        id: options.id,
+        id: String(options.id),
       })
       .catch(() => null);
 

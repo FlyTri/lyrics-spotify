@@ -64,17 +64,19 @@ async function convert() {
   }
 
   const raw = lyrics.data.map((obj) => obj.text).join("");
-  const language = JAPANESE.test(raw)
-    ? "ja"
-    : CHINESE.test(raw)
-    ? "zh"
-    : KOREAN.test(raw)
-    ? "ko"
-    : null;
+  let language;
 
-  if (language) {
-    showMessage(`Ngôn ngữ gốc: ${lang[language]}`);
+  if (JAPANESE.test(raw)) {
+    language = "ja";
+  } else if (CHINESE.test(raw)) {
+    language = "zh";
+  } else if (KOREAN.test(raw)) {
+    language = "ko";
   }
+
+  if (!language)
+    return showMessage("Không thể phát hiện ngôn ngữ", null, "error");
+  showMessage(`Ngôn ngữ gốc: ${lang[language]}`);
 
   await Promise.all(
     [...$All(".lyrics")].map(async (element) => {
@@ -88,9 +90,9 @@ async function convert() {
           p.textContent = HangulConverter(element.textContent);
           break;
         case "ja":
-          const tokens = await analyzer.tokenize(element.textContent);
-
-          p.textContent = kuroshiroConverter(tokens);
+          p.textContent = kuroshiroConverter(
+            await analyzer.tokenize(element.textContent)
+          );
           break;
         case "zh":
           p.textContent = pinyinPro.pinyin(element.textContent, {

@@ -9,10 +9,3 @@ body {
   --lyrics-color: rgba(255, 255, 255, 0.3);
   --roma-color: rgba(255, 255, 255, 0.35);
 }
-
-:root {
-  --level-success: #a6e3a1;
-  --level-error: #f38ba8;
-  --level-warning: #fab387;
-  --level-info: #89b4fa;
-}

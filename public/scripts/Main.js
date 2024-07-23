@@ -122,7 +122,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
         ((spotify.position + fromStorage) / spotify.duration) * 100
       }%`;
     } else {
-      $(".progress-bar").style = null;
+      $(".progress-bar").style.width = 0;
     }
   }, 500);
 });

@@ -16,14 +16,14 @@ const clearHighlights = () => {
 };
 const currentIndex = () =>
   lyrics.data.findLastIndex((obj) => obj.time <= spotify.position);
-const setLyricsStatus = (text) => {
+const setLyricsStatus = (html) => {
   clearTimeouts();
   $(".content").innerHTML = "";
 
   const element = document.createElement("p");
 
   element.classList.add("lyrics", "status");
-  element.textContent = text;
+  element.innerHTML = DOMPurify.sanitize(html);
   $(".content").append(element);
 };
 const writeContent = (obj, element) => {
@@ -35,7 +35,7 @@ const writeContent = (obj, element) => {
     const position = time.findIndex((n) => offset <= n);
     const animationDelay = offset - delay * position;
 
-    setProperty("--dot-delay", `${delay}ms`);
+    $(".content").style["--dot-delay"] = `${delay}ms`;
     element.innerHTML = "";
     [0, 1, 2].forEach((index) => {
       const span = document.createElement("span");
@@ -225,21 +225,22 @@ const handleData = async (data) => {
     playing = false;
 
     document.title = "Lời bài hát";
-    setProperty("--progress-bar-width", "0%");
+    
+    $(".progress-bar").style.width = 0;
     $(".title").textContent = "Tên bài hát";
     $(".artists").textContent = "Tên nghệ sĩ";
 
     if (data.type)
       switch (data.type) {
         case "episode":
-          return setLyricsStatus("Đang phát podcast 🎙️");
+          return setLyricsStatus(`${emoji("🎙️")}Đang phát podcast`);
         case "ad":
-          return setLyricsStatus("Đang phát quảng cáo 📢");
+          return setLyricsStatus(`${emoji("📢")}Đang phát quảng cáo`);
         case "unknown":
-          return setLyricsStatus("(._.) Không rõ bạn đang phát gì");
+          return setLyricsStatus(`${emoji("🤔")}Không rõ bạn đang phát gì`);
       }
 
-    return setLyricsStatus("Một không gian tĩnh lặng 🤫");
+    return setLyricsStatus(`${emoji("🤫")} Một không gian tĩnh lặng`);
   }
 
   document.title = data.playing ? "Đang phát" : "Đã tạm dừng";

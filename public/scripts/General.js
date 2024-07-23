@@ -4,6 +4,12 @@ const scrollOptions = {
   ease: (n) => n,
   maxSynchronousAlignments: 1,
 };
+const colors = {
+  success: "#a6e3a1",
+  error: "#f38ba8",
+  warning: "#fab387",
+  info: "#89b4fa",
+};
 
 function $(query) {
   return document.querySelector(query);
@@ -18,6 +24,9 @@ function random(array) {
   const index = Math.floor(Math.random() * array.length);
 
   return array[index];
+}
+function emoji(emo) {
+  return `<span class="emoji">${emo}</span>`;
 }
 function scrollToCenter(element, check = true) {
   if (element.classList.contains("highlight"))
@@ -49,8 +58,9 @@ function showMessage(msg, link, level = "info") {
 
   if (link) popup.innerHTML = `<a href="${link}" target="_blank">${msg}</a>`;
   else popup.textContent = msg;
-  popup.style.backgroundColor = getProperty(`--level-${level}`);
-  void popup.offsetWidth;
+
+  popup.style.backgroundColor = colors[level];
+  void popup.offsetWidth; // NOSONAR
 
   popup.classList.add("animatePopup");
 
@@ -67,10 +77,6 @@ function getElementIndex(element) {
     return index ? +index.replace("index-", "") : null;
   }
 }
-const getProperty = (name) =>
-  getComputedStyle(document.documentElement).getPropertyValue(name);
-
-const setProperty = (...options) => document.body.style.setProperty(...options);
 
 document.addEventListener("DOMContentLoaded", () => {
   const buttons = $All('[class*="button"], button');

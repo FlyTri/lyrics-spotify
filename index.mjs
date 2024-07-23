@@ -116,7 +116,7 @@ app
     } catch (error) {
       captureError(error);
 
-      res.json({ message: "Đã xảy ra lỗi từ phía máy chủ 😔" });
+      res.json({ message: '<span class="emoji">😔</span>Đã xảy ra lỗi từ phía máy chủ' });
     }
   })
   .all("*", (req, res) => res.sendStatus(404));
