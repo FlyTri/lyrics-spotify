@@ -1,3 +1,4 @@
+let controller;
 let timeouts = [];
 let lyrics = {};
 let spotify = {};
@@ -35,7 +36,8 @@ const writeContent = (obj, element) => {
     const position = time.findIndex((n) => offset <= n);
     const animationDelay = offset - delay * position;
 
-    $(".content").style["--dot-delay"] = `${delay}ms`;
+    $(".content").style.setProperty("--dot-delay", `${delay}ms`);
+
     element.innerHTML = "";
     [0, 1, 2].forEach((index) => {
       const span = document.createElement("span");
@@ -225,7 +227,7 @@ const handleData = async (data) => {
     playing = false;
 
     document.title = "Lời bài hát";
-    
+
     $(".progress-bar").style.width = 0;
     $(".title").textContent = "Tên bài hát";
     $(".artists").textContent = "Tên nghệ sĩ";
@@ -253,7 +255,8 @@ const handleData = async (data) => {
   $(".artists").innerHTML = data.innerHTMLartists;
 
   if (data.name && spotify.id !== data.id) {
-    document.documentElement.style = null;
+    if (controller) controller.abort();
+
     spotify = data;
     playing = data.playing;
 
@@ -261,14 +264,19 @@ const handleData = async (data) => {
     $(".convert").classList.add("disabled");
     setLyricsStatus("Đang tải...");
 
+    controller = new AbortController();
     lyrics = await axios
-      .post(`/api/lyrics`, {
-        name: data.name,
-        id: data.id,
-        album: data.album,
-        artists: data.artists,
-        duration: data.duration,
-      })
+      .post(
+        `/api/lyrics`,
+        {
+          name: data.name,
+          id: data.id,
+          album: data.album,
+          artists: data.artists,
+          duration: data.duration,
+        },
+        { signal: controller.signal }
+      )
       .then((response) => response.data)
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
 

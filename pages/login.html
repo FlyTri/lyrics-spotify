@@ -128,8 +128,10 @@
       let savedID = localStorage.getItem("client_id") || "";
       let savedSecret = localStorage.getItem("client_secret") || "";
 
-      const check = (clientId, clientSecret) =>
-        axios
+      const check = (clientId, clientSecret) => {
+        if (!clientId || !clientSecret) return false;
+        
+        return axios
           .post(
             "https://accounts.spotify.com/api/token?grant_type=client_credentials",
             {},
@@ -145,6 +147,7 @@
             if (response.status === 200) return true;
           })
           .catch(() => false);
+      };
       const checkInput = async () => {
         if (controller) controller.abort();
 
