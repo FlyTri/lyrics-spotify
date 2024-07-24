@@ -81,11 +81,14 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.addEventListener("visibilitychange", () => {
-    const element = $(".highlight");
+    const currentHighlight = $(".highlight");
+    const currentInterlude = $(".highlight .dot")?.parentElement;
 
     if (document.visibilityState === "visible") {
       navigator.wakeLock?.request();
-      if (element) scrollToCenter(element, false);
+      if (currentHighlight) scrollToCenter(currentHighlight, false);
+      if (currentInterlude)
+        updateInterlude(currentInterlude, getElementIndex(currentInterlude));
     }
   });
 
