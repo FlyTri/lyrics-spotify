@@ -19,12 +19,13 @@ export default class ZingMP3 {
     this.cookie = [];
   }
   async #getCookie() {
-    await instance
-      .get("/")
+    await instance("/")
       .then(({ headers }) => {
         this.cookie = headers["set-cookie"];
       })
       .catch(() => console.log("Failed to get ZingMP3 cookie"));
+
+    setTimeout(() => this.#getCookie(), 86400000);
   }
   async #getId({ name, artists, duration }) {
     const date = Math.round(Date.now() / 1000);
@@ -112,7 +113,7 @@ export default class ZingMP3 {
 
       sentence.words.forEach(({ startTime, data }, i) => {
         if (!data) return;
-        
+
         const space = sentence.words[i + 1] ? " " : "";
         const before = lyrics.findLast((obj) => obj.new);
 
