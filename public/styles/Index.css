@@ -109,8 +109,8 @@ body {
 }
 
 .content {
-  height: 100%;
   font-family: "SpotifyMix-Bold", system-ui;
+  font-weight: 700;
   font-size: 35px;
   color: var(--lyrics-color);
   margin: 0 10px 0 10px;
