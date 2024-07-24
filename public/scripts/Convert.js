@@ -8,9 +8,12 @@ const IGNORE =
 
 const lang = { ja: "Tiếng Nhật", ko: "Tiếng Hàn", zh: "Tiếng Trung" };
 
+eld.dynamicLangSubset(["ja", "ko", "zh"]);
+
 let analyzer;
 
 async function initKuromoji() {
+  $(".loading-status").textContent = "Building dictionaries";
   return new Promise((resolve) => {
     const dicPath = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict";
     const originalOpen = XMLHttpRequest.prototype.open;
@@ -22,7 +25,7 @@ async function initKuromoji() {
           if (this.readyState === 4 && this.status === 200) {
             document.querySelector(
               ".loading-status"
-            ).textContent = `Building dictionary (${++count + 1}/12)`;
+            ).textContent = `Building dictionaries (${++count + 1}/12)`;
           }
         };
 
@@ -64,19 +67,12 @@ async function convert() {
   }
 
   const raw = lyrics.data.map((obj) => obj.text).join("");
-  let language;
-
-  if (JAPANESE.test(raw)) {
-    language = "ja";
-  } else if (CHINESE.test(raw)) {
-    language = "zh";
-  } else if (KOREAN.test(raw)) {
-    language = "ko";
-  }
+  const { language } = eld.detect(raw);
 
   if (!language)
-    return showMessage("Không thể phát hiện ngôn ngữ", null, "error");
-  showMessage(`Ngôn ngữ gốc: ${lang[language]}`);
+    return showMessage("Ngôn ngữ không được hỗ trợ", null, "error");
+
+  showMessage(`Ngôn ngữ: ${lang[language]}`);
 
   await Promise.all(
     [...$All(".lyrics")].map(async (element) => {
