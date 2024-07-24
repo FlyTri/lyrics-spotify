@@ -39,11 +39,14 @@ async function getToken(authCode = false) {
     );
 }
 async function request(path) {
-  if (Date.now() >= token.expires_at) await getToken();
-
   return axios.get(`https://api.spotify.com/v1/${path}`, {
-    headers: { Authorization: `Bearer ${token.access_token}` },
+    headers: { Authorization: `Bearer ${await getAccessToken()}` },
   });
+}
+async function getAccessToken() {
+  if (Date.now() >= token.expires_at - 30000) await getToken();
+
+  return token.access_token;
 }
 async function getCurrentlyPlaying() {
   return request("me/player/currently-playing")

@@ -43,22 +43,22 @@ export default class MongoDB {
   }
   /**
    *
-   * @param {object} options
+   * @param {object} track
    * @param {{musixmatch: import("./Musixmatch.mjs").default, qq: import("./QQMusic.mjs").default}} sources
    * @returns
    */
-  async getLyrics(options, sources) {
+  async getLyrics(track, sources) {
     if (connections[0].readyState !== 1) return;
 
     const db = await model("Lyrics", schema, "Lyrics")
       .findOne({
-        id: String(options.id),
+        id: String(track.id),
       })
       .catch(() => null);
 
     if (!db) return;
     if (db.provider) {
-      const data = await sources[db.provider].getLyrics(options, db.songId);
+      const data = await sources[db.provider].getLyrics(track, db.songId);
 
       if (data) {
         data.source += ", được chọn lọc bởi Lyrics Spotify";

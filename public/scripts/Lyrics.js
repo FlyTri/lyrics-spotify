@@ -242,7 +242,7 @@ const handleData = async (data) => {
           return setLyricsStatus(`${emoji("🤔")}Không rõ bạn đang phát gì`);
       }
 
-    return setLyricsStatus(`${emoji("🤫")} Một không gian tĩnh lặng`);
+    return setLyricsStatus(`${emoji("🤫")}Một không gian tĩnh lặng`);
   }
 
   document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
@@ -265,18 +265,10 @@ const handleData = async (data) => {
     setLyricsStatus("Đang tải...");
 
     controller = new AbortController();
-    lyrics = await axios
-      .post(
-        `/api/lyrics`,
-        {
-          name: data.name,
-          id: data.id,
-          album: data.album,
-          artists: data.artists,
-          duration: data.duration,
-        },
-        { signal: controller.signal }
-      )
+    lyrics = await axios(`/api/lyrics/${data.id}`, {
+      headers: { Authorization: await getAccessToken() },
+      signal: controller.signal,
+    })
       .then((response) => response.data)
       .catch(() => ({ message: "Không thể gửi yêu cầu" }));
 

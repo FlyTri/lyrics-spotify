@@ -124,7 +124,7 @@ p.roma {
 }
 
 .active .highlight {
-  text-shadow: 0 0 10px rgba(var(--highlight-color), 0.8);
+  text-shadow: 0 0 10px rgba(var(--highlight-color), 0.75);
 }
 
 p.active:has(.highlight) .roma,

@@ -14,7 +14,7 @@ instance.interceptors.response.use(
 
 export default class QQMusic {
   async #getID(name, artists) {
-    const data = await instance.post("https://u.y.qq.com/cgi-bin/musicu.fcg", {
+    const data = await instance.post("/musicu.fcg", {
       req: {
         method: "DoSearchForQQMusicDesktop",
         module: "music.search.SearchCgiService",
@@ -53,7 +53,7 @@ export default class QQMusic {
 
     if (!songID) return;
 
-    const data = await instance.post("https://u.y.qq.com/cgi-bin/musicu.fcg", {
+    const data = await instance.post("/musicu.fcg", {
       "music.musichallSong.PlayLyricInfo.GetPlayLyricInfo": {
         method: "GetPlayLyricInfo",
         module: "music.musichallSong.PlayLyricInfo",
