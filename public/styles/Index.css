@@ -119,12 +119,13 @@ body {
 p.roma {
   font-family: "SpotifyMix", system-ui;
   font-size: 22px;
+  font-weight: 400;
   color: var(--roma-color);
   text-shadow: none !important;
 }
 
 .active .highlight {
-  text-shadow: 0 0 10px rgba(var(--highlight-color), 0.75);
+  text-shadow: 0 0 10px rgba(var(--highlight-color), 0.6);
 }
 
 p.active:has(.highlight) .roma,
