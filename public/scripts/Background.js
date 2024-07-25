@@ -1,18 +1,11 @@
-function changeBackground(force) {
-  const body = $("body");
+function changeBackground(image) {
+  const body = document.body;
 
-  if (!spotify.image) {
+  if (image) {
+    body.style.backgroundImage = `url(${image})`;
+  } else if (image === null) {
     body.style.backgroundImage = null;
-
-    return;
+  } else {
+    body.style.backgroundImage = spotify.image ? `url(${spotify.image})` : null;
   }
-
-  if (force) {
-    body.style.backgroundImage = `url(${spotify.image})`;
-
-    return;
-  }
-
-  if (body.style.backgroundImage) body.style.backgroundImage = null;
-  else body.style.backgroundImage = `url(${spotify.image})`;
 }

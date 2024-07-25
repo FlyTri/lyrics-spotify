@@ -51,8 +51,6 @@ async function getAccessToken() {
 async function getCurrentlyPlaying() {
   return request("me/player/currently-playing")
     .then(async (response) => {
-      if (response.status === 204) return { playing: false };
-
       const { data } = response;
       const error = data.error;
 
@@ -63,9 +61,10 @@ async function getCurrentlyPlaying() {
           "error"
         );
 
-        return { playing: false };
+        return { timestamp: -1, playing: false };
       }
-      if (data.timestamp === spotify.timestamp) return;
+      if ((data.timestamp || 1) === spotify.timestamp) return;
+      if (response.status === 204) return { timestamp: 1, playing: false };
 
       const item = data.item;
       const date = Date.now();
@@ -79,31 +78,34 @@ async function getCurrentlyPlaying() {
       if (defaultData.type === "track") {
         const artists = item.artists.map((artist) => artist.name).join(", ");
         const SpotifySession = await getSpotifySession();
-        const valenceEmoji = await request(`audio-features/${item.id}`)
-          .then(({ data }) => {
-            const valence = data.valence;
+        let valenceEmoji;
 
-            if (valence >= 0.9) {
-              return "😆";
-            } else if (valence >= 0.75) {
-              return "😄";
-            } else if (valence >= 0.6) {
-              return "😊";
-            } else if (valence >= 0.5) {
-              return "🙂";
-            } else if (valence >= 0.4) {
-              return "😐";
-            } else if (valence >= 0.3) {
-              return "😕";
-            } else if (valence >= 0.2) {
-              return "😟";
-            } else if (valence >= 0.1) {
-              return "😢";
-            } else {
-              return "😭";
-            }
-          })
-          .catch(() => null);
+        if (item.id)
+          valenceEmoji = await request(`audio-features/${item.id}`)
+            .then(({ data }) => {
+              const valence = data.valence;
+
+              if (valence >= 0.9) {
+                return "😆";
+              } else if (valence >= 0.75) {
+                return "😄";
+              } else if (valence >= 0.6) {
+                return "😊";
+              } else if (valence >= 0.5) {
+                return "🙂";
+              } else if (valence >= 0.4) {
+                return "😐";
+              } else if (valence >= 0.3) {
+                return "😕";
+              } else if (valence >= 0.2) {
+                return "😟";
+              } else if (valence >= 0.1) {
+                return "😢";
+              } else {
+                return "😭";
+              }
+            })
+            .catch(() => null);
 
         return {
           ...defaultData,
@@ -120,7 +122,7 @@ async function getCurrentlyPlaying() {
                 `<a href="https://open.spotify.com/artist/${id}" target="_blank">${name}</a>`
             )
             .join(", "),
-          image: SpotifySession?.thumbnail || item.album.images[0].url,
+          image: SpotifySession?.thumbnail || item.album.images[0]?.url,
           album: item.album.name,
           id: item.id,
           get position() {
@@ -147,11 +149,11 @@ async function getCurrentlyPlaying() {
     })
     .catch((error) => {
       console.log(error);
-      showMessage("Không thể cập nhật trình phát nhạc", "error");
+      showMessage("Không thể cập nhật trình phát nhạc", null, "error");
 
       return {
         playing: false,
-        timestamp: Date.now(),
+        timestamp: 0,
         type: "error",
       };
     });

@@ -69,66 +69,67 @@ const writeContent = (obj, element) => {
     element.textContent = obj.text || "♫";
   }
 };
-const writeLyrics = () => {
-  $(".content").innerHTML = "";
+const writeLyrics = () =>
+  new Promise((res) => {
+    $(".content").innerHTML = "";
 
-  if (lyrics.message) return setLyricsStatus(lyrics.message);
-  if (lyrics.type === "INSTRUMENTAL")
-    return setLyricsStatus("Hãy tận hưởng những giai điệu tuyệt vời~");
-  if (lyrics.type === "DJ") return setLyricsStatus("Quẩy lên nào! 🎧");
-  if (lyrics.type === "NO_RESULT")
-    return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
+    if (lyrics.message) return setLyricsStatus(lyrics.message);
+    if (lyrics.type === "INSTRUMENTAL")
+      return setLyricsStatus("Hãy tận hưởng những giai điệu tuyệt vời~");
+    if (lyrics.type === "DJ") return setLyricsStatus("Quẩy lên nào! 🎧");
+    if (lyrics.type === "NO_RESULT")
+      return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
 
-  switch (lyrics.type) {
-    case "TEXT_SYNCED": {
-      let p = document.createElement("p");
-      p.classList.add("lyrics");
+    switch (lyrics.type) {
+      case "TEXT_SYNCED": {
+        let p = document.createElement("p");
+        p.classList.add("lyrics");
 
-      lyrics.data.forEach((obj, index) => {
-        if (obj.new) {
-          append(".content", p);
-          p = document.createElement("p");
-          p.classList.add("lyrics");
-        }
+        lyrics.data.forEach((obj, index) => {
+          if (obj.new) {
+            append(".content", p);
+            p = document.createElement("p");
+            p.classList.add("lyrics");
+          }
 
-        const span = document.createElement("span");
-        span.classList.add(`index-${index}`);
-        writeContent(obj, span);
-        p.append(span);
+          const span = document.createElement("span");
+          span.classList.add(`index-${index}`);
+          writeContent(obj, span);
+          p.append(span);
 
-        if (!lyrics.data[index + 1]) append(".content", p);
-      });
-      break;
+          if (!lyrics.data[index + 1]) append(".content", p);
+        });
+        break;
+      }
+      case "LINE_SYNCED": {
+        lyrics.data.forEach((obj, index) => {
+          const element = document.createElement("p");
+          element.classList.add("lyrics", `index-${index}`);
+          writeContent(obj, element);
+          append(".content", element);
+        });
+        break;
+      }
+      case "NOT_SYNCED": {
+        lyrics.data.forEach((obj) => {
+          const element = document.createElement("p");
+          element.classList.add("lyrics", "highlight");
+          writeContent(obj, element);
+          append(".content", element);
+        });
+        break;
+      }
     }
-    case "LINE_SYNCED": {
-      lyrics.data.forEach((obj, index) => {
-        const element = document.createElement("p");
-        element.classList.add("lyrics", `index-${index}`);
-        writeContent(obj, element);
-        append(".content", element);
-      });
-      break;
-    }
-    case "NOT_SYNCED": {
-      lyrics.data.forEach((obj) => {
-        const element = document.createElement("p");
-        element.classList.add("lyrics", "highlight");
-        writeContent(obj, element);
-        append(".content", element);
-      });
-      break;
-    }
-  }
 
-  const element = document.createElement("p");
-  element.classList.add("source");
-  element.textContent = lyrics.source;
-  append(".content", element);
+    const element = document.createElement("p");
+    element.classList.add("source");
+    element.textContent = lyrics.source;
+    append(".content", element);
 
-  if (localStorage.getItem("convert") === "1" && needConvert()) convert();
+    if (localStorage.getItem("convert") === "1" && needConvert()) convert();
 
-  update();
-};
+    res();
+  });
 
 /**
  *
@@ -220,12 +221,10 @@ const handleData = async (data) => {
     element.removeAttribute("ended");
   });
 
-  if (data.local) return setLyricsStatus("Đang phát file cục bộ");
-  if (!data.type || data.type !== "track") {
-    document.documentElement.style = null;
-    spotify = {};
-    playing = false;
-
+  changeBackground(data.image || null);
+  if (data.local) setLyricsStatus(`${emoji("📂")}Đang phát file cục bộ`);
+  else if (!data.id || data.type !== "track") {
+    lyrics = {};
     document.title = "Lời bài hát";
 
     $(".progress-bar").style.width = 0;
@@ -235,50 +234,47 @@ const handleData = async (data) => {
     if (data.type)
       switch (data.type) {
         case "episode":
-          return setLyricsStatus(`${emoji("🎙️")}Đang phát podcast`);
+          setLyricsStatus(`${emoji("🎙️")}Đang phát podcast`);
+          break;
         case "ad":
-          return setLyricsStatus(`${emoji("📢")}Đang phát quảng cáo`);
+          setLyricsStatus(`${emoji("📢")}Đang phát quảng cáo`);
+          break;
         case "unknown":
-          return setLyricsStatus(`${emoji("🤔")}Không rõ bạn đang phát gì`);
+          setLyricsStatus(`${emoji("🤔")}Không rõ bạn đang phát gì`);
       }
+    else setLyricsStatus(`${emoji("🤫")}Một không gian tĩnh lặng`);
+  } else {
+    document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
 
-    return setLyricsStatus(`${emoji("🤫")}Một không gian tĩnh lặng`);
+    $(".progress-bar").style.width = `${
+      ((data.position + +localStorage.getItem("count")) / data.duration) * 100
+    }%`;
+    $(".title").innerHTML = data.innerHTMLname;
+    $(".artists").innerHTML = data.innerHTMLartists;
+
+    if (spotify.id !== data.id) {
+      if (controller) controller.abort();
+
+      $(".convert").classList.add("disabled");
+      setLyricsStatus("Đang tải...");
+
+      controller = new AbortController();
+      lyrics = await axios(`/api/lyrics/${data.id}`, {
+        headers: { Authorization: await getAccessToken() },
+        signal: controller.signal,
+      })
+        .then((response) => response.data)
+        .catch(() => ({ message: "Không thể gửi yêu cầu" }));
+
+      await writeLyrics();
+
+      if (lyrics.data && needConvert())
+        $(".convert").classList.remove("disabled");
+    }
   }
 
-  document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
-
-  $(".progress-bar").style.width = `${
-    ((data.position + +localStorage.getItem("count")) / data.duration) * 100
-  }%`;
-
-  $(".title").innerHTML = data.innerHTMLname;
-  $(".artists").innerHTML = data.innerHTMLartists;
-
-  if (data.name && spotify.id !== data.id) {
-    if (controller) controller.abort();
-
-    spotify = data;
-    playing = data.playing;
-
-    changeBackground(true);
-    $(".convert").classList.add("disabled");
-    setLyricsStatus("Đang tải...");
-
-    controller = new AbortController();
-    lyrics = await axios(`/api/lyrics/${data.id}`, {
-      headers: { Authorization: await getAccessToken() },
-      signal: controller.signal,
-    })
-      .then((response) => response.data)
-      .catch(() => ({ message: "Không thể gửi yêu cầu" }));
-
-    if (lyrics.data && needConvert())
-      $(".convert").classList.remove("disabled");
-
-    return writeLyrics();
-  }
   spotify = data;
   playing = data.playing;
 
-  update();
+  if (data.id) update();
 };
