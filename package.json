@@ -5,7 +5,7 @@
   "main": "index.mjs",
   "license": "UNLICENSED",
   "scripts": {
-    "start": "node --import ./sentry.mjs ."
+    "start": "node ."
   },
   "dependencies": {
     "@sentry/node": "^8.18.0",

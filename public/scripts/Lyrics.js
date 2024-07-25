@@ -269,5 +269,5 @@ const handleData = async (data) => {
   spotify = data;
   playing = data.playing;
 
-  update();
+  if (data.id) update();
 };

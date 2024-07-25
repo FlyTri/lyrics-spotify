@@ -1,7 +1,6 @@
-import "./sentry.mjs";
+import "dotenv/config";
 
 import express from "express";
-import * as Sentry from "@sentry/node";
 import { rateLimit } from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -86,26 +85,18 @@ app
 
       res.json(lyrics || NO_RESULT);
     } catch (error) {
-      captureError(error);
+      console.log(error);
       res.json({
         message: '<span class="emoji">😔</span>Đã xảy ra lỗi từ phía máy chủ',
       });
     }
   })
-  .all("*", (req, res) => res.sendStatus(404));
-
-Sentry.setupExpressErrorHandler(app);
+  .all("*", (req, res) => res.status(404));
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 
-process.on("unhandledRejection", captureError);
-process.on("uncaughtException", captureError);
-
-function captureError(error) {
-  if (process.env.NODE_ENV !== "production") console.log(error);
-
-  Sentry.captureException(error);
-}
+process.on("unhandledRejection", console.log);
+process.on("uncaughtException", console.log);
 
 async function getLyricsFromSources(data) {
   const lineSynced = [];
