@@ -209,6 +209,29 @@ const update = () => {
     );
   });
 };
+const fetchLyrics = async (id) => {
+  if (controller) controller.abort();
+
+  $(".convert").classList.add("disabled");
+  setLyricsStatus("Đang tải...");
+
+  controller = new AbortController();
+  lyrics = await axios(`/api/lyrics/${id}`, {
+    headers: { Authorization: await getAccessToken() },
+    signal: controller.signal,
+  })
+    .then((response) => response.data)
+    .catch(async (error) => {
+      if (error.code === "ECONNABORTED") return { message: "..." };
+
+      return { message: "Không thể gửi yêu cầu" };
+    });
+
+  await writeLyrics();
+
+  if (lyrics.data && needConvert()) $(".convert").classList.remove("disabled");
+};
+
 const handleData = async (data) => {
   clearTimeouts();
   clearHighlights();
@@ -217,53 +240,30 @@ const handleData = async (data) => {
     element.removeAttribute("style");
     element.removeAttribute("ended");
   });
-
   changeBackground(data.image || null);
-  if (data.local) setLyricsStatus(`${emoji("📂")}Đang phát file cục bộ`);
-  else if (!data.id || data.type !== "track") {
+
+  if (data.local) {
+    setLyricsStatus(`${emoji("📂")}Đang phát file cục bộ`);
+  } else if (!data.id || data.type !== "track") {
     lyrics = {};
     document.title = "Lời bài hát";
-
     $(".title").textContent = "Tên bài hát";
     $(".artists").textContent = "Tên nghệ sĩ";
 
-    if (data.type)
-      switch (data.type) {
-        case "episode":
-          setLyricsStatus(`${emoji("🎙️")}Đang phát podcast`);
-          break;
-        case "ad":
-          setLyricsStatus(`${emoji("📢")}Đang phát quảng cáo`);
-          break;
-        case "unknown":
-          setLyricsStatus(`${emoji("🤔")}Không rõ bạn đang phát gì`);
-      }
-    else setLyricsStatus(`${emoji("🤫")}Một không gian tĩnh lặng`);
+    const statusMessages = {
+      episode: `${emoji("🎙️")}Đang phát podcast`,
+      ad: `${emoji("📢")}Đang phát quảng cáo`,
+      unknown: `${emoji("🤔")}Không rõ bạn đang phát gì`,
+      default: `${emoji("🤫")}Một không gian tĩnh lặng`,
+    };
+
+    setLyricsStatus(statusMessages[data.type] || statusMessages.default);
   } else {
     document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
-
     $(".title").innerHTML = data.innerHTMLname;
     $(".artists").innerHTML = data.innerHTMLartists;
 
-    if (spotify.id !== data.id) {
-      if (controller) controller.abort();
-
-      $(".convert").classList.add("disabled");
-      setLyricsStatus("Đang tải...");
-
-      controller = new AbortController();
-      lyrics = await axios(`/api/lyrics/${data.id}`, {
-        headers: { Authorization: await getAccessToken() },
-        signal: controller.signal,
-      })
-        .then((response) => response.data)
-        .catch(() => ({ message: "Không thể gửi yêu cầu" }));
-
-      await writeLyrics();
-
-      if (lyrics.data && needConvert())
-        $(".convert").classList.remove("disabled");
-    }
+    if (spotify.id !== data.id) await fetchLyrics(data.id);
   }
 
   spotify = data;
