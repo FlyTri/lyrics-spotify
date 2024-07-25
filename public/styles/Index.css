@@ -205,8 +205,9 @@ span:has(span.dot) {
 
 .source {
   font-family: "SpotifyMix", system-ui;
-  color: var(--text-color);
   font-size: 17px;
+  font-weight: 400;
+  color: var(--text-color);
   margin: 80px 0 10px 0 !important;
   text-align: center !important;
 }

@@ -1,13 +1,22 @@
-const instance = axios.create({ baseURL: "http://localhost:8170/" });
+const instance = axios.create({
+  baseURL: "http://localhost:8170/",
+  timeout: 500,
+});
 
-function checkMSS() {
-  return instance
+let mss = null;
+
+async function checkMSS() {
+  mss = await instance
     .get("/")
     .then(() => true)
     .catch(() => false);
+
+  return mss;
 }
 
 function getSpotifySession() {
+  if (!mss) return;
+
   return instance
     .get("/spotify")
     .then((response) => response.data)
@@ -15,6 +24,8 @@ function getSpotifySession() {
 }
 
 document.addEventListener("keydown", (event) => {
+  if (!mss) return;
+
   if (event.code === "Space") {
     event.preventDefault();
 
@@ -33,6 +44,8 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.querySelector(".content").addEventListener("click", async (event) => {
+  if (!mss) return;
+
   const index = getElementIndex(event.target);
 
   if (index) instance.get(`/seek?time=${lyrics.data[index].time}`);

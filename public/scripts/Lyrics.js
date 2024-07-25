@@ -69,67 +69,66 @@ const writeContent = (obj, element) => {
     element.textContent = obj.text || "♫";
   }
 };
-const writeLyrics = () =>
-  new Promise((res) => {
-    $(".content").innerHTML = "";
+const writeLyrics = async () => {
+  $(".content").innerHTML = "";
 
-    if (lyrics.message) return setLyricsStatus(lyrics.message);
-    if (lyrics.type === "INSTRUMENTAL")
-      return setLyricsStatus("Hãy tận hưởng những giai điệu tuyệt vời~");
-    if (lyrics.type === "DJ") return setLyricsStatus("Quẩy lên nào! 🎧");
-    if (lyrics.type === "NO_RESULT")
-      return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
+  if (lyrics.message) return setLyricsStatus(lyrics.message);
+  if (lyrics.type === "INSTRUMENTAL")
+    return setLyricsStatus("Hãy tận hưởng những giai điệu tuyệt vời~");
+  if (lyrics.type === "DJ") return setLyricsStatus("Quẩy lên nào! 🎧");
+  if (lyrics.type === "NO_RESULT")
+    return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
 
-    switch (lyrics.type) {
-      case "TEXT_SYNCED": {
-        let p = document.createElement("p");
-        p.classList.add("lyrics");
+  switch (lyrics.type) {
+    case "TEXT_SYNCED": {
+      let p = document.createElement("p");
+      p.classList.add("lyrics");
 
-        lyrics.data.forEach((obj, index) => {
-          if (obj.new) {
-            append(".content", p);
-            p = document.createElement("p");
-            p.classList.add("lyrics");
-          }
+      lyrics.data.forEach((obj, index) => {
+        if (obj.new) {
+          append(".content", p);
+          p = document.createElement("p");
+          p.classList.add("lyrics");
+        }
 
-          const span = document.createElement("span");
-          span.classList.add(`index-${index}`);
-          writeContent(obj, span);
-          p.append(span);
+        const span = document.createElement("span");
+        span.classList.add(`index-${index}`);
+        writeContent(obj, span);
+        p.append(span);
 
-          if (!lyrics.data[index + 1]) append(".content", p);
-        });
-        break;
-      }
-      case "LINE_SYNCED": {
-        lyrics.data.forEach((obj, index) => {
-          const element = document.createElement("p");
-          element.classList.add("lyrics", `index-${index}`);
-          writeContent(obj, element);
-          append(".content", element);
-        });
-        break;
-      }
-      case "NOT_SYNCED": {
-        lyrics.data.forEach((obj) => {
-          const element = document.createElement("p");
-          element.classList.add("lyrics", "highlight");
-          writeContent(obj, element);
-          append(".content", element);
-        });
-        break;
-      }
+        if (!lyrics.data[index + 1]) append(".content", p);
+      });
+      break;
     }
+    case "LINE_SYNCED": {
+      lyrics.data.forEach((obj, index) => {
+        const element = document.createElement("p");
+        element.classList.add("lyrics", `index-${index}`);
+        writeContent(obj, element);
+        append(".content", element);
+      });
+      break;
+    }
+    case "NOT_SYNCED": {
+      lyrics.data.forEach((obj) => {
+        const element = document.createElement("p");
+        element.classList.add("lyrics", "highlight");
+        writeContent(obj, element);
+        append(".content", element);
+      });
+      break;
+    }
+  }
 
-    const element = document.createElement("p");
-    element.classList.add("source");
-    element.textContent = lyrics.source;
-    append(".content", element);
+  const element = document.createElement("p");
+  element.classList.add("source");
+  element.textContent = lyrics.source;
+  append(".content", element);
 
-    if (localStorage.getItem("convert") === "1" && needConvert()) convert();
+  if (localStorage.getItem("convert") === "1" && needConvert()) convert();
 
-    res();
-  });
+  return true;
+};
 
 /**
  *
@@ -211,8 +210,6 @@ const update = () => {
   });
 };
 const handleData = async (data) => {
-  if (!data) return;
-
   clearTimeouts();
   clearHighlights();
   $All(".active").forEach((element) => element.classList.remove("active"));
@@ -272,9 +269,7 @@ const handleData = async (data) => {
         $(".convert").classList.remove("disabled");
     }
   }
-
+  
   spotify = data;
   playing = data.playing;
-
-  if (data.id) update();
 };

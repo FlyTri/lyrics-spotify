@@ -29,6 +29,7 @@ function emoji(emo) {
   return `<span class="emoji">${emo}</span>`;
 }
 function scrollToCenter(element, check = true) {
+  if (!element) return;
   if (element.classList.contains("highlight"))
     switch (lyrics.type) {
       case "TEXT_SYNCED":

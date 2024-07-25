@@ -78,43 +78,11 @@ async function getCurrentlyPlaying() {
       if (defaultData.type === "track") {
         const artists = item.artists.map((artist) => artist.name).join(", ");
         const SpotifySession = await getSpotifySession();
-        let valenceEmoji;
-
-        if (item.id)
-          valenceEmoji = await request(`audio-features/${item.id}`)
-            .then(({ data }) => {
-              const valence = data.valence;
-
-              if (valence >= 0.9) {
-                return "😆";
-              } else if (valence >= 0.75) {
-                return "😄";
-              } else if (valence >= 0.6) {
-                return "😊";
-              } else if (valence >= 0.5) {
-                return "🙂";
-              } else if (valence >= 0.4) {
-                return "😐";
-              } else if (valence >= 0.3) {
-                return "😕";
-              } else if (valence >= 0.2) {
-                return "😟";
-              } else if (valence >= 0.1) {
-                return "😢";
-              } else {
-                return "😭";
-              }
-            })
-            .catch(() => null);
 
         return {
           ...defaultData,
           name: item.name,
-          innerHTMLname: `<a href="https://open.spotify.com/track/${
-            item.id
-          }" target="_blank">${
-            valenceEmoji ? `<span class="emoji">${valenceEmoji}</span>` : ""
-          } ${item.name}</a>`,
+          innerHTMLname: `<a href="https://open.spotify.com/track/${item.id}">${item.name}</a>`,
           artists,
           innerHTMLartists: item.artists
             .map(

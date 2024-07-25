@@ -5,13 +5,17 @@ window.document.addEventListener("DOMContentLoaded", async () => {
 
   if (!loadKuroshiro) return;
 
-  $(".loader-screen").remove();
+  if (navigator.userAgent.includes("Windows NT 1")) {
+    $(".loading-status").textContent = "Checking MSS...";
 
-  if (navigator.userAgent.includes("Windows NT 1") && !(await checkMSS()))
-    showMessage(
-      "Mẹo: Cài đặt Media Session Server giúp đồng bộ thời gian chính xác hơn",
-      "https://github.com/FlyTri/media-session-server"
-    );
+    if (!(await checkMSS()))
+      showMessage(
+        "Mẹo: Cài đặt Media Session Server giúp đồng bộ thời gian chính xác hơn",
+        "https://github.com/FlyTri/media-session-server"
+      );
+  }
+
+  $(".loader-screen").remove();
 
   if (document.visibilityState === "visible") navigator.wakeLock?.request();
 
@@ -101,12 +105,20 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Main functionality
-  getCurrentlyPlaying().then(handleData);
-  setInterval(async () => {
+  function main() {
     if (!navigator.onLine) return;
 
-    getCurrentlyPlaying().then(handleData);
-  }, 1000);
+    getCurrentlyPlaying().then(async (data) => {
+      if (!data) return;
+      await handleData(data);
+      console.log("handle complete");
+
+      if (data.id) update();
+    });
+
+    setTimeout(() => main(), 1000);
+  }
+  main();
 
   window.addEventListener("online", () => {
     showMessage("Đã kết nối Internet");
