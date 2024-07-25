@@ -52,17 +52,7 @@ async function getCurrentlyPlaying() {
   return request("me/player/currently-playing")
     .then(async (response) => {
       const { data } = response;
-      const error = data.error;
 
-      if (error) {
-        showMessage(
-          `Lỗi: ${error.status} | ${error.message}. Hãy thử đăng nhập lại`,
-          null,
-          "error"
-        );
-
-        return { timestamp: -1, playing: false };
-      }
       if ((data.timestamp || 1) === spotify.timestamp) return;
       if (response.status === 204) return { timestamp: 1, playing: false };
 
@@ -117,7 +107,11 @@ async function getCurrentlyPlaying() {
     })
     .catch((error) => {
       console.log(error);
-      showMessage("Không thể cập nhật trình phát nhạc", null, "error");
+      showMessage(
+        `Lỗi: ${error.response.status} | ${error.response.data.error.message}. Hãy thử đăng nhập lại`,
+        null,
+        "error"
+      );
 
       return {
         playing: false,
