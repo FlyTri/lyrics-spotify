@@ -224,7 +224,6 @@ const handleData = async (data) => {
     lyrics = {};
     document.title = "Lời bài hát";
 
-    $(".progress-bar").style.width = 0;
     $(".title").textContent = "Tên bài hát";
     $(".artists").textContent = "Tên nghệ sĩ";
 
@@ -243,9 +242,6 @@ const handleData = async (data) => {
   } else {
     document.title = data.playing ? "Đang phát" : "Đã tạm dừng";
 
-    $(".progress-bar").style.width = `${
-      ((data.position + +localStorage.getItem("count")) / data.duration) * 100
-    }%`;
     $(".title").innerHTML = data.innerHTMLname;
     $(".artists").innerHTML = data.innerHTMLartists;
 
@@ -269,7 +265,9 @@ const handleData = async (data) => {
         $(".convert").classList.remove("disabled");
     }
   }
-  
+
   spotify = data;
   playing = data.playing;
+
+  update();
 };

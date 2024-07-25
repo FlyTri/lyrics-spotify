@@ -109,14 +109,10 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     if (!navigator.onLine) return;
 
     getCurrentlyPlaying().then(async (data) => {
-      if (!data) return;
-      await handleData(data);
-      console.log("handle complete");
+      setTimeout(() => main(), 1000);
 
-      if (data.id) update();
+      if (data) handleData(data);
     });
-
-    setTimeout(() => main(), 1000);
   }
   main();
 
