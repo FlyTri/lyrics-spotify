@@ -2,10 +2,11 @@ import axios from "axios";
 import { INSTRUMENTAL, DJ } from "../utils";
 import { qrc as QRC } from "smart-lyric";
 import { lrc as parseLRC, qrc as parseQRC, plain } from "./Parser";
+
 import {
   QQMusicLyricsResponse,
   QQMusicSearchResponse,
-} from "../../types/QQMusic";
+} from "../types/QQMusic";
 
 const instance = axios.create({
   baseURL: "https://u.y.qq.com/cgi-bin",

@@ -2,8 +2,9 @@ import axios from "axios";
 import fs from "fs";
 import { lrc as parseLRC } from "./Parser";
 import { INSTRUMENTAL, formatText, trim } from "../utils";
-import { MusixmatchLyricsResponse } from "../../types/Musixmatch";
-import { TextSyncedData } from "../../types/global";
+import { MusixmatchLyricsResponse } from "../types/Musixmatch";
+
+import { TextSyncedData } from "../types/global";
 
 const { tokens } = JSON.parse(
   fs.readFileSync("MusixmatchTokens.json", "utf-8")

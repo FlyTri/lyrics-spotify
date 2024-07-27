@@ -2,10 +2,11 @@ import axios from "axios";
 import crypto from "node:crypto";
 import { lrc as parseLRC } from "./Parser";
 import { formatText, omitUndefined, trim } from "../utils";
+
 import {
   ZingMP3LyricResponse,
   ZingMP3SearchResponse,
-} from "../../types/ZingMP3";
+} from "../types/ZingMP3";
 
 const { ZMP3_API_KEY, ZMP3_SECRET_KEY, ZMP3_VERSION } = process.env;
 

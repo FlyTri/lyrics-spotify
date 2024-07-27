@@ -1,4 +1,4 @@
-import { sources } from "../src/structures/SourceManager";
+import { sources } from "../structures/SourceManager";
 
 declare global {
   export type SpotifyTrackData = {
