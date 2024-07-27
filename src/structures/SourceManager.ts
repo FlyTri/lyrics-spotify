@@ -1,6 +1,6 @@
-import QQMusicManager from "./QQMusic.mjs";
-import MusixmatchManager from "./Musixmatch.mjs";
-import ZingMP3 from "./ZingMP3.mjs";
+import QQMusicManager from "./QQMusic";
+import MusixmatchManager from "./Musixmatch";
+import ZingMP3 from "./ZingMP3";
 
 const qq = new QQMusicManager();
 const musixmatch = new MusixmatchManager();

@@ -3,12 +3,11 @@ import "dotenv/config";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 import path from "path";
-import { fileURLToPath } from "url";
 import axios from "axios";
-import RedisManager from "./structures/Redis.mjs";
-import MongoDBManager from "./structures/MongoDB.mjs";
-import { sources } from "./structures/SourceManager.mjs";
-import { NO_RESULT } from "./utils.mjs";
+import RedisManager from "./structures/Redis";
+import MongoDBManager from "./structures/MongoDB";
+import { sources } from "./structures/SourceManager";
+import { NO_RESULT } from "./utils";
 
 axios.defaults.timeout = 5000;
 axios.defaults.headers.common["User-Agent"] =
@@ -17,9 +16,6 @@ axios.defaults.headers.common["User-Agent"] =
 const { PORT } = process.env;
 const redis = new RedisManager();
 const mongodb = new MongoDBManager();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(
@@ -41,17 +37,17 @@ app
 
     next();
   })
-  .use(express.static(path.join(__dirname, "public")));
+  .use(express.static(path.join(__dirname, "..", "public")));
 
 app
   .get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "pages", "index.html"));
+    res.sendFile(path.join(__dirname, "..", "pages", "index.html"));
   })
   .get("/login", (req, res) => {
-    res.sendFile(path.join(__dirname, "pages", "login.html"));
+    res.sendFile(path.join(__dirname, "..", "pages", "login.html"));
   })
   .get("/callback", (req, res) => {
-    res.sendFile(path.join(__dirname, "pages", "callback.html"));
+    res.sendFile(path.join(__dirname, "..", "pages", "callback.html"));
   });
 
 app
@@ -66,7 +62,7 @@ app
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((response) => {
-        const track = response.data;
+        const track: SpotifyApi.SingleTrackResponse = response.data;
 
         return {
           id,
@@ -74,18 +70,19 @@ app
           duration: track.duration_ms,
           album: track.album.name,
           artists: track.artists.map((artist) => artist.name).join(", "),
-        };
+        } as SpotifyTrackData;
       })
       .catch(() => null);
 
     if (!track) return res.json({ message: "Không tìm thấy bài hát" });
 
     try {
-      let lyrics = await getBestLyrics(track);
+      const lyrics = await getBestLyrics(track);
 
       res.json(lyrics || NO_RESULT);
     } catch (error) {
       console.log(error);
+      
       res.json({
         message: '<span class="emoji">😔</span>Đã xảy ra lỗi từ phía máy chủ',
       });
@@ -98,7 +95,7 @@ app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 process.on("unhandledRejection", console.log);
 process.on("uncaughtException", console.log);
 
-async function getLyricsFromSources(data) {
+async function getLyricsFromSources(data: SpotifyTrackData) {
   const lineSynced = [];
   const notSynced = [];
   const other = [];
@@ -125,7 +122,7 @@ async function getLyricsFromSources(data) {
   return lineSynced[0] || notSynced[0] || other[0];
 }
 
-async function getBestLyrics(track) {
+async function getBestLyrics(track: SpotifyTrackData) {
   let lyrics = await redis.get(track.id);
 
   if (!lyrics) {

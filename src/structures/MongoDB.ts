@@ -15,7 +15,7 @@ export default class MongoDB {
   constructor() {
     const date = Date.now();
 
-    connect(process.env.MONGODB_URI, {
+    connect(process.env.MONGODB_URI!, {
       dbName: "lyrics-spotify",
       compressors: "snappy",
       retryReads: true,
@@ -41,13 +41,7 @@ export default class MongoDB {
         console.log("Successfully reconnected to MongoDB database");
       });
   }
-  /**
-   *
-   * @param {object} track
-   * @param {{musixmatch: import("./Musixmatch.mjs").default, qq: import("./QQMusic.mjs").default}} sources
-   * @returns
-   */
-  async getLyrics(track, sources) {
+  async getLyrics(track: SpotifyTrackData, sources: Sources) {
     if (connections[0].readyState !== 1) return;
 
     const db = await model("Lyrics", schema, "Lyrics")
@@ -57,11 +51,11 @@ export default class MongoDB {
       .catch(() => null);
 
     if (!db) return;
-    if (db.provider) {
+    if (db.provider && db.songId) {
       const data = await sources[db.provider].getLyrics(track, db.songId);
 
-      if (data) {
-        data.source += ", được chọn lọc bởi Lyrics Spotify";
+      if (data && "source" in data && data.source) {
+        (data.source as string) += ", được chọn lọc bởi Lyrics Spotify";
 
         return data;
       }

@@ -1,7 +1,8 @@
-import { commandOptions, createClient } from "redis";
+import { commandOptions, createClient, RedisClientType } from "redis";
 import { compressSync, uncompressSync } from "snappy";
 
 export default class Redis {
+  client: RedisClientType;
   constructor() {
     this.client = createClient({
       url: process.env.REDIS_URL,
@@ -25,14 +26,14 @@ export default class Redis {
       console.log(`Redis error: ${error.message}`);
     });
   }
-  async set(key, value, time = 43200) {
+  async set(key: string, value: object, time = 43200) {
     if (!this.client.isReady) return;
 
     return this.client
       .setEx(key, time, compressSync(JSON.stringify(value)))
       .catch(() => null);
   }
-  async get(key) {
+  async get(key: string) {
     if (!this.client.isReady) return;
 
     const data = await this.client
@@ -40,7 +41,7 @@ export default class Redis {
       .catch(() => null);
 
     if (data) {
-      const uncompressed = JSON.parse(uncompressSync(data));
+      const uncompressed = JSON.parse(uncompressSync(data) as string);
 
       if (uncompressed.source)
         return { ...uncompressed, source: `${uncompressed.source} (Cached)` };

@@ -1,7 +1,11 @@
 import axios from "axios";
-import { INSTRUMENTAL, DJ } from "../utils.mjs";
+import { INSTRUMENTAL, DJ } from "../utils";
 import { qrc as QRC } from "smart-lyric";
-import { lrc as parseLRC, qrc as parseQRC, plain } from "./Parser.mjs";
+import { lrc as parseLRC, qrc as parseQRC, plain } from "./Parser";
+import {
+  QQMusicLyricsResponse,
+  QQMusicSearchResponse,
+} from "../../types/QQMusic";
 
 const instance = axios.create({
   baseURL: "https://u.y.qq.com/cgi-bin",
@@ -9,23 +13,26 @@ const instance = axios.create({
 
 instance.interceptors.response.use(
   (response) => response.data,
-  (error) => Promise.resolve(null)
+  () => Promise.resolve(null)
 );
 
 export default class QQMusic {
-  async #getID(name, artists) {
-    const data = await instance.post("/musicu.fcg", {
-      req: {
-        method: "DoSearchForQQMusicDesktop",
-        module: "music.search.SearchCgiService",
-        param: {
-          num_per_page: 5,
-          page_num: 1,
-          query: `${name} - ${artists}`,
-          search_type: 0,
+  async #getID(name: string, artists: string) {
+    const data: QQMusicSearchResponse | null = await instance.post(
+      "/musicu.fcg",
+      {
+        req: {
+          method: "DoSearchForQQMusicDesktop",
+          module: "music.search.SearchCgiService",
+          param: {
+            num_per_page: 5,
+            page_num: 1,
+            query: `${name} - ${artists}`,
+            search_type: 0,
+          },
         },
-      },
-    });
+      }
+    );
 
     if (!data) return;
 
@@ -48,23 +55,26 @@ export default class QQMusic {
 
     return song?.id;
   }
-  async getLyrics({ name, artists }, id) {
-    const songID = id || (await this.#getID(name, artists));
+  async getLyrics({ name, artists }: SpotifyTrackData, id?: number) {
+    const songID = id ?? (await this.#getID(name, artists));
 
     if (!songID) return;
 
-    const data = await instance.post("/musicu.fcg", {
-      "music.musichallSong.PlayLyricInfo.GetPlayLyricInfo": {
-        method: "GetPlayLyricInfo",
-        module: "music.musichallSong.PlayLyricInfo",
-        pcachetime: Date.now(),
-        param: {
-          crypt: 0,
-          qrc: 1,
-          songID,
+    const data: QQMusicLyricsResponse | null = await instance.post(
+      "/musicu.fcg",
+      {
+        "music.musichallSong.PlayLyricInfo.GetPlayLyricInfo": {
+          method: "GetPlayLyricInfo",
+          module: "music.musichallSong.PlayLyricInfo",
+          pcachetime: Date.now(),
+          param: {
+            crypt: 0,
+            qrc: 1,
+            songID,
+          },
         },
-      },
-    });
+      }
+    );
 
     if (!data) return;
 
@@ -73,8 +83,8 @@ export default class QQMusic {
 
     if (!lyric) return;
 
-    let decrypted = qrc
-      ? QRC.decrypt(Buffer.from(lyric, "hex"))
+    const decrypted = qrc
+      ? QRC.decrypt(Buffer.from(lyric, "hex"))!
       : Buffer.from(lyric, "base64").toString();
     const single = /[\n\r]/.test(decrypted)
       ? ""
@@ -86,7 +96,7 @@ export default class QQMusic {
 
     let parsed;
     if (qrc)
-      parsed = parseQRC(/LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)[1]);
+      parsed = parseQRC(/LyricContent="((.|\r|\n)*)"\/>/.exec(decrypted)![1]);
     else if (decrypted.startsWith("[")) parsed = parseLRC(decrypted);
     else parsed = plain(decrypted);
 

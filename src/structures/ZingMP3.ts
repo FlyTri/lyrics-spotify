@@ -1,7 +1,11 @@
 import axios from "axios";
 import crypto from "node:crypto";
-import { lrc as parseLRC } from "./Parser.mjs";
-import { formatText, omitUndefined, trim } from "../utils.mjs";
+import { lrc as parseLRC } from "./Parser";
+import { formatText, omitUndefined, trim } from "../utils";
+import {
+  ZingMP3LyricResponse,
+  ZingMP3SearchResponse,
+} from "../../types/ZingMP3";
 
 const { ZMP3_API_KEY, ZMP3_SECRET_KEY, ZMP3_VERSION } = process.env;
 
@@ -9,25 +13,26 @@ const instance = axios.create({
   baseURL: "https://zingmp3.vn/",
 });
 
-const createHash256 = (str) =>
+const createHash256 = (str: string) =>
   crypto.createHash("sha256").update(str).digest("hex");
-const createHmac512 = (str) =>
-  crypto.createHmac("sha512", ZMP3_SECRET_KEY).update(str).digest("hex");
+const createHmac512 = (str: string) =>
+  crypto.createHmac("sha512", ZMP3_SECRET_KEY!).update(str).digest("hex");
 
 export default class ZingMP3 {
+  cookie: string[];
   constructor() {
     this.cookie = [];
   }
   async #getCookie() {
     await instance("/")
       .then(({ headers }) => {
-        this.cookie = headers["set-cookie"];
+        this.cookie = headers["set-cookie"]!;
       })
       .catch(() => console.log("Failed to get ZingMP3 cookie"));
 
     setTimeout(() => this.#getCookie(), 86400000);
   }
-  async #getId({ name, artists, duration }) {
+  async #getId({ name, artists, duration }: SpotifyTrackData) {
     const date = Math.round(Date.now() / 1000);
     const path = "/api/v2/search";
 
@@ -51,7 +56,8 @@ export default class ZingMP3 {
         headers: { cookie: this.cookie },
       })
       .then((response) => {
-        const songs = response.data.data.items.filter((item) => item.hasLyric);
+        const data: ZingMP3SearchResponse = response.data;
+        const songs = data.data.items.filter((item) => item.hasLyric);
         const song = songs.find(
           (song) => song.duration === Math.round(duration / 1000)
         );
@@ -60,11 +66,11 @@ export default class ZingMP3 {
       })
       .catch(() => null);
   }
-  async getLyrics(metadata, songId) {
+  async getLyrics(track: SpotifyTrackData, songId?: number) {
     if (!this.cookie.length) await this.#getCookie();
 
-    const id = songId || (await this.#getId(metadata));
-    const lyric = await instance
+    const id = songId || (await this.#getId(track));
+    const lyric: ZingMP3LyricResponse | null = await instance
       .get("/api/v2/lyric/get/lyric", {
         params: {
           id,
@@ -77,12 +83,12 @@ export default class ZingMP3 {
         },
         headers: { cookie: this.cookie },
       })
-      .then((response) => response.data.data)
+      .then((response) => response.data)
       .catch(() => null);
 
     if (!lyric) return;
 
-    const { sentences, file } = lyric;
+    const { sentences, file } = lyric.data;
 
     if (sentences)
       return {
@@ -105,8 +111,8 @@ export default class ZingMP3 {
         };
     }
   }
-  #parseTextSynced(sentences) {
-    const lyrics = [];
+  #parseTextSynced(sentences: ZingMP3LyricResponse["data"]["sentences"]) {
+    const lyrics: (TextSynced | Interlude)[] = [];
 
     sentences.forEach((sentence) => {
       const lineEnd = sentence.words[sentence.words.length - 1].endTime;
@@ -117,9 +123,14 @@ export default class ZingMP3 {
         const space = sentence.words[i + 1] ? " " : "";
         const before = lyrics.findLast((obj) => obj.new);
 
-        if (i === 0 && before && startTime - before.lineEnd >= 3000)
+        if (
+          i === 0 &&
+          before &&
+          "lineEnd" in before &&
+          startTime - before.lineEnd! >= 3000
+        )
           lyrics.push({
-            time: before.lineEnd,
+            time: before.lineEnd!,
             wait: true,
             new: true,
           });

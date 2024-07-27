@@ -10,11 +10,7 @@ export const DJ = {
   type: "DJ",
 };
 
-/**
- *@param {string} text
- @returns {string}
- */
-export function formatText(text) {
+export function formatText(text: string): string {
   const characters = [
     ["（", "("],
     ["）", ")"],
@@ -75,20 +71,16 @@ export function formatText(text) {
   return text;
 }
 
-export function formatTime(time) {
+export function formatTime(time: string): number {
   const [m, s] = time.split(":").map(Number);
 
   return (m * 60 + s) * 1000;
 }
 
-export function omitUndefined(obj) {
+export function omitUndefined(obj: TextSynced): TextSynced {
   return JSON.parse(JSON.stringify(obj));
 }
 
-/**
- * @param {string} string
- * @returns {string}
- */
-export function trim(string) {
+export function trim(string: string) {
   return string.replace(/ {2,}/g, " ").trim();
 }

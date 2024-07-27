@@ -1,4 +1,4 @@
-import { formatText, formatTime, omitUndefined, trim } from "../utils.mjs";
+import { formatText, formatTime, omitUndefined, trim } from "../utils";
 
 const METADATA = /^\[(.+?):(.*?)\]$/;
 
@@ -7,12 +7,9 @@ const LRC_LYRIC = /^((?:\[\d{2,}:\d{2}(?:\.\d{2,3})?\])+)(.*)$/;
 const QRC_LYRIC = /^\[(\d+),(\d+)\](.*)$/;
 const QRC_WORDS = /(.*?)\((\d*),(\d*)\)/g;
 
-/**
- * @param {string} string
- */
-export function lrc(string) {
+export function lrc(string: string) {
   const lines = trim(string).split(/\r?\n/);
-  const data = { type: "LINE_SYNCED", metadata: [], lyrics: [] };
+  const data: LRC = { type: "LINE_SYNCED", metadata: [], lyrics: [] };
 
   lines.forEach((line) => {
     const metadata = METADATA.exec(line);
@@ -32,20 +29,17 @@ export function lrc(string) {
     }
   });
 
+  const last = data.lyrics[data.lyrics.length - 1];
+
   if (data.lyrics[0].time) data.lyrics.unshift({ time: 0, wait: true });
-  if (!data.lyrics[data.lyrics.length - 1].text) data.lyrics.pop();
+  if ("text" in last && !last.text) data.lyrics.pop();
 
   return data;
 }
 
-/**
- *
- * @param {string} string
- * @returns
- */
-export function qrc(string) {
+export function qrc(string: string) {
   const lines = trim(string).split(/\r?\n/);
-  const data = { type: "TEXT_SYNCED", metadata: [], lyrics: [] };
+  const data: QRC = { type: "TEXT_SYNCED", metadata: [], lyrics: [] };
   let first = true;
   let checkHeader = true;
 
@@ -80,9 +74,14 @@ export function qrc(string) {
         const space = words[i + 1]?.[1] === " " ? " " : "";
         const before = data.lyrics.findLast((obj) => obj.new);
 
-        if (i === 0 && before && ws - before.lineEnd >= 3000)
+        if (
+          i === 0 &&
+          before &&
+          "lineEnd" in before &&
+          +ws - before.lineEnd! >= 3000
+        )
           data.lyrics.push({
-            time: before.lineEnd,
+            time: before.lineEnd!,
             wait: true,
             new: true,
           });
@@ -99,16 +98,15 @@ export function qrc(string) {
     }
   });
 
+  const last = data.lyrics[data.lyrics.length - 1];
+
   if (data.lyrics[0].time) data.lyrics.unshift({ time: 0, wait: true });
-  if (!data.lyrics[data.lyrics.length - 1].text) data.lyrics.pop();
+  if ("text" in last && !last.text) data.lyrics.pop();
 
   return data;
 }
 
-/**
- * @param {string} string
- */
-export function plain(string) {
+export function plain(string: string) {
   const splitted = string.split(/\r?\n/);
   const parsed = splitted.map((text) => ({
     text: formatText(text) || "",
@@ -116,5 +114,5 @@ export function plain(string) {
 
   if (!parsed[parsed.length - 1].text) parsed.pop();
 
-  return { type: "NOT_SYNCED", metadata: [], lyrics: parsed };
+  return { type: "NOT_SYNCED", metadata: [], lyrics: parsed } as Plain;
 }
