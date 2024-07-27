@@ -82,7 +82,7 @@ app
       res.json(lyrics || NO_RESULT);
     } catch (error) {
       console.log(error);
-      
+
       res.json({
         message: '<span class="emoji">😔</span>Đã xảy ra lỗi từ phía máy chủ',
       });
