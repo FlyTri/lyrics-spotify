@@ -91,7 +91,7 @@ app
       });
     }
   })
-  .all("*", (req, res) => res.status(404));
+  .all("*", (req, res) => res.status(404).send(""));
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 

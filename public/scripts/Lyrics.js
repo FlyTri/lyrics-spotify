@@ -222,10 +222,12 @@ const fetchLyrics = async (id) => {
   })
     .then((response) => response.data)
     .catch(async (error) => {
-      if (error.code === "ECONNABORTED") return { message: "..." };
+      if (error.message === "canceled") return;
 
       return { message: "Không thể gửi yêu cầu" };
     });
+
+  if (!lyrics) return;
 
   await writeLyrics();
 
@@ -263,7 +265,12 @@ const handleData = async (data) => {
     $(".title").innerHTML = data.innerHTMLname;
     $(".artists").innerHTML = data.innerHTMLartists;
 
-    if (spotify.id !== data.id) await fetchLyrics(data.id);
+    if (spotify.id !== data.id) {
+      spotify = data;
+      playing = data.playing;
+
+      await fetchLyrics(data.id);
+    }
   }
 
   spotify = data;
