@@ -85,7 +85,10 @@ export default class ZingMP3 {
       .then((response) => response.data)
       .catch(() => null);
 
-    if (!lyric) return;
+    if (
+      !lyric /** || !("sentences" in lyric.data) || !("file" in lyric.data)**/
+    )
+      return;
 
     const { sentences, file } = lyric.data;
 
