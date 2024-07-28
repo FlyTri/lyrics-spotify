@@ -103,7 +103,7 @@ async function getLyricsFromSources(data: SpotifyTrackData) {
   for (const source of Object.values(sources)) {
     const result = await source.getLyrics(data);
 
-    if (result) {
+    if (result && "type" in result)
       switch (result.type) {
         case "TEXT_SYNCED":
           return result;
@@ -116,7 +116,6 @@ async function getLyricsFromSources(data: SpotifyTrackData) {
         default:
           other.push(result);
       }
-    }
   }
 
   return lineSynced[0] || notSynced[0] || other[0];

@@ -3,10 +3,8 @@ import { INSTRUMENTAL, DJ } from "../utils";
 import { qrc as QRC } from "smart-lyric";
 import { lrc as parseLRC, qrc as parseQRC, plain } from "./Parser";
 
-import {
-  QQMusicLyricsResponse,
-  QQMusicSearchResponse,
-} from "../types/QQMusic";
+import { QQMusicLyricsResponse, QQMusicSearchResponse } from "../types/QQMusic";
+import { LineSyncedData, NotSyncedData, TextSyncedData } from "../types";
 
 const instance = axios.create({
   baseURL: "https://u.y.qq.com/cgi-bin",
@@ -38,7 +36,12 @@ export default class QQMusic {
     if (!data) return;
 
     const songs = data.req.data.body.song.list;
-    const sortedArtists = String(artists.toUpperCase().split(", ").sort());
+    const sortedArtists = String(
+      artists
+        .toUpperCase()
+        .split(", ")
+        .sort((a, b) => a.localeCompare(b))
+    );
 
     if (!songs.length) return;
 
@@ -47,10 +50,14 @@ export default class QQMusic {
         song.name.toUpperCase() === name.toUpperCase() &&
         song.title.toUpperCase() === name.toUpperCase() &&
         String(
-          song.singer.map((singer) => singer.name.toUpperCase()).sort()
+          song.singer
+            .map((singer) => singer.name.toUpperCase())
+            .sort((a, b) => a.localeCompare(b))
         ) === sortedArtists &&
         String(
-          song.singer.map((singer) => singer.title.toUpperCase()).sort()
+          song.singer
+            .map((singer) => singer.title.toUpperCase())
+            .sort((a, b) => a.localeCompare(b))
         ) === sortedArtists
     );
 
@@ -107,6 +114,6 @@ export default class QQMusic {
       type,
       data: lyrics,
       source: "Cung cấp bởi QQ Music",
-    };
+    } as TextSyncedData | LineSyncedData | NotSyncedData;
   }
 }

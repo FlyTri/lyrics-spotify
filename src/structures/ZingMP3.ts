@@ -3,10 +3,8 @@ import crypto from "node:crypto";
 import { lrc as parseLRC } from "./Parser";
 import { formatText, omitUndefined, trim } from "../utils";
 
-import {
-  ZingMP3LyricResponse,
-  ZingMP3SearchResponse,
-} from "../types/ZingMP3";
+import { ZingMP3LyricResponse, ZingMP3SearchResponse } from "../types/ZingMP3";
+import { LineSyncedData, TextSyncedData } from "../types";
 
 const { ZMP3_API_KEY, ZMP3_SECRET_KEY, ZMP3_VERSION } = process.env;
 
@@ -24,16 +22,16 @@ export default class ZingMP3 {
   constructor() {
     this.cookie = [];
   }
-  async #getCookie() {
+  private async getCookie() {
     await instance("/")
       .then(({ headers }) => {
         this.cookie = headers["set-cookie"]!;
       })
       .catch(() => console.log("Failed to get ZingMP3 cookie"));
 
-    setTimeout(() => this.#getCookie(), 86400000);
+    setTimeout(() => this.getCookie(), 86400000);
   }
-  async #getId({ name, artists, duration }: SpotifyTrackData) {
+  private async getId({ name, artists, duration }: SpotifyTrackData) {
     const date = Math.round(Date.now() / 1000);
     const path = "/api/v2/search";
 
@@ -68,9 +66,9 @@ export default class ZingMP3 {
       .catch(() => null);
   }
   async getLyrics(track: SpotifyTrackData, songId?: number) {
-    if (!this.cookie.length) await this.#getCookie();
+    if (!this.cookie.length) await this.getCookie();
 
-    const id = songId || (await this.#getId(track));
+    const id = songId ?? (await this.getId(track));
     const lyric: ZingMP3LyricResponse | null = await instance
       .get("/api/v2/lyric/get/lyric", {
         params: {
@@ -94,9 +92,9 @@ export default class ZingMP3 {
     if (sentences)
       return {
         type: "TEXT_SYNCED",
-        data: this.#parseTextSynced(sentences),
+        data: this.parseTextSynced(sentences),
         source: "Cung cấp bởi ZingMP3",
-      };
+      } as TextSyncedData;
 
     if (file) {
       const lrc = await axios
@@ -109,10 +107,12 @@ export default class ZingMP3 {
           type: "LINE_SYNCED",
           data: parseLRC(lrc).lyrics,
           source: "Cung cấp bởi ZingMP3",
-        };
+        } as LineSyncedData;
     }
   }
-  #parseTextSynced(sentences: ZingMP3LyricResponse["data"]["sentences"]) {
+  private parseTextSynced(
+    sentences: ZingMP3LyricResponse["data"]["sentences"]
+  ) {
     const lyrics: (TextSynced | Interlude)[] = [];
 
     sentences.forEach((sentence) => {

@@ -1,14 +1,8 @@
-export const NO_RESULT = {
-  type: "NO_RESULT",
-};
+export const NO_RESULT = { type: "NO_RESULT" } as const;
 
-export const INSTRUMENTAL = {
-  type: "INSTRUMENTAL",
-};
+export const INSTRUMENTAL = { type: "INSTRUMENTAL" } as const;
 
-export const DJ = {
-  type: "DJ",
-};
+export const DJ = { type: "DJ" } as const;
 
 export function formatText(text: string): string {
   const characters = [

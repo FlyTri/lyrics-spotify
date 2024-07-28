@@ -1,5 +1,7 @@
 import { Schema, connect, connections, model } from "mongoose";
 
+import { Lyrics } from "../types";
+
 const schema = new Schema({
   id: { type: String, required: true },
   lyrics: { type: Object },
@@ -41,7 +43,10 @@ export default class MongoDB {
         console.log("Successfully reconnected to MongoDB database");
       });
   }
-  async getLyrics(track: SpotifyTrackData, sources: Sources) {
+  async getLyrics(
+    track: SpotifyTrackData,
+    sources: Sources
+  ): Promise<Lyrics | undefined> {
     if (connections[0].readyState !== 1) return;
 
     const db = await model("Lyrics", schema, "Lyrics")
@@ -55,7 +60,7 @@ export default class MongoDB {
       const data = await sources[db.provider].getLyrics(track, db.songId);
 
       if (data && "source" in data && data.source) {
-        (data.source as string) += ", được chọn lọc bởi Lyrics Spotify";
+        data.source  += ", được chọn lọc bởi Lyrics Spotify";
 
         return data;
       }

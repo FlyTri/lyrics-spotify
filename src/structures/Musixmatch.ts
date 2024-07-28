@@ -4,14 +4,14 @@ import { lrc as parseLRC } from "./Parser";
 import { INSTRUMENTAL, formatText, trim } from "../utils";
 import { MusixmatchLyricsResponse } from "../types/Musixmatch";
 
-import { TextSyncedData } from "../types/global";
+import { LineSyncedData, NotSyncedData, TextSyncedData } from "../types";
 
 const { tokens } = JSON.parse(
   fs.readFileSync("MusixmatchTokens.json", "utf-8")
 );
 
 export default class Musixmatch {
-  async #handleAPIResponse(data: MusixmatchLyricsResponse) {
+  private async handleAPIResponse(data: MusixmatchLyricsResponse) {
     const { status_code } = data.message.header;
 
     if (status_code !== 200)
@@ -84,7 +84,7 @@ export default class Musixmatch {
         type: "LINE_SYNCED",
         data,
         source: "Cung cấp bởi Musixmatch",
-      };
+      } as LineSyncedData;
     }
 
     return {
@@ -95,14 +95,8 @@ export default class Musixmatch {
           text: formatText(text) || "",
         })),
       source: "Cung cấp bởi Musixmatch",
-    };
+    } as NotSyncedData;
   }
-
-  /**
-   *
-   * @param {{name: string, album: string, artist: string, id: string, duration: number}} param0
-   * @returns {Promise<LyricsData | { message: string }>}
-   */
   async getLyrics({ name, album, artists, id, duration }: SpotifyTrackData) {
     const data = await axios(
       "https://apic-desktop.musixmatch.com/ws/1.1/macro.subtitles.get",
@@ -133,7 +127,7 @@ export default class Musixmatch {
       .catch(() => null);
 
     if (data) {
-      const lyricsData = await this.#handleAPIResponse(data);
+      const lyricsData = await this.handleAPIResponse(data);
 
       return lyricsData;
     }

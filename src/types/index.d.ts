@@ -67,8 +67,15 @@ export type LineSyncedData = {
   source: string;
 };
 
-export type Plain = {
+export type NotSyncedData = {
   type: "NOT_SYNCED";
   data: NotSynced[];
   source: string;
 };
+
+export type Lyrics =
+  | TextSyncedData
+  | LineSyncedData
+  | NotSyncedData
+  | { message: string }
+  | { type: "INSTRUMENTAL" | "DJ" };
