@@ -16,7 +16,7 @@ instance.interceptors.response.use(
 );
 
 export default class QQMusic {
-  async #getID(name: string, artists: string) {
+  private async getID(name: string, artists: string) {
     const data: QQMusicSearchResponse | null = await instance.post(
       "/musicu.fcg",
       {
@@ -64,7 +64,7 @@ export default class QQMusic {
     return song?.id;
   }
   async getLyrics({ name, artists }: SpotifyTrackData, id?: number) {
-    const songID = id ?? (await this.#getID(name, artists));
+    const songID = id ?? (await this.getID(name, artists));
 
     if (!songID) return;
 

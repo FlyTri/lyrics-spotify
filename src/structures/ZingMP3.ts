@@ -69,6 +69,9 @@ export default class ZingMP3 {
     if (!this.cookie.length) await this.getCookie();
 
     const id = songId ?? (await this.getId(track));
+
+    if (!id) return;
+
     const lyric: ZingMP3LyricResponse | null = await instance
       .get("/api/v2/lyric/get/lyric", {
         params: {
@@ -85,10 +88,7 @@ export default class ZingMP3 {
       .then((response) => response.data)
       .catch(() => null);
 
-    if (
-      !lyric /** || !("sentences" in lyric.data) || !("file" in lyric.data)**/
-    )
-      return;
+    if (!lyric) return;
 
     const { sentences, file } = lyric.data;
 
