@@ -39,6 +39,8 @@ https://lyrics-spotify.onrender.com/callback
 - Phông chữ:
   - [Spotify](https://spotify.com/)
   - [Apple](https://apple.com/)
+- Emoji:
+  - [Google](https://fonts.google.com/)
 - Biểu tượng:
   - [FontAwesome](https://fontawesome.com/)
   - [Icons8](https://icons8.com/)

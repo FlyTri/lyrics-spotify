@@ -11,7 +11,8 @@
     "lib": [
       "ES2021.String",
       "ES2023.Array"
-    ]
+    ],
+    "importHelpers": true
   },
   "include": [
     "src/**/*.ts",

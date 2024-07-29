@@ -16,7 +16,7 @@ instance.interceptors.response.use(
 );
 
 export default class QQMusic {
-  private async getID(name: string, artists: string) {
+  async getID(name: string, artists: string) {
     const data: QQMusicSearchResponse | null = await instance.post(
       "/musicu.fcg",
       {

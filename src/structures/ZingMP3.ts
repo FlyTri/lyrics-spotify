@@ -22,7 +22,7 @@ export default class ZingMP3 {
   constructor() {
     this.cookie = [];
   }
-  private async getCookie() {
+  async getCookie() {
     await instance("/")
       .then(({ headers }) => {
         this.cookie = headers["set-cookie"]!;
@@ -31,7 +31,7 @@ export default class ZingMP3 {
 
     setTimeout(() => this.getCookie(), 86400000);
   }
-  private async getId({ name, artists, duration }: SpotifyTrackData) {
+  async getId({ name, artists, duration }: SpotifyTrackData) {
     const date = Math.round(Date.now() / 1000);
     const path = "/api/v2/search";
 
@@ -90,6 +90,9 @@ export default class ZingMP3 {
 
     if (!lyric) return;
 
+    if (lyric.err && lyric.msg)
+      return { message: `Lỗi từ ZingMP3: ${lyric.msg}` };
+
     const { sentences, file } = lyric.data;
 
     if (sentences)
@@ -113,9 +116,7 @@ export default class ZingMP3 {
         } as LineSyncedData;
     }
   }
-  private parseTextSynced(
-    sentences: ZingMP3LyricResponse["data"]["sentences"]
-  ) {
+  parseTextSynced(sentences: ZingMP3LyricResponse["data"]["sentences"]) {
     const lyrics: (TextSynced | Interlude)[] = [];
 
     sentences.forEach((sentence) => {

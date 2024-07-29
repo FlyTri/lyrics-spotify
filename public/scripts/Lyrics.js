@@ -73,11 +73,15 @@ const writeLyrics = async () => {
   $(".content").innerHTML = "";
 
   if (lyrics.message) return setLyricsStatus(lyrics.message);
-  if (lyrics.type === "INSTRUMENTAL")
-    return setLyricsStatus("Hãy tận hưởng những giai điệu tuyệt vời~");
-  if (lyrics.type === "DJ") return setLyricsStatus("Quẩy lên nào! 🎧");
-  if (lyrics.type === "NO_RESULT")
-    return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
+
+  switch (lyrics.type) {
+    case "INSTRUMENTAL":
+      return setLyricsStatus("Hãy tận hưởng những giai điệu tuyệt vời~");
+    case "DJ":
+      return setLyricsStatus("Quẩy lên nào!");
+    case "NO_RESULT":
+      return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
+  }
 
   switch (lyrics.type) {
     case "TEXT_SYNCED": {
@@ -129,12 +133,6 @@ const writeLyrics = async () => {
 
   return true;
 };
-
-/**
- *
- * @param {HTMLElement} currentLine
- * @param {*} index
- */
 const updateInterlude = (currentLine, index) => {
   writeContent(lyrics.data[index], currentLine);
 };

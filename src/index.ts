@@ -4,6 +4,7 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 import path from "path";
 import axios from "axios";
+import { inspect } from "util";
 import RedisManager from "./structures/Redis";
 import MongoDBManager from "./structures/MongoDB";
 import { sources } from "./structures/SourceManager";
@@ -13,7 +14,7 @@ axios.defaults.timeout = 5000;
 axios.defaults.headers.common["User-Agent"] =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
-const { PORT } = process.env;
+const { PORT, EVAL_TOKEN } = process.env;
 const redis = new RedisManager();
 const mongodb = new MongoDBManager();
 const app = express();
@@ -50,42 +51,57 @@ app
     res.sendFile(path.join(__dirname, "..", "pages", "callback.html"));
   });
 
+app.get("/api/lyrics/:id([A-Za-z0-9]{22})", async (req, res) => {
+  const { id } = req.params;
+  const accessToken = req.headers.authorization;
+
+  if (!accessToken) return res.sendStatus(401);
+
+  const track = await axios
+    .get(`https://api.spotify.com/v1/tracks/${id}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    .then((response) => {
+      const track: SpotifyApi.SingleTrackResponse = response.data;
+
+      return {
+        id,
+        name: track.name,
+        duration: track.duration_ms,
+        album: track.album.name,
+        artists: track.artists.map((artist) => artist.name).join(", "),
+      } as SpotifyTrackData;
+    })
+    .catch(() => null);
+
+  if (!track) return res.json({ message: "Không tìm thấy bài hát" });
+
+  try {
+    const lyrics = await getBestLyrics(track);
+
+    res.json(lyrics || NO_RESULT);
+  } catch (error) {
+    console.log(error);
+
+    res.json({
+      message: '<span class="emoji">😔</span>Đã xảy ra lỗi từ phía máy chủ',
+    });
+  }
+});
+
 app
-  .get("/api/lyrics/:id([A-Za-z0-9]{22})", async (req, res) => {
-    const { id } = req.params;
-    const accessToken = req.headers.authorization;
-
-    if (!accessToken) return res.sendStatus(401);
-
-    const track = await axios
-      .get(`https://api.spotify.com/v1/tracks/${id}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      .then((response) => {
-        const track: SpotifyApi.SingleTrackResponse = response.data;
-
-        return {
-          id,
-          name: track.name,
-          duration: track.duration_ms,
-          album: track.album.name,
-          artists: track.artists.map((artist) => artist.name).join(", "),
-        } as SpotifyTrackData;
-      })
-      .catch(() => null);
-
-    if (!track) return res.json({ message: "Không tìm thấy bài hát" });
+  .use(express.text())
+  .post("/api/eval", async (req, res) => {
+    if (req.headers.authorization !== EVAL_TOKEN) return res.sendStatus(401);
 
     try {
-      const lyrics = await getBestLyrics(track);
+      const result = await eval(`(async () => { ${req.body} })()`);
 
-      res.json(lyrics || NO_RESULT);
+      console.log(result);
+      res.send(inspect(result, { showHidden: true, depth: null }));
     } catch (error) {
-      console.log(error);
-
-      res.json({
-        message: '<span class="emoji">😔</span>Đã xảy ra lỗi từ phía máy chủ',
-      });
+      console.log(error)
+      res.json(inspect(error));
     }
   })
   .all("*", (req, res) => res.status(404).send(""));

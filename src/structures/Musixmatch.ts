@@ -11,7 +11,7 @@ const { tokens } = JSON.parse(
 );
 
 export default class Musixmatch {
-  private async handleAPIResponse(data: MusixmatchLyricsResponse) {
+  async handleAPIResponse(data: MusixmatchLyricsResponse) {
     const { status_code } = data.message.header;
 
     if (status_code !== 200)
