@@ -4,13 +4,12 @@ import { Lyrics } from "../types";
 
 const schema = new Schema({
   id: { type: String, required: true },
-  lyrics: { type: Object },
+  lyrics: { type: Object }, // Lyrics
   provider: {
     type: String,
     enum: ["qq", "musixmatch", "zingmp3"],
-    required: true,
   },
-  songId: { type: Number },
+  songId: { type: Schema.Types.Mixed }, // number | string
 });
 
 export default class MongoDB {
@@ -56,8 +55,11 @@ export default class MongoDB {
       .catch(() => null);
 
     if (!db) return;
-    if (db.provider && db.songId) {
-      const data = await sources[db.provider].getLyrics(track, db.songId);
+    if (db.provider) {
+      const data = await sources[db.provider].getLyrics(
+        track,
+        db.songId ?? undefined
+      );
 
       if (data && "source" in data && data.source) {
         data.source += ", được chọn lọc bởi Lyrics Spotify";

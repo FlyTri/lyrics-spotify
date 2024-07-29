@@ -6,6 +6,7 @@ import { lrc as parseLRC, qrc as parseQRC, plain } from "./Parser";
 import { QQMusicLyricsResponse, QQMusicSearchResponse } from "../types/QQMusic";
 import { LineSyncedData, NotSyncedData, TextSyncedData } from "../types";
 
+const replace = (string: string) => string.replace(/ - Remix| \(Remix\)/, "");
 const instance = axios.create({
   baseURL: "https://u.y.qq.com/cgi-bin",
 });
@@ -16,7 +17,7 @@ instance.interceptors.response.use(
 );
 
 export default class QQMusic {
-  async getID(name: string, artists: string) {
+  async getID(name: string, artists: string, duration: number) {
     const data: QQMusicSearchResponse | null = await instance.post(
       "/musicu.fcg",
       {
@@ -45,10 +46,13 @@ export default class QQMusic {
 
     if (!songs.length) return;
 
-    const song = songs.find(
-      (song) =>
-        song.name.toUpperCase() === name.toUpperCase() &&
-        song.title.toUpperCase() === name.toUpperCase() &&
+    name = replace(name);
+
+    const song = songs.find((song) => {
+      const titleMath =
+        replace(song.name).toUpperCase() === name.toUpperCase() &&
+        replace(song.title).toUpperCase() === name.toUpperCase();
+      const artistMatch =
         String(
           song.singer
             .map((singer) => singer.name.toUpperCase())
@@ -58,13 +62,20 @@ export default class QQMusic {
           song.singer
             .map((singer) => singer.title.toUpperCase())
             .sort((a, b) => a.localeCompare(b))
-        ) === sortedArtists
-    );
+        ) === sortedArtists;
+      const durationMatch = song.interval === Math.round(duration / 1000);
+
+      return (
+        (titleMath && durationMatch) ||
+        (artistMatch && durationMatch) ||
+        (titleMath && artistMatch)
+      );
+    });
 
     return song?.id;
   }
-  async getLyrics({ name, artists }: SpotifyTrackData, id?: number) {
-    const songID = id ?? (await this.getID(name, artists));
+  async getLyrics({ name, artists, duration }: SpotifyTrackData, id?: number) {
+    const songID = id ?? (await this.getID(name, artists, duration));
 
     if (!songID) return;
 
