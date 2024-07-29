@@ -4,17 +4,18 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 import path from "path";
 import axios from "axios";
-import { inspect } from "util";
 import RedisManager from "./structures/Redis";
 import MongoDBManager from "./structures/MongoDB";
 import { sources } from "./structures/SourceManager";
-import { NO_RESULT } from "./utils";
+import { getSpotifyTrack, NO_RESULT } from "./utils";
+
+import { Lyrics } from "./types";
 
 axios.defaults.timeout = 5000;
 axios.defaults.headers.common["User-Agent"] =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
-const { PORT, EVAL_TOKEN } = process.env;
+const { PORT, PRIVATE_KEY } = process.env;
 const redis = new RedisManager();
 const mongodb = new MongoDBManager();
 const app = express();
@@ -51,58 +52,40 @@ app
     res.sendFile(path.join(__dirname, "..", "pages", "callback.html"));
   });
 
-app.get("/api/lyrics/:id([A-Za-z0-9]{22})", async (req, res) => {
-  const { id } = req.params;
-  const accessToken = req.headers.authorization;
-
-  if (!accessToken) return res.sendStatus(401);
-
-  const track = await axios
-    .get(`https://api.spotify.com/v1/tracks/${id}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-    .then((response) => {
-      const track: SpotifyApi.SingleTrackResponse = response.data;
-
-      return {
-        id,
-        name: track.name,
-        duration: track.duration_ms,
-        album: track.album.name,
-        artists: track.artists.map((artist) => artist.name).join(", "),
-      } as SpotifyTrackData;
-    })
-    .catch(() => null);
-
-  if (!track) return res.json({ message: "Không tìm thấy bài hát" });
-
-  try {
-    const lyrics = await getBestLyrics(track);
-
-    res.json(lyrics || NO_RESULT);
-  } catch (error) {
-    console.log(error);
-
-    res.json({
-      message: '<span class="emoji">😔</span>Đã xảy ra lỗi từ phía máy chủ',
-    });
-  }
-});
-
 app
-  .use(express.text())
-  .post("/api/eval", async (req, res) => {
-    if (req.headers.authorization !== EVAL_TOKEN) return res.sendStatus(401);
+  .get("/api/lyrics/:id([A-Za-z0-9]{22})", async (req, res) => {
+    const { id } = req.params;
+    const accessToken = req.headers.authorization;
+
+    if (!accessToken) return res.sendStatus(401);
+
+    const track = await getSpotifyTrack(id, accessToken);
+
+    if (!track) return res.json({ message: "Không tìm thấy bài hát" });
 
     try {
-      const result = await eval(`(async () => { ${req.body} })()`);
+      const lyrics = await getBestLyrics(track);
 
-      console.log(result);
-      res.send(inspect(result, { showHidden: true, depth: null }));
+      res.json(lyrics || NO_RESULT);
     } catch (error) {
-      console.log(error)
-      res.json(inspect(error));
+      console.log(error);
+
+      res.json({
+        message: '<span class="emoji">😔</span>Đã xảy ra lỗi từ phía máy chủ',
+      });
     }
+  })
+  .get("/api/lyrics/:source/:id", async (req, res) => {
+    if (req.headers.authorization !== PRIVATE_KEY) return res.sendStatus(401);
+
+    const { source, id } = req.params;
+
+    if (!(source in sources) || !id) return res.sendStatus(400);
+
+    // @ts-expect-error ID is provided
+    const result = await sources[source as Sources].getLyrics(null, +id || id);
+
+    res.json(result || NO_RESULT);
   })
   .all("*", (req, res) => res.status(404).send(""));
 
@@ -111,7 +94,9 @@ app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
 process.on("unhandledRejection", console.log);
 process.on("uncaughtException", console.log);
 
-async function getLyricsFromSources(data: SpotifyTrackData) {
+async function getLyricsFromSources(
+  data: SpotifyTrackData
+): Promise<Lyrics | undefined> {
   const lineSynced = [];
   const notSynced = [];
   const other = [];
@@ -144,7 +129,8 @@ async function getBestLyrics(track: SpotifyTrackData) {
     lyrics = await mongodb.getLyrics(track, sources);
 
     if (!lyrics) lyrics = await getLyricsFromSources(track);
-    if (lyrics) redis.set(track.id, lyrics);
+
+    redis.set(track.id, lyrics || NO_RESULT);
   }
 
   return lyrics || NO_RESULT;

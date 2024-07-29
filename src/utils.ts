@@ -1,8 +1,28 @@
+import axios from "axios";
+
 export const NO_RESULT = { type: "NO_RESULT" } as const;
 
 export const INSTRUMENTAL = { type: "INSTRUMENTAL" } as const;
 
 export const DJ = { type: "DJ" } as const;
+
+export async function getSpotifyTrack(id: string, accessToken: string) {
+  return axios(`https://api.spotify.com/v1/tracks/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+    .then((response) => {
+      const track: SpotifyApi.SingleTrackResponse = response.data;
+
+      return {
+        id,
+        name: track.name,
+        duration: track.duration_ms,
+        album: track.album.name,
+        artists: track.artists.map((artist) => artist.name).join(", "),
+      } as SpotifyTrackData;
+    })
+    .catch(() => null);
+}
 
 export function formatText(text: string): string {
   const characters = [

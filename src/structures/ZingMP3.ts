@@ -65,10 +65,10 @@ export default class ZingMP3 {
       })
       .catch(() => null);
   }
-  async getLyrics(track: SpotifyTrackData, songId?: number) {
+  async getLyrics(track: SpotifyTrackData, encodeId?: number) {
     if (!this.cookie.length) await this.getCookie();
 
-    const id = songId ?? (await this.getId(track));
+    const id = encodeId ?? (await this.getId(track));
 
     if (!id) return;
 
