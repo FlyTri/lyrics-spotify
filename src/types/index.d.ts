@@ -9,6 +9,24 @@ declare global {
     artists: string;
   };
 
+  export type SpotifyDownResponse =
+    | {
+        success: true;
+        metadata: {
+          cache: boolean;
+          success: boolean;
+          id: string;
+          artists: string;
+          title: string;
+          album: string;
+          cover: string;
+          isrc: string;
+          releaseDate: string;
+        };
+        link: string;
+      }
+    | { success: false; message: string };
+
   export type Sources = typeof sources;
 
   export type Metadata = {

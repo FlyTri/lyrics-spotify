@@ -6,12 +6,12 @@ async function getToken(authCode = false) {
   const requestBody = new URLSearchParams();
 
   if (authCode) {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     const code = params.get("code");
 
     requestBody.append("grant_type", "authorization_code");
     requestBody.append("code", code);
-    requestBody.append("redirect_uri", `${window.location.origin}/callback`);
+    requestBody.append("redirect_uri", `${location.origin}/callback`);
   } else {
     requestBody.append("grant_type", "refresh_token");
     requestBody.append("refresh_token", token.refresh_token);

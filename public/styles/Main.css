@@ -48,8 +48,7 @@ body {
 }
 
 img {
-  margin-left: auto;
-  margin-right: auto;
+  margin: auto;
   height: 1rem;
   pointer-events: none;
 }

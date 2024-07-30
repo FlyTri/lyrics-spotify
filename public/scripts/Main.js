@@ -1,6 +1,6 @@
-if (!localStorage.getItem("token")) window.location.href = "/login";
+if (!localStorage.getItem("token")) location.href = "/login";
 
-window.document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const loadKuroshiro = await initKuromoji();
 
   if (!loadKuroshiro) return;
@@ -39,8 +39,6 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   });
 
   if (!localStorage.getItem("count")) localStorage.setItem("count", 0);
-
-  $(".theme").addEventListener("click", () => changeBackground());
 
   $(".fullscreen").addEventListener("click", async () => {
     if (document.fullscreenElement) {
@@ -81,7 +79,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
 
   $(".logout").addEventListener("click", () => {
     localStorage.removeItem("token");
-    window.location.reload();
+    location.reload();
   });
 
   document.addEventListener("visibilitychange", () => {
@@ -96,7 +94,7 @@ window.document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  window.addEventListener("resize", () => {
+  addEventListener("resize", () => {
     const element = $(".highlight");
 
     if (element) scrollToCenter(element, false);
@@ -116,12 +114,12 @@ window.document.addEventListener("DOMContentLoaded", async () => {
   }
   main();
 
-  window.addEventListener("online", () => {
+  addEventListener("online", () => {
     showMessage("Đã kết nối Internet");
     handleDataWithUpdate({ playing: false });
   });
 
-  window.addEventListener("offline", () => {
+  addEventListener("offline", () => {
     showMessage("Đã ngắt kết nối Internet", null, "warning");
     handleDataWithUpdate({ playing: false });
   });

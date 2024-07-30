@@ -53,11 +53,14 @@ function scrollToCenter(element, check = true) {
 }
 function showMessage(msg, link, level = "info") {
   const popup = $(".popup-msg");
+  const html = `<a href="${link}" target="_blank">${msg}</a>`;
 
   popup.classList.remove("animatePopup");
   clearTimeout(timeout);
 
-  if (link) popup.innerHTML = `<a href="${link}" target="_blank">${msg}</a>`;
+  if (link)
+    popup.innerHTML =
+      typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(html) : html;
   else popup.textContent = msg;
 
   popup.style.backgroundColor = colors[level];

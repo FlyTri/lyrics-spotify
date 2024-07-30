@@ -186,7 +186,7 @@
           const options = new URLSearchParams({
             response_type: "code",
             client_id: id.value,
-            redirect_uri: `${window.location.origin}/callback`,
+            redirect_uri: `${location.origin}/callback`,
             scope: "user-read-currently-playing",
             show_dialog: true,
           });
@@ -195,7 +195,7 @@
           const height = 700;
           const left = (screen.width - width) / 2;
           const top = (screen.height - height) / 2;
-          const popup = window.open(
+          const popup = open(
             `https://accounts.spotify.com/authorize?${options}`,
             "Đăng nhập Spotify",
             `width=${width},height=${height},top=${top},left=${left}`
@@ -205,7 +205,7 @@
               clearInterval(interval);
 
               if (localStorage.hasOwnProperty("token"))
-                window.location.href = "/";
+                location.href = "/";
             }
           }, 250);
         });

@@ -240,7 +240,11 @@ const handleData = async (data) => {
     element.removeAttribute("style");
     element.removeAttribute("ended");
   });
-  changeBackground(data.image || null);
+
+  $("body").style.backgroundImage = data.image ? `url(${data.image})` : null;
+
+  if (data.id) $(".download").classList.remove("disabled");
+  else $(".download").classList.add("disabled");
 
   if (data.local) {
     setLyricsStatus(`${emoji("📂")}Đang phát file cục bộ`);

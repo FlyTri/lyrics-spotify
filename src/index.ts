@@ -87,6 +87,42 @@ app
 
     res.json(result || NO_RESULT);
   })
+  .get("/api/download/:id([A-Za-z0-9]{22})", async (req, res) => {
+    const { id } = req.params;
+
+    const data = await axios(`https://api.spotifydown.com/download/${id}`, {
+      headers: {
+        accept: "*/*",
+        "accept-language": "en-US,en;q=0.9,vi;q=0.8",
+        dnt: "1",
+        "if-none-match": 'W/"1d9-+qLva7rXNcFG0l6Y81ubQG6qJ7g"',
+        origin: "https://spotifydown.com",
+        priority: "u=1, i",
+        referer: "https://spotifydown.com/",
+        "sec-ch-ua":
+          '"Not)A;Brand";v="99", "Brave";v="127", "Chromium";v="127"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-site",
+        "sec-gpc": "1",
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+      },
+    })
+      .then((response) => response.data as SpotifyDownResponse)
+      .catch((error) =>
+        error.response ? (error.response.data as SpotifyDownResponse) : null
+      );
+
+    if (!data)
+      return res.json({ message: "Không thể gửi kêu cầu đến 3rd API" });
+    if (!data.success)
+      return res.json({ message: `Lỗi từ 3rd API: ${data.message}` });
+
+    res.json({ link: data.link });
+  })
   .all("*", (req, res) => res.status(404).send(""));
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
