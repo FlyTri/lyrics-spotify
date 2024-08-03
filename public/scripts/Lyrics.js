@@ -83,6 +83,8 @@ const writeLyrics = async () => {
       return setLyricsStatus("Có lẽ bạn phải đoán lời bài hát...");
   }
 
+  const fm = document.createDocumentFragment();
+
   switch (lyrics.type) {
     case "TEXT_SYNCED": {
       let p = document.createElement("p");
@@ -90,44 +92,48 @@ const writeLyrics = async () => {
 
       lyrics.data.forEach((obj, index) => {
         if (obj.new) {
-          append(".content", p);
+          fm.append(p);
           p = document.createElement("p");
           p.classList.add("lyrics");
         }
 
         const span = document.createElement("span");
+
         span.classList.add(`index-${index}`);
         writeContent(obj, span);
         p.append(span);
 
-        if (!lyrics.data[index + 1]) append(".content", p);
+        if (!lyrics.data[index + 1]) fm.append(p);
       });
       break;
     }
-    case "LINE_SYNCED": {
+    case "LINE_SYNCED":
       lyrics.data.forEach((obj, index) => {
         const element = document.createElement("p");
+
         element.classList.add("lyrics", `index-${index}`);
         writeContent(obj, element);
-        append(".content", element);
+        fm.append(element);
       });
       break;
-    }
-    case "NOT_SYNCED": {
+    case "NOT_SYNCED":
       lyrics.data.forEach((obj) => {
         const element = document.createElement("p");
+
         element.classList.add("lyrics", "highlight");
         writeContent(obj, element);
-        append(".content", element);
+        fm.append(element);
       });
       break;
-    }
   }
 
-  const element = document.createElement("p");
-  element.classList.add("source");
-  element.textContent = lyrics.source;
-  append(".content", element);
+  const sourceElement = document.createElement("p");
+
+  sourceElement.classList.add("source");
+  sourceElement.textContent = lyrics.source;
+  fm.append(sourceElement);
+
+  $(".content").append(fm);
 
   if (localStorage.getItem("convert") === "1" && needConvert()) convert();
 

@@ -8,8 +8,6 @@ const IGNORE =
 
 const lang = { ja: "Tiếng Nhật", ko: "Tiếng Hàn", zh: "Tiếng Trung" };
 
-eld.dynamicLangSubset(["ja", "ko", "zh"]);
-
 let analyzer;
 
 async function initKuromoji() {
@@ -69,7 +67,7 @@ async function convert() {
   const raw = lyrics.data.map((obj) => obj.text).join("");
   const { language } = eld.detect(raw);
 
-  if (!language)
+  if (!language || !lang[language])
     return showMessage("Ngôn ngữ không được hỗ trợ", null, "error");
 
   showMessage(`Ngôn ngữ: ${lang[language]}`);

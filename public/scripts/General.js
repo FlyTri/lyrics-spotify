@@ -17,9 +17,6 @@ function $(query) {
 function $All(query) {
   return document.querySelectorAll(query);
 }
-function append(query, element) {
-  $(query).append(element);
-}
 function random(array) {
   const index = Math.floor(Math.random() * array.length);
 
