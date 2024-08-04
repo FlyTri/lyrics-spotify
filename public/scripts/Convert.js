@@ -20,11 +20,10 @@ async function initKuromoji() {
     XMLHttpRequest.prototype.open = function (method, url, async) {
       if (url.startsWith(dicPath.replace("https://", "https:/"))) {
         this.onreadystatechange = () => {
-          if (this.readyState === 4 && this.status === 200) {
+          if (this.readyState === 4 && this.status === 200)
             document.querySelector(
               ".loading-status"
             ).textContent = `Building dictionaries (${++count + 1}/12)`;
-          }
         };
 
         originalOpen.call(
