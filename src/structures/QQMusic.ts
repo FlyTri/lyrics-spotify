@@ -6,7 +6,13 @@ import { lrc as parseLRC, qrc as parseQRC, plain } from "./Parser";
 import { QQMusicLyricsResponse, QQMusicSearchResponse } from "../types/QQMusic";
 import { LineSyncedData, NotSyncedData, TextSyncedData } from "../types";
 
-const replace = (string: string) => string.replace(/ - Remix| \(Remix\)/, "");
+const formatTitle = (title: string) =>
+  title
+    .toLowerCase()
+    .replace(
+      / - remix| \(remix\)| \(lofi\)| \(lofi ver.\)| \(lofi version\)| - lofi| - speed up| \(speed up\)/,
+      ""
+    );
 const instance = axios.create({
   baseURL: "https://u.y.qq.com/cgi-bin",
 });
@@ -36,40 +42,35 @@ export default class QQMusic {
 
     if (!data) return;
 
-    const songs = data.req.data.body.song.list;
-    const sortedArtists = String(
-      artists
-        .toUpperCase()
-        .split(", ")
-        .sort((a, b) => a.localeCompare(b))
+    const songs = data.req.data.body.song.list.filter(
+      (song) => Math.abs(song.interval - duration / 1000) <= 10000
     );
 
     if (!songs.length) return;
 
-    name = replace(name);
+    const matchDuration = songs.filter(
+      (song) =>
+        song.interval === Math.round(duration / 1000) ||
+        song.interval === Math.floor(duration / 1000)
+    );
+
+    if (matchDuration.length === 1) return matchDuration[0].id;
+
+    const sortedArtists = String(
+      artists.split(", ").sort((a, b) => a.localeCompare(b))
+    ).toLowerCase();
+    const formattedTitle = formatTitle(name);
 
     const song = songs.find((song) => {
-      const titleMath =
-        replace(song.name).toUpperCase() === name.toUpperCase() &&
-        replace(song.title).toUpperCase() === name.toUpperCase();
+      const titleMatch = formatTitle(song.name).toLowerCase() === formattedTitle;
       const artistMatch =
         String(
           song.singer
-            .map((singer) => singer.name.toUpperCase())
+            .map((singer) => singer.name)
             .sort((a, b) => a.localeCompare(b))
-        ) === sortedArtists &&
-        String(
-          song.singer
-            .map((singer) => singer.title.toUpperCase())
-            .sort((a, b) => a.localeCompare(b))
-        ) === sortedArtists;
-      const durationMatch = song.interval === Math.round(duration / 1000);
+        ).toLowerCase() === sortedArtists;
 
-      return (
-        (titleMath && durationMatch) ||
-        (artistMatch && durationMatch) ||
-        (titleMath && artistMatch)
-      );
+      return (titleMatch && artistMatch) || titleMatch;
     });
 
     return song?.id;
