@@ -1,4 +1,5 @@
 import axios from "axios";
+import { SocksProxyAgent } from "socks-proxy-agent";
 import crypto from "node:crypto";
 import { lrc as parseLRC } from "./Parser";
 import { formatText, omitUndefined, trim } from "../utils";
@@ -10,6 +11,7 @@ const { ZMP3_API_KEY, ZMP3_SECRET_KEY, ZMP3_VERSION } = process.env;
 
 const instance = axios.create({
   baseURL: "https://zingmp3.vn/",
+  httpAgent: new SocksProxyAgent("socks5://202.92.5.126:44879"),
 });
 
 const createHash256 = (str: string) =>
