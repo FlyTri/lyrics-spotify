@@ -23,7 +23,7 @@ instance.interceptors.response.use(
 );
 
 export default class QQMusic {
-  async getID({ name, artists, duration }: SpotifyTrackData) {
+  async getID({ name, artists, album, duration }: SpotifyTrackData) {
     const data: QQMusicSearchResponse | null = await instance.post(
       "/musicu.fcg",
       {
@@ -62,15 +62,28 @@ export default class QQMusic {
     const formattedTitle = formatTitle(name);
 
     const song = songs.find((song) => {
-      const titleMatch = formatTitle(song.name).toLowerCase() === formattedTitle;
+      const titleMatch =
+        formatTitle(song.name).toLowerCase().normalize("NFC") ===
+        formattedTitle;
       const artistMatch =
         String(
           song.singer
             .map((singer) => singer.name)
             .sort((a, b) => a.localeCompare(b))
-        ).toLowerCase() === sortedArtists;
+        )
+          .toLowerCase()
+          .normalize("NFC") === sortedArtists;
+      const albumMatch =
+        song.album.name.toLowerCase().normalize("NFC") === album.toLowerCase();
+      const durationMatch =
+        song.interval === Math.round(duration / 1000) ||
+        song.interval === Math.floor(duration / 1000);
 
-      return (titleMatch && artistMatch) || titleMatch;
+      return (
+        (titleMatch && artistMatch) ||
+        (albumMatch && durationMatch) ||
+        titleMatch
+      );
     });
 
     return song?.id;
