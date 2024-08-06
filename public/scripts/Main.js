@@ -1,6 +1,14 @@
 if (!localStorage.getItem("token")) location.href = "/login";
 
+let scrolling;
+
 document.addEventListener("DOMContentLoaded", async () => {
+  $(".content-container").addEventListener("scroll", () => (scrolling = true));
+  $(".content-container").addEventListener(
+    "scrollend",
+    () => (scrolling = false)
+  );
+
   const loadKuroshiro = await initKuromoji();
 
   if (!loadKuroshiro) return;

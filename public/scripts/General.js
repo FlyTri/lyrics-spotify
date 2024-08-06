@@ -44,6 +44,7 @@ function scrollToCenter(element, check = true) {
   if (
     bottom >= -50 &&
     top - clientHeight <= 50 &&
+    !scrolling &&
     !document.getSelection().toString()
   )
     scrollIntoView(element, scrollOptions);
