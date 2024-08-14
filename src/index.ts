@@ -4,6 +4,7 @@ import express from "express";
 import { rateLimit } from "express-rate-limit";
 import path from "path";
 import axios from "axios";
+import cors from "cors";
 import RedisManager from "./structures/Redis";
 import MongoDBManager from "./structures/MongoDB";
 import { sources } from "./structures/SourceManager";
@@ -20,7 +21,7 @@ const redis = new RedisManager();
 const mongodb = new MongoDBManager();
 const app = express();
 
-app.use(
+app.use(cors()).use(
   rateLimit({
     windowMs: 1000,
     limit: 100,

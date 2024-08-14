@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     localStorage.setItem("count", count);
     updateCountDiv(count);
-    update(true);
+    update();
     $(".c-up").classList.toggle("disabled", count === 5000);
     $(".c-down").classList.toggle("disabled", count === -5000);
   };
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateCountDiv(0);
     $(".c-up").classList.remove("disabled");
     $(".c-down").classList.remove("disabled");
-    update(true);
+    update();
   });
 
   $(".logout").addEventListener("click", () => {
