@@ -185,8 +185,8 @@ const update = () => {
 
   currentLine.parentElement.classList.add("active");
 
-  nextLyrics.forEach((lyric, index) => {
-    index += currIndex + 1;
+  nextLyrics.forEach((lyric, orginIndex) => {
+    const index = orginIndex + currIndex + 1;
 
     const newElement = lyric.new || lyrics.type === "LINE_SYNCED";
     const currentLine = $(`.index-${index}`);
@@ -198,14 +198,25 @@ const update = () => {
           lyric.lineEnd - now
         )
       );
+    currentLine.style = "";
 
     timeouts.push(
       setTimeout(() => {
         if (newElement) clearHighlights();
 
-        currentLine.parentElement.classList.add("active");
-        currentLine.classList.add("highlight");
+        const dur = nextLyrics[orginIndex + 1]?.time - lyric.time;
 
+        //  currentLine.parentElement.classList.add("active");
+        //   currentLine.classList.add("highlight");
+        console.log(dur);
+        if (dur) {
+          console.log(currentLine);
+          currentLine.style.animationName = "anim";
+          currentLine.style.animationDuration = `${dur}ms`;
+          currentLine.style.animationTimingFunction = "linear";
+          currentLine.classList.add("animate");
+          currentLine.style.color = "white";
+        }
         if (lyric.wait || (!lyric.text && typeof lyric.time === "number"))
           updateInterlude(currentLine, index);
         if (newElement) scrollToCenter(currentLine);
