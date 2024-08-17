@@ -212,7 +212,13 @@ const update = () => {
 
         //  currentLine.parentElement.classList.add("active");
         //   currentLine.classList.add("highlight");
-        if (lyric.duration) currentLine.classList.add("animate");
+        if (lyric.duration) {
+          currentLine.style.setProperty(
+            "--pxp",
+            `${(5 / (currentLine.getBoundingClientRect().width / 2)) * 100}%`
+          );
+          currentLine.classList.add("animate");
+        }
         if (lyric.wait || (!lyric.text && typeof lyric.time === "number"))
           updateInterlude(currentLine, index);
         if (newElement) scrollToCenter(currentLine);
