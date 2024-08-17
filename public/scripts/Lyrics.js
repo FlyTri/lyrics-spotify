@@ -174,8 +174,8 @@ const update = () => {
 
     played.forEach((element) => element.classList.add("highlight"));
 
-    if (firstWord.lineEnd > now)
-      currentLine.parentElement.classList.add("active");
+    // if (firstWord.lineEnd > now)
+    //   currentLine.parentElement.classList.add("active");
   }
 
   scrollToCenter(
@@ -190,7 +190,7 @@ const update = () => {
 
   if (!playing) return;
 
-  currentLine.parentElement.classList.add("active");
+ // currentLine.parentElement.classList.add("active");
 
   nextLyrics.forEach((lyric, index) => {
     index += currIndex + 1;
