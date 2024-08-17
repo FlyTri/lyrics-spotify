@@ -48,6 +48,7 @@ declare global {
   export type TextSynced = {
     text: string;
     time: number;
+    duration?: number;
     new?: true;
     lineEnd?: number;
   };

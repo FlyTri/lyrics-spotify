@@ -112,8 +112,19 @@ body {
   font-family: "SpotifyMix-Bold", system-ui;
   font-weight: 700;
   font-size: 35px;
-  color: var(--lyrics-color);
+  color: transparent;
+  text-shadow: 0 0 0 var(--lyrics-color);
+  clear: both;
+
   margin: 0 10px 0 10px;
+}
+
+[class^="index-"] {
+  display: inline-block;
+}
+
+[class^="index-"]:not(.no-space):not(:has(.dot)) {
+  margin-right: 0.3ch;
 }
 
 p.roma {
@@ -177,8 +188,7 @@ span:has(span.dot) {
   }
 }
 
-.lyrics,
-.lyrics span {
+.lyrics {
   padding: 7px 0;
 }
 

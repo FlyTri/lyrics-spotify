@@ -68,7 +68,7 @@ export function qrc(string: string) {
 
       const words = [...content.matchAll(QRC_WORDS)];
 
-      words.forEach(([, text, ws], i) => {
+      words.forEach(([, text, ws, wd], i) => {
         if (!text) return;
 
         const space = words[i + 1]?.[1] === " " ? " " : "";
@@ -90,6 +90,7 @@ export function qrc(string: string) {
           omitUndefined({
             text: formatText(text) + space,
             time: +ws,
+            duration: +wd,
             new: i === 0 || undefined,
             lineEnd: i === 0 ? +start + +duration : undefined,
           })

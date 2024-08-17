@@ -29,22 +29,24 @@
 }
 
 .animate {
-  color: transparent;
-  background-image: linear-gradient(90deg, rgba(255, 255, 255) 50%, rgba(255, 255, 255, 0.3) 60%);
   background-clip: text;
   background-size: 200% 100%;
-  background-position: 100% 0%;
+  background-position: 0% 0%;
+  background-image: linear-gradient(
+    90deg,
+    rgba(var(--highlight-color)) 50%,
+    transparent 60%
+  );
+  animation: text var(--duration) linear;
 }
 
-@keyframes anim {
+@keyframes text {
   0% {
-  color: transparent;
-
+    color: transparent;
     background-position: 100% 0%;
   }
   100% {
-  color: transparent;
-
+    color: transparent;
     background-position: 0% 0%;
   }
 }

@@ -14,6 +14,7 @@ const clearHighlights = () => {
   $All(".highlight").forEach((element) =>
     element.classList.remove("highlight")
   );
+  $All(".animate").forEach((element) => element.classList.remove("animate"));
 };
 const currentIndex = () =>
   lyrics.data.findLastIndex((obj) => obj.time <= spotify.position);
@@ -66,6 +67,12 @@ const writeContent = (obj, element) => {
       element.append(span);
     });
   } else {
+    if (obj.text[obj.text.length - 1] === " ") {
+      obj.text = obj.text.slice(0, -1);
+    } else element.classList.add("no-space");
+    if (obj.duration)
+      element.style.setProperty("--duration", `${obj.duration}ms`);
+
     element.textContent = obj.text || "♫";
   }
 };
@@ -185,8 +192,8 @@ const update = () => {
 
   currentLine.parentElement.classList.add("active");
 
-  nextLyrics.forEach((lyric, orginIndex) => {
-    const index = orginIndex + currIndex + 1;
+  nextLyrics.forEach((lyric, index) => {
+    index += currIndex + 1;
 
     const newElement = lyric.new || lyrics.type === "LINE_SYNCED";
     const currentLine = $(`.index-${index}`);
@@ -198,25 +205,14 @@ const update = () => {
           lyric.lineEnd - now
         )
       );
-    currentLine.style = "";
 
     timeouts.push(
       setTimeout(() => {
         if (newElement) clearHighlights();
 
-        const dur = nextLyrics[orginIndex + 1]?.time - lyric.time;
-
         //  currentLine.parentElement.classList.add("active");
         //   currentLine.classList.add("highlight");
-        console.log(dur);
-        if (dur) {
-          console.log(currentLine);
-          currentLine.style.animationName = "anim";
-          currentLine.style.animationDuration = `${dur}ms`;
-          currentLine.style.animationTimingFunction = "linear";
-          currentLine.classList.add("animate");
-          currentLine.style.color = "white";
-        }
+        if (lyric.duration) currentLine.classList.add("animate");
         if (lyric.wait || (!lyric.text && typeof lyric.time === "number"))
           updateInterlude(currentLine, index);
         if (newElement) scrollToCenter(currentLine);
