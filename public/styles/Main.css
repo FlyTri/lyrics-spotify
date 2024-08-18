@@ -30,23 +30,21 @@
 
 .animate {
   background-clip: text;
-  background-size: 200% 100%;
+  background-size: 220% 100%;
   background-position: 0% 0%;
   background-image: linear-gradient(
     90deg,
     rgba(var(--highlight-color)) 50%,
-    transparent calc(var(--pxp) + 50%)
+    transparent calc(50% + 7.5px)
   );
   animation: text var(--duration) linear;
 }
 
 @keyframes text {
   0% {
-    color: transparent;
     background-position: 100% 0%;
   }
   100% {
-    color: transparent;
     background-position: 0% 0%;
   }
 }

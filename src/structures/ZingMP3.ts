@@ -124,7 +124,7 @@ export default class ZingMP3 {
     sentences.forEach((sentence) => {
       const lineEnd = sentence.words[sentence.words.length - 1].endTime;
 
-      sentence.words.forEach(({ startTime, data }, i) => {
+      sentence.words.forEach(({ startTime, endTime, data }, i) => {
         if (!data) return;
 
         const space = sentence.words[i + 1] ? " " : "";
@@ -145,7 +145,8 @@ export default class ZingMP3 {
         lyrics.push(
           omitUndefined({
             text: formatText(data) + space,
-            time: +startTime,
+            time: startTime,
+            duration: endTime - startTime || undefined,
             new: i === 0 || undefined,
             lineEnd: i === 0 ? lineEnd : undefined,
           })
