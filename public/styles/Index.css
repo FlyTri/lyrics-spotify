@@ -136,7 +136,6 @@ p.roma {
 }
 
 .highlight {
-  color: rgba(var(--highlight-color), 0.75);
   background-clip: text;
   background-size: 220% 100%;
   background-position: 0% 0%;
@@ -169,6 +168,10 @@ span.highlight,
 p.status {
   color: rgba(var(--highlight-color), 0.75) !important;
 } */
+
+p.status {
+  color: rgba(var(--highlight-color), 0.75) !important;
+}
 
 .content .emoji {
   margin-right: 5px;
