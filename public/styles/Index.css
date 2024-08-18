@@ -135,8 +135,28 @@ p.roma {
   text-shadow: none !important;
 }
 
-.active .highlight {
-  text-shadow: 0 0 10px rgba(var(--highlight-color), 0.6);
+.highlight {
+  color: rgba(var(--highlight-color), 0.75);
+  background-clip: text;
+  background-size: 220% 100%;
+  background-position: 0% 0%;
+  background-image: linear-gradient(
+    90deg,
+    rgba(var(--highlight-color), 0.75) 50%,
+    transparent calc(50% + 7.5px)
+  );
+  animation: text var(--duration) linear;
+}
+
+@keyframes text {
+  0% {
+    color: transparent;
+    background-position: 100% 0%;
+  }
+  100% {
+    color: transparent;
+    background-position: 0% 0%;
+  }
 }
 
 p.active:has(.highlight) .roma,
@@ -144,11 +164,11 @@ p.highlight .roma {
   color: rgba(var(--highlight-color), 0.75);
 }
 
-p.highlight,
+/* p.highlight,
 span.highlight,
 p.status {
   color: rgba(var(--highlight-color), 0.75) !important;
-}
+} */
 
 .content .emoji {
   margin-right: 5px;

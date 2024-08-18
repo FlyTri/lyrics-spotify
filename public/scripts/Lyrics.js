@@ -211,8 +211,8 @@ const update = () => {
         if (newElement) clearHighlights();
 
         //  currentLine.parentElement.classList.add("active");
-        //   currentLine.classList.add("highlight");
-        if (lyric.duration) currentLine.classList.add("animate");
+          currentLine.classList.add("highlight");
+        // if (lyric.duration) currentLine.classList.add("animate");
 
         if (lyric.wait || (!lyric.text && typeof lyric.time === "number"))
           updateInterlude(currentLine, index);
